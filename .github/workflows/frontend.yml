@@ -37,6 +37,11 @@ jobs:
         cd apps/web
         npm run lint
 
+    - name: Run Vitest Test Suite
+      run: |
+        cd apps/web
+        npm run test
+
     - name: Validate Production Build
       run: |
         cd apps/web

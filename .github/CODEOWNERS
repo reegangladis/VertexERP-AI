@@ -1,0 +1,8 @@
+# Global Code Owners configuration for VertexERP AI
+*       @reegangladis
+
+# Specific directories
+/apps/api/      @reegangladis
+/apps/web/      @reegangladis
+/docker/        @reegangladis
+/docs/          @reegangladis
