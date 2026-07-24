@@ -1,6 +1,6 @@
 # Monorepo File Map - VertexERP AI
 
-This document maps the repository file tree structure for Sprint 1.1 (Project Foundation).
+This document maps the repository file tree structure for Sprint 1.2 (Enterprise Backend Foundation).
 
 ```
 VertexERP-AI/
@@ -11,19 +11,19 @@ VertexERP-AI/
 ├── apps/                         # Modular Services
 │   ├── api/                      # Backend API (Python, FastAPI)
 │   │   ├── app/                  # Application Logic
-│   │   │   ├── api/              # Routers and Endpoints
-│   │   │   ├── core/             # Configuration & Logging
-│   │   │   ├── database/         # Postgres Engine & Redis Clients
-│   │   │   ├── middleware/       # Exception handlers & CORS
+│   │   │   ├── api/              # Routers and Endpoints (v1: health, version)
+│   │   │   ├── core/             # Configuration, Logging, Context, Dependencies, Exceptions
+│   │   │   ├── database/         # Postgres connection pooling, BaseModel mixins, RedisService
+│   │   │   ├── middleware/       # Exception handlers, Request ID, Access logs, Security, CORS
 │   │   │   ├── models/           # SQLAlchemy Declarative Models
-│   │   │   ├── repositories/     # Repository query abstractions
-│   │   │   ├── schemas/          # Pydantic data schemas
-│   │   │   ├── services/         # Business domain layers
-│   │   │   ├── tests/            # Pytest test cases
-│   │   │   └── utils/            # Helper utilities
+│   │   │   ├── repositories/     # Generic BaseRepository CRUD & queries
+│   │   │   ├── schemas/          # Pydantic data schemas, APIResponse
+│   │   │   ├── services/         # Generic BaseService domain layers
+│   │   │   ├── tests/            # Test suite divided into unit/ and integration/
+│   │   │   └── utils/            # Helper utilities (date, uuid, pagination, response, validation)
 │   │   ├── alembic/              # Database schema migrations
 │   │   ├── requirements.txt      # Python dependencies
-│   │   └── pyproject.toml        # Ruff/Black formatter setups
+│   │   └── pyproject.toml        # Ruff/Black formatter & pytest setups
 │   └── web/                      # Frontend Application (React, Vite, TS)
 │       ├── src/
 │       │   ├── components/       # Visual buttons and UI modules
@@ -36,10 +36,12 @@ VertexERP-AI/
 │       ├── tsconfig.json         # TypeScript compiler configurations
 │       └── vite.config.ts        # Vite routing & compiler adjustments
 ├── docker/                       # Docker Compilation Files
-│   ├── Dockerfile.api            # Multi-stage production FastAPI image
+│   ├── Dockerfile.api            # Multi-stage production FastAPI image with healthcheck
 │   └── Dockerfile.web            # Multi-stage production Nginx/React image
 ├── docs/                         # Architecture & Operation Guides
 │   ├── Architecture.md           # Structural design maps
+│   ├── BackendArchitecture.md    # API endpoints, repositories, services, middleware
+│   ├── CodingStandards.md        # Quality coding guidelines and clean architecture rules
 │   ├── FolderStructure.md        # File map overview
 │   ├── DevelopmentGuide.md       # Running project locally
 │   ├── InstallationGuide.md      # Launching via Docker-compose

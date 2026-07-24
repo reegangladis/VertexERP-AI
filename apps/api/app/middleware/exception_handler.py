@@ -1,4 +1,5 @@
 import logging
+from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
@@ -6,39 +7,78 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.core.exceptions import BaseException as AppBaseException
+
 logger = logging.getLogger(__name__)
 
 
 def setup_exception_handlers(app: FastAPI) -> None:
-    """Configures global error interceptors for the FastAPI app."""
+    """Configures global error interceptors for the FastAPI app to ensure standard responses."""
+
+    @app.exception_handler(AppBaseException)
+    async def app_exception_handler(request: Request, exc: AppBaseException):
+        """Intercepts custom application exceptions and formats standard error response."""
+        logger.warning(
+            f"Application error occurred on {request.url.path}: {exc.message}"
+        )
+
+        meta = (
+            exc.details
+            if isinstance(exc.details, dict)
+            else {"details": exc.details} if exc.details else {}
+        )
+
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=jsonable_encoder(
+                {
+                    "success": False,
+                    "message": exc.message,
+                    "data": None,
+                    "meta": meta,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            ),
+        )
 
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-        """Intercepts HTTPExceptions and formats standard error response."""
+        """Intercepts Starlette/FastAPI HTTPExceptions and formats standard error response."""
         logger.warning(f"HTTP error occurred on {request.url.path}: {exc.detail}")
-        # If exc.detail is already a dict, we can keep it as is, otherwise wrap it
-        detail = (
-            exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)}
+
+        message = (
+            exc.detail if isinstance(exc.detail, str) else "HTTP exception occurred"
         )
+        meta = exc.detail if isinstance(exc.detail, dict) else {}
+
         return JSONResponse(
             status_code=exc.status_code,
-            content=jsonable_encoder({"error": detail}),
+            content=jsonable_encoder(
+                {
+                    "success": False,
+                    "message": message,
+                    "data": None,
+                    "meta": meta,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            ),
         )
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(
         request: Request, exc: RequestValidationError
     ):
-        """Intercepts Pydantic model validation errors."""
+        """Intercepts Pydantic/FastAPI model validation errors."""
         logger.error(f"Validation error on {request.url.path}: {exc.errors()}")
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content=jsonable_encoder(
                 {
-                    "error": {
-                        "message": "Validation failed for request parameters",
-                        "details": exc.errors(),
-                    }
+                    "success": False,
+                    "message": "Validation failed for request parameters",
+                    "data": None,
+                    "meta": {"errors": exc.errors()},
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
             ),
         )
@@ -47,14 +87,20 @@ def setup_exception_handlers(app: FastAPI) -> None:
     async def generic_exception_handler(request: Request, exc: Exception):
         """Catch-all handler for unhandled internal code errors (500)."""
         logger.exception(f"Unhandled system error occurred on {request.url.path}")
+
+        meta = {}
+        if settings_is_dev():
+            meta = {"details": str(exc)}
+
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=jsonable_encoder(
                 {
-                    "error": {
-                        "message": "An internal system error occurred. Please contact support.",
-                        "details": str(exc) if settings_is_dev() else None,
-                    }
+                    "success": False,
+                    "message": "An internal system error occurred. Please contact support.",
+                    "data": None,
+                    "meta": meta,
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
             ),
         )

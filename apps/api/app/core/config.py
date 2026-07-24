@@ -1,4 +1,6 @@
 import json
+import os
+from typing import Literal
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -10,7 +12,7 @@ class Settings(BaseSettings):
     )
 
     PROJECT_NAME: str = "VertexERP AI"
-    ENVIRONMENT: str = "development"
+    ENVIRONMENT: Literal["development", "testing", "production"] = "development"
     API_V1_STR: str = "/api/v1"
 
     # CORS Settings (JSON string or comma-separated values)
@@ -36,6 +38,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "vertexerp_db"
     POSTGRES_PORT: int = 5432
+    POSTGRES_POOL_SIZE: int = 20
+    POSTGRES_MAX_OVERFLOW: int = 10
 
     @property
     def database_url_async(self) -> str:
@@ -54,10 +58,22 @@ class Settings(BaseSettings):
     # Redis configuration
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
+    REDIS_MAX_CONNECTIONS: int = 20
+    REDIS_TIMEOUT: float = 5.0
 
     @property
     def redis_url(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
+
+    # Logging configuration
+    LOG_DIR: str = "logs"
+    LOG_LEVEL: str = "INFO"
+
+    @property
+    def log_dir_path(self) -> str:
+        # Ensure log directory is relative to the apps/api folder if run locally,
+        # but also resolved correctly.
+        return os.path.abspath(self.LOG_DIR)
 
 
 settings = Settings()

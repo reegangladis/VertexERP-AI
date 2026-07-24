@@ -3,7 +3,7 @@
 This guide contains step-by-step sequences for configuring, running, and testing the backend and frontend services locally on your machine without relying on container environments.
 
 ## Prerequisites
-- Python 3.13 or newer
+- Python 3.12
 - Node.js 22 LTS or newer
 - Running instances of PostgreSQL and Redis locally
 
@@ -95,4 +95,9 @@ Inside `apps/api` with active virtual environment:
 ```bash
 pytest
 ```
-This runs system endpoint integration lints against mock connections.
+This runs the system's test suite, including:
+- **Unit Tests (`app/tests/unit/`)**: Verifying utility functions, helper methods, and isolated exceptions.
+- **Integration Tests (`app/tests/integration/`)**: Verifying FastAPI endpoints, route parameters, response payloads, database state mocks, and Redis service health.
+
+Logs will be written to `apps/api/logs/` (`app.log`, `error.log`, and `access.log`).
+

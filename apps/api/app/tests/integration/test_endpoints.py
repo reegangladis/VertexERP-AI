@@ -7,12 +7,16 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio
 async def test_version_endpoint(client: AsyncClient):
-    """Tests the version endpoint returns 200 and version data structure."""
+    """Tests the version endpoint returns 200 and version data structure wrapped in APIResponse."""
     response = await client.get("/api/v1/version")
     assert response.status_code == status.HTTP_200_OK
-    data = response.json()
+    payload = response.json()
+    assert payload["success"] is True
+    assert "timestamp" in payload
+
+    data = payload["data"]
     assert data["status"] == "active"
-    assert data["version"] == "1.1.0"
+    assert data["version"] == "1.2.0"
     assert "environment" in data
     assert "timestamp" in data
 
@@ -24,12 +28,14 @@ async def test_health_endpoint_healthy(
 ):
     """Tests the health endpoint returns 200 when database and Redis are operational."""
     mock_redis.return_value = True
-    # execute mock resolves without error
     mock_db_session.execute.return_value = None
 
     response = await client.get("/api/v1/health")
     assert response.status_code == status.HTTP_200_OK
-    data = response.json()
+    payload = response.json()
+    assert payload["success"] is True
+
+    data = payload["data"]
     assert data["status"] == "healthy"
     assert data["services"]["database"] == "healthy"
     assert data["services"]["redis"] == "healthy"
@@ -46,10 +52,14 @@ async def test_health_endpoint_unhealthy_db(
 
     response = await client.get("/api/v1/health")
     assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-    data = response.json()
-    assert data["error"]["status"] == "unhealthy"
-    assert data["error"]["services"]["database"] == "unhealthy"
-    assert data["error"]["services"]["redis"] == "healthy"
+    payload = response.json()
+    assert payload["success"] is False
+    assert "message" in payload
+
+    data = payload["data"]
+    assert data["status"] == "unhealthy"
+    assert data["services"]["database"] == "unhealthy"
+    assert data["services"]["redis"] == "healthy"
 
 
 @pytest.mark.asyncio
@@ -63,7 +73,10 @@ async def test_health_endpoint_unhealthy_redis(
 
     response = await client.get("/api/v1/health")
     assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-    data = response.json()
-    assert data["error"]["status"] == "unhealthy"
-    assert data["error"]["services"]["database"] == "healthy"
-    assert data["error"]["services"]["redis"] == "unhealthy"
+    payload = response.json()
+    assert payload["success"] is False
+
+    data = payload["data"]
+    assert data["status"] == "unhealthy"
+    assert data["services"]["database"] == "healthy"
+    assert data["services"]["redis"] == "unhealthy"
