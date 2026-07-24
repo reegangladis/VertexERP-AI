@@ -9,6 +9,7 @@ import { SettingsProvider } from '@/store/SettingsContext';
 
 import { AppLayout } from '@/layouts/AppLayout';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
+import { AuthLayout } from '@/layouts/AuthLayout';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 import { LandingPage } from '@/pages/LandingPage';
@@ -17,6 +18,12 @@ import { NotFound } from '@/routes/NotFound';
 import { ServerError } from '@/routes/ServerError';
 import { Unauthorized } from '@/routes/Unauthorized';
 import { Maintenance } from '@/routes/Maintenance';
+
+// Identity & Settings Page Views
+import { Login, Register, ForgotPassword, ResetPassword, VerifyEmail, SessionExpired } from '@/pages/AuthPages';
+import { UserManagement, RoleManagement, PermissionManagement } from '@/pages/IdentityManagement';
+import { UserSettings } from '@/pages/UserSettings';
+import { TenantSettings } from '@/pages/TenantSettings';
 
 // Setup TanStack Query Client
 const queryClient = new QueryClient({
@@ -48,7 +55,27 @@ function App() {
                         <Route path="unauthorized" element={<Unauthorized />} />
                         <Route path="maintenance" element={<Maintenance />} />
                         <Route path="500" element={<ServerError />} />
+                        
+                        {/* Security & Identity Dashboards */}
+                        <Route path="admin/users" element={<UserManagement />} />
+                        <Route path="admin/roles" element={<RoleManagement />} />
+                        <Route path="admin/permissions" element={<PermissionManagement />} />
+                        <Route path="admin/settings" element={<TenantSettings />} />
+                        
+                        {/* Account Settings */}
+                        <Route path="settings/profile" element={<UserSettings />} />
+                        
                         <Route path="*" element={<NotFound />} />
+                      </Route>
+
+                      {/* AuthLayout wraps public recovery and credential pages */}
+                      <Route path="auth" element={<AuthLayout />}>
+                        <Route path="login" element={<Login />} />
+                        <Route path="register" element={<Register />} />
+                        <Route path="forgot-password" element={<ForgotPassword />} />
+                        <Route path="reset-password" element={<ResetPassword />} />
+                        <Route path="verify-email" element={<VerifyEmail />} />
+                        <Route path="session-expired" element={<SessionExpired />} />
                       </Route>
                       
                     </Route>
