@@ -49,3 +49,18 @@ The client panel uses a modular Component-Layout-Page separation:
 - **`src/pages/`**: Complete router page views (Overview, dynamic workspace placeholders, 404).
 - **`src/services/`**: API fetching clients built with TanStack Query.
 - **`src/hooks/`**: Specialized React hooks (e.g. `useTheme` managing light/dark preferences).
+
+---
+
+## Phase 3: Organization Management Platform Architecture
+- **Hierarchical Self-Referential Graph Topology**: Database tables (`branches`, `departments`, `teams`) support parent-child self-references. Services execute hierarchy loop validations (preventing cycles) before updating or creating parent structures.
+- **Service-Repository Decoupling**: Database interactions inherit from `BaseRepository`, while complex domain constraints, bulk actions, and storage uploads reside in the `Service` layer.
+- **CSV Data Interface**: Endpoints support data import/export formats. The service handles parsing and creation validation bounds.
+- **File Storage Abstraction**: The `DocumentService` encapsulates local storage save logic and wraps interfaces for cloud bucket storage provider extensions.
+
+---
+
+## Phase 5: CRM Intelligence Platform Architecture
+- **Predictive AI Telemetry Hook Design**: Relational schemas for Leads, Deals, Support Tickets, and Campaigns are structured with telemetry indexes. These design choices prepare records for future ML Lead Scoring and Churn Predictions without introducing raw model code or packages prematurely.
+- **Transactional Quotation Versioning**: Deals capture expected valuations while Quotations allow multiple version sequences linked to the parent deal, preserving historical terms and pricing schedules.
+- **Deduplication Check Mechanics**: Lead creation endpoints trigger verification queries to detect duplicate contact details under the active organization tenant before registering new items.

@@ -4,6 +4,31 @@ All notable changes to the **VertexERP AI** project will be documented in this f
 
 The project follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-07-26 (Phase 7 - Finance & Accounting Intelligence Platform)
+
+### Added
+- **Chart of Accounts**: Hierarchical account tree (Assets, Liabilities, Equity, Income, Expenses), opening balances, running balance logic, and CSV export.
+- **General Ledger Engine**: Double-entry journal vouchers, automatic GL posting from operational events, single-click reversals, running balances, and fiscal period closures.
+- **Accounts Receivable (AR)**: Sales invoice issuance, customer payment receipts, and AR aging buckets.
+- **Accounts Payable (AP)**: Supplier bill recording, vendor disbursements, and AP aging buckets.
+- **Banking & Cash**: Bank account master, transaction log, and interactive bank statement reconciliation.
+- **Expense Claims**: Employee expense claim submission, approval workflows, receipt metadata, and GL reimbursement posting.
+- **Budget Management**: Annual & departmental budgets with real-time budget vs actual progress tracking.
+- **Tax Engine**: Jurisdiction tax profiles, GST/VAT rates, and tax reporting.
+- **Fixed Assets**: Asset register, straight-line depreciation calculation, and asset disposal.
+- **Statutory Financial Reports**: Trial Balance, Balance Sheet, Profit & Loss Statement, Cash Flow Statement, AR/AP Aging.
+- **AI Readiness Schema**: Integrated `ai_risk_score`, `ai_anomaly_flag`, `ai_fraud_score`, `ai_default_risk` fields across models.
+
+---
+
+## [0.6.0] - 2026-07-26 (Sprint 1.6 - Inventory & Warehouse Intelligence)
+
+### Added
+- **Backend Endpoints for Units & Brands**: Developed listing routes `GET /api/v1/inventory/products/units` and `GET /api/v1/inventory/products/brands` to serve catalog parameters.
+- **Frontend Page Integration & Fixes**: Patched tuple destructuring issues, updated unit lists selection, and resolved Axios state mapping issues in `Products.tsx`.
+- **Sidebar & Interface Polish**: Updated active layouts footer status to indicate Phase 6 platform integration.
+- **Automated Tests**: Formed the Vitest unit test suite `InventoryDashboard.test.tsx` ensuring 100% test completeness and verification.
+
 ---
 
 ## [0.3.0] - 2026-07-24 (Sprint 1.3 - Enterprise Foundation Completion)

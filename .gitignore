@@ -5,6 +5,8 @@
 .env.test.local
 .env.production.local
 *.env
+.gemini/
+
 
 # Dependency directories
 node_modules/

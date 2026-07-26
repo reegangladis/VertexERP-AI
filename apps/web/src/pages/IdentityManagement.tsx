@@ -306,7 +306,7 @@ export function UserManagement() {
 
 // 2. ROLE MANAGEMENT
 export function RoleManagement() {
-  const { addNotification } = () => ({ addNotification: (m: string, s: string) => {} }); // local ref
+  const addNotification = (m: string, s: string) => {}; // local ref
   const notification = useNotification();
   const [isCloneOpen, setIsCloneOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<any>(null);

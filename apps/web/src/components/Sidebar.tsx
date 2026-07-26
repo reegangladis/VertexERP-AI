@@ -12,6 +12,21 @@ import {
   User,
   History,
   Lock,
+  Building2,
+  GitBranch,
+  Network,
+  MapPin,
+  Award,
+  Clock,
+  Calendar,
+  BookOpen,
+  FileText,
+  DollarSign,
+  Activity,
+  TrendingUp,
+  Package,
+  Truck,
+  Building,
 } from 'lucide-react';
 import { useUI } from '@/hooks/useUI';
 
@@ -25,6 +40,19 @@ export function Sidebar() {
     { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
   ];
 
+  const orgItems = [
+    { label: 'Org Dashboard', path: '/org/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Org Profile', path: '/org/profile', icon: <Building2 className="h-4 w-4" /> },
+    { label: 'Branches', path: '/org/branches', icon: <GitBranch className="h-4 w-4" /> },
+    { label: 'Departments', path: '/org/departments', icon: <Network className="h-4 w-4" /> },
+    { label: 'Teams', path: '/org/teams', icon: <Users className="h-4 w-4" /> },
+    { label: 'Designations', path: '/org/designations', icon: <Award className="h-4 w-4" /> },
+    { label: 'Locations', path: '/org/locations', icon: <MapPin className="h-4 w-4" /> },
+    { label: 'Reporting Structure', path: '/org/reporting', icon: <History className="h-4 w-4" /> },
+    { label: 'Business Calendar', path: '/org/calendar', icon: <Layers className="h-4 w-4" /> },
+    { label: 'Org Settings', path: '/org/settings', icon: <Settings className="h-4 w-4" /> },
+  ];
+
   const adminItems = [
     { label: 'User Administration', path: '/admin/users', icon: <Users className="h-4 w-4" /> },
     { label: 'Role Mapping', path: '/admin/roles', icon: <Shield className="h-4 w-4" /> },
@@ -36,9 +64,52 @@ export function Sidebar() {
     { label: 'Account Settings', path: '/settings/profile', icon: <User className="h-4 w-4" /> },
   ];
 
-  const placeholderItems = [
-    { label: 'HR Portal', icon: <Briefcase className="h-4 w-4" /> },
-    { label: 'CRM & Clients', icon: <Users className="h-4 w-4" /> },
+  const hrItems = [
+    { label: 'HR Dashboard', path: '/hr/dashboard', icon: <Briefcase className="h-4 w-4" /> },
+    { label: 'Employees', path: '/hr/employees', icon: <Users className="h-4 w-4" /> },
+    { label: 'Attendance', path: '/hr/attendance', icon: <Clock className="h-4 w-4" /> },
+    { label: 'Leave Management', path: '/hr/leaves', icon: <Calendar className="h-4 w-4" /> },
+    { label: 'Recruitment', path: '/hr/recruitment', icon: <Briefcase className="h-4 w-4" /> },
+    { label: 'Performance', path: '/hr/performance', icon: <Award className="h-4 w-4" /> },
+    { label: 'Training L&D', path: '/hr/training', icon: <BookOpen className="h-4 w-4" /> },
+    { label: 'Documents Vault', path: '/hr/documents', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Payroll Setup', path: '/hr/payroll', icon: <DollarSign className="h-4 w-4" /> },
+  ];
+
+  const crmItems = [
+    { label: 'CRM Dashboard', path: '/crm/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Customers', path: '/crm/customers', icon: <Users className="h-4 w-4" /> },
+    { label: 'Leads', path: '/crm/leads', icon: <TrendingUp className="h-4 w-4" /> },
+    { label: 'Sales Pipeline', path: '/crm/pipeline', icon: <Layers className="h-4 w-4" /> },
+    { label: 'Deals', path: '/crm/deals', icon: <Briefcase className="h-4 w-4" /> },
+    { label: 'Activities Log', path: '/crm/activities', icon: <Clock className="h-4 w-4" /> },
+    { label: 'Support Tickets', path: '/crm/support-tickets', icon: <ShieldAlert className="h-4 w-4" /> },
+    { label: 'Campaigns', path: '/crm/campaigns', icon: <Activity className="h-4 w-4" /> },
+  ];
+
+  const inventoryItems = [
+    { label: 'Inventory Dashboard', path: '/inventory/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Products Master', path: '/inventory/products', icon: <Package className="h-4 w-4" /> },
+    { label: 'Categories', path: '/inventory/categories', icon: <Layers className="h-4 w-4" /> },
+    { label: 'Warehouses', path: '/inventory/warehouses', icon: <Building className="h-4 w-4" /> },
+    { label: 'Suppliers', path: '/inventory/suppliers', icon: <Truck className="h-4 w-4" /> },
+    { label: 'Purchase Orders', path: '/inventory/purchase-orders', icon: <DollarSign className="h-4 w-4" /> },
+    { label: 'Stock Transfers', path: '/inventory/transfers', icon: <Activity className="h-4 w-4" /> },
+    { label: 'Inventory Counts', path: '/inventory/counts', icon: <Clock className="h-4 w-4" /> },
+  ];
+
+  const financeItems = [
+    { label: 'Finance Dashboard', path: '/finance/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Chart of Accounts', path: '/finance/accounts', icon: <Layers className="h-4 w-4" /> },
+    { label: 'Journal Entries', path: '/finance/journals', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Invoices (AR)', path: '/finance/invoices', icon: <DollarSign className="h-4 w-4" /> },
+    { label: 'Bills (AP)', path: '/finance/bills', icon: <DollarSign className="h-4 w-4" /> },
+    { label: 'Expenses', path: '/finance/expenses', icon: <Activity className="h-4 w-4" /> },
+    { label: 'Budgets', path: '/finance/budgets', icon: <TrendingUp className="h-4 w-4" /> },
+    { label: 'Banking & Cash', path: '/finance/banking', icon: <Building2 className="h-4 w-4" /> },
+    { label: 'Fixed Assets', path: '/finance/assets', icon: <Package className="h-4 w-4" /> },
+    { label: 'Taxes', path: '/finance/taxes', icon: <Shield className="h-4 w-4" /> },
+    { label: 'Financial Reports', path: '/finance/reports', icon: <FileText className="h-4 w-4" /> },
   ];
 
   return (
@@ -70,13 +141,13 @@ export function Sidebar() {
           </nav>
         </div>
 
-        {/* Security & Identity */}
+        {/* Finance Platform */}
         <div>
           <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
-            Security & Identity
+            Finance & Accounting
           </h3>
           <nav className="space-y-0.5">
-            {adminItems.map((item) => (
+            {financeItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -95,13 +166,13 @@ export function Sidebar() {
           </nav>
         </div>
 
-        {/* User Account */}
+        {/* Organization Platform */}
         <div>
           <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
-            User Account
+            Organization Platform
           </h3>
           <nav className="space-y-0.5">
-            {userItems.map((item) => (
+            {orgItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -120,33 +191,87 @@ export function Sidebar() {
           </nav>
         </div>
 
-        {/* Phase 3 Placeholders */}
+        {/* HR Platform */}
         <div>
           <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
-            ERP Business Modules
+            HR Platform
           </h3>
-          <nav className="space-y-0.5 opacity-60">
-            {placeholderItems.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground cursor-not-allowed hover:bg-secondary/40"
-                title="Available in Phase 3"
+          <nav className="space-y-0.5">
+            {hrItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
               >
                 {item.icon}
-                <span>{item.label}</span>
-                <span className="ml-auto text-[8px] uppercase px-1 border border-border rounded bg-secondary scale-90">
-                  Soon
-                </span>
-              </div>
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        {/* CRM Platform */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            CRM Platform
+          </h3>
+          <nav className="space-y-0.5">
+            {crmItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        {/* Inventory Platform */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Inventory Platform
+          </h3>
+          <nav className="space-y-0.5">
+            {inventoryItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
             ))}
           </nav>
         </div>
       </div>
 
       <div className="border-t border-border pt-3 text-[10px] text-muted-foreground/60 text-center">
-        <p className="font-mono">Phase 2 Platform Complete</p>
+        <p className="font-mono">Phase 7 Platform Active</p>
       </div>
     </aside>
   );
 }
 export default Sidebar;
+
