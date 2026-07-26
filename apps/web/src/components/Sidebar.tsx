@@ -32,6 +32,8 @@ import {
   Wrench,
   Play,
   CheckCircle2,
+  Brain,
+  Zap,
 } from 'lucide-react';
 import { useUI } from '@/hooks/useUI';
 
@@ -45,7 +47,17 @@ export function Sidebar() {
     { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
   ];
 
+  const mlItems = [
+    { label: 'ML Dashboard', path: '/ml/dashboard', icon: <Brain className="h-4 w-4" /> },
+    { label: 'Model Registry', path: '/ml/registry', icon: <Layers className="h-4 w-4" /> },
+    { label: 'Training Jobs', path: '/ml/training', icon: <Play className="h-4 w-4" /> },
+    { label: 'ML Experiments', path: '/ml/experiments', icon: <GitBranch className="h-4 w-4" /> },
+    { label: 'Inference & Predictions', path: '/ml/predictions', icon: <Zap className="h-4 w-4" /> },
+    { label: 'Evaluation Metrics', path: '/ml/evaluation', icon: <Activity className="h-4 w-4" /> },
+  ];
+
   const analyticsItems = [
+
     { label: 'Executive Dashboard', path: '/analytics/executive', icon: <LayoutDashboard className="h-4 w-4" /> },
     { label: 'HR Analytics', path: '/analytics/hr', icon: <Briefcase className="h-4 w-4" /> },
     { label: 'CRM Analytics', path: '/analytics/crm', icon: <TrendingUp className="h-4 w-4" /> },
@@ -206,11 +218,37 @@ export function Sidebar() {
           </nav>
         </div>
 
+        {/* Enterprise Machine Learning Platform */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Machine Learning Platform
+          </h3>
+          <nav className="space-y-0.5">
+            {mlItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-[10px] px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
         {/* Enterprise Data Engineering Platform */}
         <div>
           <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
             Data Engineering Platform
           </h3>
+
           <nav className="space-y-0.5">
             {dataEngineeringItems.map((item) => (
               <NavLink

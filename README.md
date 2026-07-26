@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents **Phase 10 (Enterprise Data Engineering Platform)**, implementing core clean architecture patterns, Data Warehouse Star/Snowflake schemas with Slowly Changing Dimensions (SCD Type 2), Data Lake multi-zone abstractions (Raw, Processed, Curated, Archive), automated ETL/ELT pipeline engine with cron scheduling and retries, Data Quality inspection scoring, Master Data Management (MDM) golden record resolution, Feature Store registry, pre-generated analytics datasets, graph data lineage, and real-time pipeline monitoring.
+This repository represents **Phase 11 (Enterprise Machine Learning Platform)**, implementing core clean architecture patterns, reusable ML infrastructure supporting scikit-learn, XGBoost, LightGBM, CatBoost, TensorFlow, PyTorch, and Prophet frameworks, Feature Engineering transformers (Categorical Encoding, Scaling, Outlier & Missing Value Handlers), Model Training Jobs, K-Fold Cross Validation, Model Evaluation Metrics (Accuracy, Precision, Recall, F1, ROC AUC, RMSE, MAE, MAPE, Confusion Matrix, Feature Importance), Model Registry lifecycle versioning and approval workflows, Experiment Tracking, Real-Time & Batch Inference APIs, Prediction History telemetry, and pre-built Business ML Modules for HR, CRM, Finance, Inventory, and Manufacturing domains.
 
 ---
 
@@ -13,6 +13,7 @@ This repository represents **Phase 10 (Enterprise Data Engineering Platform)**, 
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, TanStack Query | Strict TS, React Router v7 |
 | **Backend** | Python 3.12, FastAPI, SQLAlchemy 2, Alembic, Uvicorn | Clean Architecture |
 | **Database & Cache** | PostgreSQL 17, Redis 7 | Persistent Volume Mapping |
+| **ML Engines** | scikit-learn, XGBoost, LightGBM, CatBoost, TensorFlow, PyTorch, Prophet | Universal Adapter Pattern |
 | **DevOps** | Docker, Docker Compose, GitHub Actions | Multi-stage Compilation |
 | **Formatting** | Ruff, Black, ESLint, Prettier | Strict Quality Gates |
 
@@ -22,7 +23,11 @@ This repository represents **Phase 10 (Enterprise Data Engineering Platform)**, 
 
 Detailed operational documentation is available under the `docs/` directory:
 
-1. 📘 [Data Engineering Guide](docs/DataEngineeringGuide.md) — data warehouse star/snowflake schema, data lake zones, MDM, and quality engine.
+1. 📘 [Machine Learning Guide](docs/MachineLearningGuide.md) — framework adapters, algorithm types, feature pipelines, and business ML modules.
+2. 📘 [Model Registry Guide](docs/ModelRegistryGuide.md) — model versions, lifecycle stages, and approval workflows.
+3. 📘 [Inference Guide](docs/InferenceGuide.md) — real-time/batch prediction APIs, latency monitoring, and ground truth feedback loop.
+4. 📘 [Data Engineering Guide](docs/DataEngineeringGuide.md) — data warehouse star/snowflake schema, data lake zones, MDM, and quality engine.
+
 2. 📘 [ETL Pipelines Guide](docs/ETLGuide.md) — incremental/full loads, cron scheduling, and pipeline execution logging.
 3. 📘 [Feature Store Guide](docs/FeatureStoreGuide.md) — feature groups, registry, offline store datasets, and online cache architecture.
 4. 📘 [Business Intelligence Guide](docs/BusinessIntelligenceGuide.md) — enterprise KPI framework and domain analytics engines.

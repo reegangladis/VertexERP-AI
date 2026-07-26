@@ -115,6 +115,17 @@ import {
   LineageViewer,
 } from '@/pages/data-engineering';
 
+// Enterprise Machine Learning Platform Page Views
+import {
+  MLDashboard,
+  ModelRegistry,
+  TrainingJobs,
+  ExperimentsPage,
+  PredictionsPage,
+  EvaluationMetricsPage,
+} from '@/pages/ml';
+
+
 // Setup TanStack Query Client
 
 const queryClient = new QueryClient({
@@ -236,6 +247,15 @@ function App() {
                         <Route path="data-engineering/metadata" element={<MetadataCatalogPage />} />
                         <Route path="data-engineering/quality" element={<DataQualityDashboard />} />
                         <Route path="data-engineering/lineage" element={<LineageViewer />} />
+
+                        {/* Enterprise Machine Learning Platform */}
+                        <Route path="ml/dashboard" element={<MLDashboard />} />
+                        <Route path="ml/registry" element={<ModelRegistry />} />
+                        <Route path="ml/training" element={<TrainingJobs />} />
+                        <Route path="ml/experiments" element={<ExperimentsPage />} />
+                        <Route path="ml/predictions" element={<PredictionsPage />} />
+                        <Route path="ml/evaluation" element={<EvaluationMetricsPage />} />
+
 
 
                         {/* Security & Identity Dashboards */}
