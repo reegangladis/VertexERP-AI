@@ -38,6 +38,9 @@ import {
   MessageSquare,
   ShieldCheck,
   RefreshCw,
+  Tag,
+  Server,
+  Globe,
 } from 'lucide-react';
 import { useUI } from '@/hooks/useUI';
 

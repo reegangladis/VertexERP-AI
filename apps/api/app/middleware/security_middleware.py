@@ -10,18 +10,20 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response: Response = await call_next(request)
 
         # Content Security Policy (CSP)
-        csp_directives = [
-            "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-            "font-src 'self' https://fonts.gstatic.com data:",
-            "img-src 'self' data: https:",
-            "connect-src 'self' ws: wss: https:",
-            "frame-ancestors 'none'",
-            "base-uri 'self'",
-            "form-action 'self'",
-        ]
-        response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
+        if not (request.url.path.startswith("/docs") or request.url.path.startswith("/redoc") or request.url.path.endswith("openapi.json")):
+            csp_directives = [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+                "font-src 'self' https://fonts.gstatic.com data:",
+                "img-src 'self' data: https:",
+                "connect-src 'self' ws: wss: https:",
+                "frame-ancestors 'none'",
+                "base-uri 'self'",
+                "form-action 'self'",
+            ]
+            response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
+
 
         # Strict Transport Security (HSTS)
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
