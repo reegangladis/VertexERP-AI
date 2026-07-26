@@ -341,3 +341,28 @@ To bind employees to designations and hierarchy reporting structures, the follow
 *   `end_date`: DATE
 *   `budget`: DECIMAL(15,2)
 *   `expected_revenue`: DECIMAL(15,2)
+
+---
+
+## 6. Enterprise Data Engineering Platform Tables (Phase 10)
+
+### 6.1. Core Pipelines & Infrastructure
+*   `etl_jobs`: Job definitions (`name`, `source_type`, `target_type`, `frequency`, `schedule_cron`, `status`, `retry_limit`, `configuration`, `priority`, `is_incremental`)
+*   `etl_runs`: Execution runs (`job_id`, `run_number`, `status`, `start_time`, `end_time`, `duration_seconds`, `rows_extracted`, `rows_transformed`, `rows_loaded`)
+*   `pipeline_logs`: Log events (`run_id`, `timestamp`, `log_level`, `phase`, `message`, `details`)
+
+### 6.2. Data Warehouse (Star & Snowflake Schema with SCD Type 2)
+*   `dim_customers`, `dim_employees`, `dim_products`, `dim_suppliers`, `dim_organizations`: SCD Type 2 dimensions (`effective_date`, `expiration_date`, `is_current`, `version`)
+*   `dim_dates`: Time dimension (`date_key`, `full_date`, `year`, `quarter`, `month`, `day_of_week`, `is_weekend`)
+*   `fact_sales`, `fact_inventory`, `fact_financials`, `fact_manufacturing`, `fact_hr`: Fact tables
+*   `historical_snapshots`: Point-in-time warehouse checksum audit snapshots
+
+### 6.3. Data Lake, MDM, Catalog & Feature Store
+*   `data_lake_objects`: Data Lake storage zone objects (`zone`, `object_path`, `file_format`, `file_size_bytes`, `record_count`)
+*   `mdm_golden_records`: Master Data Management golden records (`entity_type`, `golden_id`, `master_data`, `confidence_score`, `match_rules_applied`)
+*   `datasets` & `dataset_versions`: Analytics dataset catalog & version snapshots
+*   `metadata_catalog`: Business dictionary & PII column definitions (`column_name`, `data_type`, `business_definition`, `is_pii`, `data_steward`)
+*   `feature_groups` & `feature_registry`: AI Feature Store groups, features, and vector flags
+*   `data_quality_reports`: Validation rules & quality scores
+*   `data_lineage`: Pipeline and dataset DAG lineage edges
+

@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents **Phase 9 (Business Intelligence & Analytics Platform)**, implementing core clean architecture patterns, an enterprise KPI framework (Global, Org, Branch, Dept scopes), Executive CEO Dashboards, Domain Analytics Engines (HR, CRM, Inventory, Finance, Manufacturing), a Custom Report Builder, BI Dashboard Builder, dataset exports (CSV, JSON, PDF preview), and clean analytics layers prepared for future AI/ML data engineering.
+This repository represents **Phase 10 (Enterprise Data Engineering Platform)**, implementing core clean architecture patterns, Data Warehouse Star/Snowflake schemas with Slowly Changing Dimensions (SCD Type 2), Data Lake multi-zone abstractions (Raw, Processed, Curated, Archive), automated ETL/ELT pipeline engine with cron scheduling and retries, Data Quality inspection scoring, Master Data Management (MDM) golden record resolution, Feature Store registry, pre-generated analytics datasets, graph data lineage, and real-time pipeline monitoring.
 
 ---
 
@@ -22,8 +22,12 @@ This repository represents **Phase 9 (Business Intelligence & Analytics Platform
 
 Detailed operational documentation is available under the `docs/` directory:
 
-1. 📘 [Business Intelligence Guide](docs/BusinessIntelligenceGuide.md) — enterprise KPI framework and domain analytics engines.
-2. 📘 [Dashboard Guide](docs/DashboardGuide.md) — visual widget catalog and drag-and-drop dashboard builder.
+1. 📘 [Data Engineering Guide](docs/DataEngineeringGuide.md) — data warehouse star/snowflake schema, data lake zones, MDM, and quality engine.
+2. 📘 [ETL Pipelines Guide](docs/ETLGuide.md) — incremental/full loads, cron scheduling, and pipeline execution logging.
+3. 📘 [Feature Store Guide](docs/FeatureStoreGuide.md) — feature groups, registry, offline store datasets, and online cache architecture.
+4. 📘 [Business Intelligence Guide](docs/BusinessIntelligenceGuide.md) — enterprise KPI framework and domain analytics engines.
+5. 📘 [Dashboard Guide](docs/DashboardGuide.md) — visual widget catalog and drag-and-drop dashboard builder.
+
 3. 📘 [Reporting Guide](docs/ReportingGuide.md) — dynamic report builder, saved presets, and dataset exports.
 4. 📘 [System Architecture](docs/Architecture.md) — clean boundary maps, database connections, and data flows.
 5. 📘 [Backend Architecture](docs/BackendArchitecture.md) — service, repository, and middleware patterns.

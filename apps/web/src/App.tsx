@@ -104,6 +104,17 @@ import {
   DashboardBuilderPage,
 } from '@/pages/analytics';
 
+// Enterprise Data Engineering Platform Page Views
+import {
+  DataEngineeringDashboard,
+  PipelineMonitor,
+  DatasetExplorer,
+  FeatureStorePage,
+  MetadataCatalogPage,
+  DataQualityDashboard,
+  LineageViewer,
+} from '@/pages/data-engineering';
+
 // Setup TanStack Query Client
 
 const queryClient = new QueryClient({
@@ -216,6 +227,16 @@ function App() {
                         <Route path="analytics/manufacturing" element={<ManufacturingAnalyticsPage />} />
                         <Route path="analytics/reports" element={<CustomReportsPage />} />
                         <Route path="analytics/builder" element={<DashboardBuilderPage />} />
+
+                        {/* Enterprise Data Engineering Platform */}
+                        <Route path="data-engineering/dashboard" element={<DataEngineeringDashboard />} />
+                        <Route path="data-engineering/pipelines" element={<PipelineMonitor />} />
+                        <Route path="data-engineering/datasets" element={<DatasetExplorer />} />
+                        <Route path="data-engineering/feature-store" element={<FeatureStorePage />} />
+                        <Route path="data-engineering/metadata" element={<MetadataCatalogPage />} />
+                        <Route path="data-engineering/quality" element={<DataQualityDashboard />} />
+                        <Route path="data-engineering/lineage" element={<LineageViewer />} />
+
 
                         {/* Security & Identity Dashboards */}
                         <Route path="admin/users" element={<UserManagement />} />

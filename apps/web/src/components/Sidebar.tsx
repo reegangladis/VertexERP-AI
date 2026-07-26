@@ -56,6 +56,17 @@ export function Sidebar() {
     { label: 'BI Dashboard Builder', path: '/analytics/builder', icon: <Activity className="h-4 w-4" /> },
   ];
 
+  const dataEngineeringItems = [
+    { label: 'Platform Overview', path: '/data-engineering/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Pipeline Monitor', path: '/data-engineering/pipelines', icon: <Play className="h-4 w-4" /> },
+    { label: 'Dataset Explorer', path: '/data-engineering/datasets', icon: <BookOpen className="h-4 w-4" /> },
+    { label: 'AI Feature Store', path: '/data-engineering/feature-store', icon: <Cpu className="h-4 w-4" /> },
+    { label: 'Metadata Catalog', path: '/data-engineering/metadata', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Data Quality', path: '/data-engineering/quality', icon: <CheckCircle2 className="h-4 w-4" /> },
+    { label: 'Data Lineage', path: '/data-engineering/lineage', icon: <GitBranch className="h-4 w-4" /> },
+  ];
+
+
   const manufacturingItems = [
     { label: 'Mfg Dashboard', path: '/manufacturing/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
     { label: 'Bill of Materials', path: '/manufacturing/boms', icon: <Layers className="h-4 w-4" /> },
@@ -182,6 +193,31 @@ export function Sidebar() {
                 to={item.path}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        {/* Enterprise Data Engineering Platform */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Data Engineering Platform
+          </h3>
+          <nav className="space-y-0.5">
+            {dataEngineeringItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-[10px] px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:bg-secondary hover:text-foreground'

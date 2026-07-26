@@ -291,3 +291,59 @@ List marketing campaigns, budgets, and expected revenues.
 
 ### `POST /api/v1/crm/campaigns`
 Launch a new marketing campaign.
+
+---
+
+## 11. Data Engineering Platform APIs (Phase 10)
+
+### `GET /api/v1/data-engineering/etl-jobs`
+List all configured enterprise ETL/ELT pipeline job definitions.
+
+### `POST /api/v1/data-engineering/etl-jobs`
+Create a new pipeline job definition.
+
+### `POST /api/v1/data-engineering/etl-jobs/{id}/run`
+Manually trigger execution run for an ETL pipeline job.
+
+### `GET /api/v1/data-engineering/runs/{id}/logs`
+Fetch execution logs for a pipeline run.
+
+### `GET /api/v1/data-engineering/datasets`
+List all analytics datasets in the catalog.
+
+### `POST /api/v1/data-engineering/datasets`
+Register a new analytics dataset.
+
+### `POST /api/v1/data-engineering/datasets/generate-root-files`
+Export standard JSON analytics datasets to root `datasets/` directory.
+
+### `GET /api/v1/data-engineering/metadata`
+Search metadata catalog and business dictionary.
+
+### `GET /api/v1/data-engineering/feature-groups`
+List registered Feature Groups in the Feature Store.
+
+### `POST /api/v1/data-engineering/feature-groups`
+Register a new Feature Group.
+
+### `POST /api/v1/data-engineering/features`
+Register an individual feature into a Feature Group.
+
+### `GET /api/v1/data-engineering/data-quality`
+List data quality profiling inspection reports.
+
+### `POST /api/v1/data-engineering/data-quality/validate`
+Run data quality validation rules against a target table or dataset.
+
+### `GET /api/v1/data-engineering/lineage`
+Fetch pipeline and dataset lineage DAG graph.
+
+### `GET /api/v1/data-engineering/datalake/objects`
+List objects in Data Lake zones (`RAW`, `PROCESSED`, `CURATED`, `ARCHIVE`).
+
+### `GET /api/v1/data-engineering/master-data/records`
+List Master Data Management (MDM) golden record entities.
+
+### `GET /api/v1/data-engineering/monitoring/summary`
+Fetch Data Engineering platform system status, metrics, and data freshness audit.
+
