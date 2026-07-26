@@ -1,68 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "./variables.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
-  :root {
-    --background: hsl(var(--bg-primary));
-    --foreground: hsl(var(--text-primary));
-    --card: hsl(var(--bg-primary));
-    --card-foreground: hsl(var(--text-primary));
-    --popover: hsl(var(--bg-primary));
-    --popover-foreground: hsl(var(--text-primary));
-    --primary: hsl(var(--color-primary));
-    --primary-foreground: hsl(var(--color-primary-foreground));
-    --secondary: hsl(var(--bg-secondary));
-    --secondary-foreground: hsl(var(--text-primary));
-    --muted: hsl(var(--text-secondary));
-    --muted-foreground: hsl(var(--text-secondary));
-    --accent: hsl(var(--bg-secondary));
-    --accent-foreground: hsl(var(--text-primary));
-    --destructive: hsl(var(--color-danger));
-    --destructive-foreground: hsl(var(--color-danger-foreground));
-    --border: hsl(var(--color-border));
-    --input: hsl(var(--color-input));
-    --ring: hsl(var(--color-ring));
-    --radius: var(--radius-md);
-  }
-
-  .dark {
-    --background: hsl(var(--bg-primary));
-    --foreground: hsl(var(--text-primary));
-    --card: hsl(var(--bg-primary));
-    --card-foreground: hsl(var(--text-primary));
-    --popover: hsl(var(--bg-primary));
-    --popover-foreground: hsl(var(--text-primary));
-    --primary: hsl(var(--color-primary));
-    --primary-foreground: hsl(var(--color-primary-foreground));
-    --secondary: hsl(var(--bg-secondary));
-    --secondary-foreground: hsl(var(--text-primary));
-    --muted: hsl(var(--text-secondary));
-    --muted-foreground: hsl(var(--text-secondary));
-    --accent: hsl(var(--bg-secondary));
-    --accent-foreground: hsl(var(--text-primary));
-    --destructive: hsl(var(--color-danger));
-    --destructive-foreground: hsl(var(--color-danger-foreground));
-    --border: hsl(var(--color-border));
-    --input: hsl(var(--color-input));
-    --ring: hsl(var(--color-ring));
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply bg-background text-foreground antialiased transition-colors duration-200;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: hsl(var(--bg-primary));
+    color: hsl(var(--text-primary));
+    overflow-x: hidden;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* Custom scrollbars for modern SaaS appearance */
+/* Glassmorphism & Custom UI Classes */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* Micro-animations */
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pulse-glow {
+  animation: pulseGlow 3s infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+  }
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -73,10 +72,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(115, 115, 115, 0.3);
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(115, 115, 115, 0.5);
+  background: rgba(99, 102, 241, 0.5);
 }

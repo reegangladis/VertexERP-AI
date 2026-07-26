@@ -76,9 +76,8 @@ export function Login() {
     setIsLoading(true);
     setError(null);
     try {
-      // Mock login validation
       addNotification('Logged in successfully', 'success');
-      navigate('/dashboard');
+      navigate('/analytics/executive');
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
     } finally {
@@ -88,16 +87,32 @@ export function Login() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-lg font-medium text-foreground">Access Console</h3>
-        <p className="text-xs text-muted-foreground">Sign in to your enterprise tenant</p>
+      <div className="text-center space-y-1">
+        <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Enterprise Access Console</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Sign in to your VertexERP AI multi-tenant workspace</p>
       </div>
 
       {error && <Alert variant="danger">{error}</Alert>}
 
+      {/* Social SSO Buttons */}
+      <div className="grid grid-cols-2 gap-2">
+        <button type="button" className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 transition flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700">
+          <span>Microsoft Azure SSO</span>
+        </button>
+        <button type="button" className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 transition flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700">
+          <span>Okta IdP SSO</span>
+        </button>
+      </div>
+
+      <div className="relative flex py-1 items-center">
+        <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+        <span className="flex-shrink mx-3 text-[10px] uppercase font-mono text-slate-400">or continue with email</span>
+        <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
-          label="Email Address"
+          label="Enterprise Email Address"
           type="email"
           placeholder="name@organization.com"
           error={errors.email?.message as string}
@@ -106,31 +121,36 @@ export function Login() {
         <Input
           label="Password"
           type="password"
-          placeholder="••••••••"
+          placeholder="••••••••••••"
           error={errors.password?.message as string}
           {...register('password')}
         />
 
         <div className="flex items-center justify-between text-xs pt-1">
-          <Link to="/auth/forgot-password" className="text-primary hover:underline">
+          <label className="flex items-center gap-2 text-slate-500 cursor-pointer">
+            <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" defaultChecked />
+            <span>Remember device</span>
+          </label>
+          <Link to="/auth/forgot-password" className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
             Forgot password?
           </Link>
         </div>
 
-        <Button variant="primary" type="submit" className="w-full" isLoading={isLoading}>
-          Sign In
+        <Button variant="primary" type="submit" className="w-full py-2.5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 shadow-md transition" isLoading={isLoading}>
+          Sign In to Workspace
         </Button>
       </form>
 
-      <div className="text-center text-xs">
-        <span className="text-muted-foreground">New to VertexERP? </span>
-        <Link to="/auth/register" className="text-primary hover:underline">
+      <div className="text-center text-xs text-slate-400">
+        <span>New to VertexERP? </span>
+        <Link to="/auth/register" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
           Register Organization
         </Link>
       </div>
     </div>
   );
 }
+
 
 // 2. REGISTER SCREEN
 export function Register() {
