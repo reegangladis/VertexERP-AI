@@ -9,7 +9,7 @@ asyncpg>=0.29.0
 psycopg2-binary>=2.9.9
 
 # Caching
-redis>=5.0.0
+redis>=8.0.1
 
 # Settings and Validation
 pydantic>=2.8.0
