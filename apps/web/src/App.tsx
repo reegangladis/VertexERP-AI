@@ -92,12 +92,17 @@ import {
   WorkCentersPage,
   MachinesPage,
   ProductionOrdersPage,
-  ShopFloorPage,
-  QualityControlPage,
-  MaintenancePage,
-  MRPPage,
-} from '@/pages/manufacturing';
-
+// Business Intelligence & Analytics Platform Page Views
+import {
+  ExecutiveDashboard,
+  HRAnalyticsPage,
+  CRMAnalyticsPage,
+  InventoryAnalyticsPage,
+  FinanceAnalyticsPage,
+  ManufacturingAnalyticsPage,
+  CustomReportsPage,
+  DashboardBuilderPage,
+} from '@/pages/analytics';
 
 // Setup TanStack Query Client
 
@@ -202,7 +207,15 @@ function App() {
                         <Route path="manufacturing/maintenance" element={<MaintenancePage />} />
                         <Route path="manufacturing/mrp" element={<MRPPage />} />
 
-
+                        {/* Business Intelligence & Analytics Platform */}
+                        <Route path="analytics/executive" element={<ExecutiveDashboard />} />
+                        <Route path="analytics/hr" element={<HRAnalyticsPage />} />
+                        <Route path="analytics/crm" element={<CRMAnalyticsPage />} />
+                        <Route path="analytics/inventory" element={<InventoryAnalyticsPage />} />
+                        <Route path="analytics/finance" element={<FinanceAnalyticsPage />} />
+                        <Route path="analytics/manufacturing" element={<ManufacturingAnalyticsPage />} />
+                        <Route path="analytics/reports" element={<CustomReportsPage />} />
+                        <Route path="analytics/builder" element={<DashboardBuilderPage />} />
 
                         {/* Security & Identity Dashboards */}
                         <Route path="admin/users" element={<UserManagement />} />

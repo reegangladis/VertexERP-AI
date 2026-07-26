@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents **Phase 8 (Manufacturing & Production Intelligence Platform)**, implementing core clean architecture patterns, multi-level Bill of Materials (BOM), manufacturing routings, work centers, machines telemetry, production orders scheduling, shop floor execution logging, quality management, preventive maintenance, automated Material Requirement Planning (MRP) engine, and AI readiness data architecture.
+This repository represents **Phase 9 (Business Intelligence & Analytics Platform)**, implementing core clean architecture patterns, an enterprise KPI framework (Global, Org, Branch, Dept scopes), Executive CEO Dashboards, Domain Analytics Engines (HR, CRM, Inventory, Finance, Manufacturing), a Custom Report Builder, BI Dashboard Builder, dataset exports (CSV, JSON, PDF preview), and clean analytics layers prepared for future AI/ML data engineering.
 
 ---
 
@@ -22,9 +22,12 @@ This repository represents **Phase 8 (Manufacturing & Production Intelligence Pl
 
 Detailed operational documentation is available under the `docs/` directory:
 
-1. 📘 [System Architecture](docs/Architecture.md) — clean boundary maps, database connections, and data flows.
-2. 📘 [Backend Architecture](docs/BackendArchitecture.md) — service, repository, and middleware patterns.
-3. 📘 [Manufacturing Guide](docs/ManufacturingGuide.md) — work centers, machines fleet, and maintenance architecture.
+1. 📘 [Business Intelligence Guide](docs/BusinessIntelligenceGuide.md) — enterprise KPI framework and domain analytics engines.
+2. 📘 [Dashboard Guide](docs/DashboardGuide.md) — visual widget catalog and drag-and-drop dashboard builder.
+3. 📘 [Reporting Guide](docs/ReportingGuide.md) — dynamic report builder, saved presets, and dataset exports.
+4. 📘 [System Architecture](docs/Architecture.md) — clean boundary maps, database connections, and data flows.
+5. 📘 [Backend Architecture](docs/BackendArchitecture.md) — service, repository, and middleware patterns.
+6. 📘 [Manufacturing Guide](docs/ManufacturingGuide.md) — work centers, machines fleet, and maintenance architecture.
 4. 📘 [Production Guide](docs/ProductionGuide.md) — shop floor execution, scrap recording, and MRP engine.
 5. 📘 [BOM Guide](docs/BOMGuide.md) — multi-level Bill of Materials, versioning, and cost rollup methodology.
 6. 📘 [Finance Setup Guide](docs/FinanceGuide.md) — configuration guide for Chart of Accounts, Invoices, Bills & Banking.

@@ -45,6 +45,17 @@ export function Sidebar() {
     { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
   ];
 
+  const analyticsItems = [
+    { label: 'Executive Dashboard', path: '/analytics/executive', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'HR Analytics', path: '/analytics/hr', icon: <Briefcase className="h-4 w-4" /> },
+    { label: 'CRM Analytics', path: '/analytics/crm', icon: <TrendingUp className="h-4 w-4" /> },
+    { label: 'Inventory Analytics', path: '/analytics/inventory', icon: <Package className="h-4 w-4" /> },
+    { label: 'Finance Analytics', path: '/analytics/finance', icon: <DollarSign className="h-4 w-4" /> },
+    { label: 'Mfg Analytics', path: '/analytics/manufacturing', icon: <Factory className="h-4 w-4" /> },
+    { label: 'Custom Report Builder', path: '/analytics/reports', icon: <FileText className="h-4 w-4" /> },
+    { label: 'BI Dashboard Builder', path: '/analytics/builder', icon: <Activity className="h-4 w-4" /> },
+  ];
+
   const manufacturingItems = [
     { label: 'Mfg Dashboard', path: '/manufacturing/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
     { label: 'Bill of Materials', path: '/manufacturing/boms', icon: <Layers className="h-4 w-4" /> },
@@ -141,6 +152,31 @@ export function Sidebar() {
           </h3>
           <nav className="space-y-0.5">
             {coreItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        {/* Business Intelligence & Analytics Platform */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            BI & Analytics Platform
+          </h3>
+          <nav className="space-y-0.5">
+            {analyticsItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}

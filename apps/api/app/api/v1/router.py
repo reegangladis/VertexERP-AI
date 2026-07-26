@@ -40,6 +40,7 @@ from app.api.v1.endpoints import (
     inventory_counts,
     finance,
     manufacturing,
+    analytics,
 )
 
 api_router = APIRouter()
@@ -83,5 +84,7 @@ api_router.include_router(inventory_adjustments.router, prefix="/inventory/adjus
 api_router.include_router(inventory_counts.router, prefix="/inventory/counts", tags=["inventory"])
 api_router.include_router(finance.router, prefix="/finance", tags=["finance"])
 api_router.include_router(manufacturing.router, prefix="/manufacturing", tags=["manufacturing"])
+api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+
 
 
