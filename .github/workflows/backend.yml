@@ -2,15 +2,16 @@ name: Backend Quality Gate
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, develop ]
     paths:
       - 'apps/api/**'
       - '.github/workflows/backend.yml'
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, develop ]
     paths:
       - 'apps/api/**'
       - '.github/workflows/backend.yml'
+
 
 jobs:
   test:

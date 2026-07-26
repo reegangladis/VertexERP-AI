@@ -2,15 +2,16 @@ name: Frontend Quality Gate
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, develop ]
     paths:
       - 'apps/web/**'
       - '.github/workflows/frontend.yml'
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, develop ]
     paths:
       - 'apps/web/**'
       - '.github/workflows/frontend.yml'
+
 
 jobs:
   build:
