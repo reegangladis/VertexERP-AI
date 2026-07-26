@@ -120,7 +120,7 @@ export function DashboardPlaceholder() {
         </div>
         <div className="flex items-center gap-2 text-xs border border-border px-3 py-1.5 rounded bg-secondary/30 select-none">
           <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-          <span className="font-mono text-muted-foreground">Sprint 1.1 Architecture Validated</span>
+          <span className="font-mono text-muted-foreground">Enterprise v1.0.0 Architecture Validated</span>
         </div>
       </div>
 

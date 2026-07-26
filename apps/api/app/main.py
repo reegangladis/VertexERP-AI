@@ -112,3 +112,16 @@ setup_exception_handlers(app)
 
 # Include core API routes under version prefix
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Root endpoint welcoming users and providing documentation links."""
+    return {
+        "name": "VertexERP AI Enterprise Operating System API",
+        "status": "operational",
+        "version": "1.0.0",
+        "documentation": "/docs",
+        "health_check": f"{settings.API_V1_STR}/health",
+    }
+

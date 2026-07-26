@@ -62,8 +62,8 @@ export function LandingPage() {
     >
       {/* Hero Section */}
       <section className="text-center space-y-6 max-w-4xl mx-auto py-12">
-        <span className="px-3 py-1 text-xs font-mono uppercase tracking-widest text-muted-foreground border border-border rounded-full bg-secondary/30">
-          Sprint 1.1: Foundations Complete
+        <span className="px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-full bg-indigo-50 dark:bg-indigo-950/60 shadow-sm">
+          ✨ VertexERP AI v1.0.0 Production Release
         </span>
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
           VertexERP <span className="text-muted-foreground font-light">AI</span>
