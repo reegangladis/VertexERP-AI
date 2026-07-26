@@ -84,6 +84,21 @@ import { FixedAssetsPage } from '@/pages/finance/FixedAssetsPage';
 import { BankAccountsPage } from '@/pages/finance/BankAccountsPage';
 import { FinancialReportsPage } from '@/pages/finance/FinancialReportsPage';
 
+// Manufacturing & Production Intelligence Platform Page Views
+import {
+  ManufacturingDashboard,
+  BillOfMaterialsPage,
+  RoutingsPage,
+  WorkCentersPage,
+  MachinesPage,
+  ProductionOrdersPage,
+  ShopFloorPage,
+  QualityControlPage,
+  MaintenancePage,
+  MRPPage,
+} from '@/pages/manufacturing';
+
+
 // Setup TanStack Query Client
 
 const queryClient = new QueryClient({
@@ -174,6 +189,19 @@ function App() {
                         <Route path="finance/assets" element={<FixedAssetsPage />} />
                         <Route path="finance/banking" element={<BankAccountsPage />} />
                         <Route path="finance/reports" element={<FinancialReportsPage />} />
+
+                        {/* Manufacturing & Production Intelligence Platform */}
+                        <Route path="manufacturing/dashboard" element={<ManufacturingDashboard />} />
+                        <Route path="manufacturing/boms" element={<BillOfMaterialsPage />} />
+                        <Route path="manufacturing/routings" element={<RoutingsPage />} />
+                        <Route path="manufacturing/work-centers" element={<WorkCentersPage />} />
+                        <Route path="manufacturing/machines" element={<MachinesPage />} />
+                        <Route path="manufacturing/production-orders" element={<ProductionOrdersPage />} />
+                        <Route path="manufacturing/shop-floor" element={<ShopFloorPage />} />
+                        <Route path="manufacturing/quality" element={<QualityControlPage />} />
+                        <Route path="manufacturing/maintenance" element={<MaintenancePage />} />
+                        <Route path="manufacturing/mrp" element={<MRPPage />} />
+
 
 
                         {/* Security & Identity Dashboards */}

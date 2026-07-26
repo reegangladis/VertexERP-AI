@@ -27,6 +27,11 @@ import {
   Package,
   Truck,
   Building,
+  Factory,
+  Cpu,
+  Wrench,
+  Play,
+  CheckCircle2,
 } from 'lucide-react';
 import { useUI } from '@/hooks/useUI';
 
@@ -38,6 +43,19 @@ export function Sidebar() {
   const coreItems = [
     { label: 'Overview', path: '/', icon: <Home className="h-4 w-4" /> },
     { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+  ];
+
+  const manufacturingItems = [
+    { label: 'Mfg Dashboard', path: '/manufacturing/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Bill of Materials', path: '/manufacturing/boms', icon: <Layers className="h-4 w-4" /> },
+    { label: 'Routings', path: '/manufacturing/routings', icon: <GitBranch className="h-4 w-4" /> },
+    { label: 'Work Centers', path: '/manufacturing/work-centers', icon: <Factory className="h-4 w-4" /> },
+    { label: 'Machines Fleet', path: '/manufacturing/machines', icon: <Cpu className="h-4 w-4" /> },
+    { label: 'Production Orders', path: '/manufacturing/production-orders', icon: <Play className="h-4 w-4" /> },
+    { label: 'Shop Floor Execution', path: '/manufacturing/shop-floor', icon: <Activity className="h-4 w-4" /> },
+    { label: 'Quality Control', path: '/manufacturing/quality', icon: <CheckCircle2 className="h-4 w-4" /> },
+    { label: 'Maintenance', path: '/manufacturing/maintenance', icon: <Wrench className="h-4 w-4" /> },
+    { label: 'MRP Engine', path: '/manufacturing/mrp', icon: <Cpu className="h-4 w-4" /> },
   ];
 
   const orgItems = [
@@ -148,6 +166,31 @@ export function Sidebar() {
           </h3>
           <nav className="space-y-0.5">
             {financeItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        {/* Manufacturing Platform */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Manufacturing & Production
+          </h3>
+          <nav className="space-y-0.5">
+            {manufacturingItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}

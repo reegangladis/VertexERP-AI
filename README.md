@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents **Phase 7 (Finance & Accounting Intelligence Platform)**, implementing core clean architecture patterns, double-entry general ledger accounting, chart of accounts, accounts receivable (AR), accounts payable (AP), cash & banking management, employee expenses, budgeting, tax engine, fixed asset depreciation, statutory financial reports (Balance Sheet, P&L, Cash Flow, Trial Balance, AR/AP Aging), and AI readiness data architecture.
+This repository represents **Phase 8 (Manufacturing & Production Intelligence Platform)**, implementing core clean architecture patterns, multi-level Bill of Materials (BOM), manufacturing routings, work centers, machines telemetry, production orders scheduling, shop floor execution logging, quality management, preventive maintenance, automated Material Requirement Planning (MRP) engine, and AI readiness data architecture.
 
 ---
 
@@ -18,15 +18,17 @@ This repository represents **Phase 7 (Finance & Accounting Intelligence Platform
 
 ---
 
-## 📂 Architecture & Phase 7 Guides
+## 📂 Architecture & Guides
 
 Detailed operational documentation is available under the `docs/` directory:
 
 1. 📘 [System Architecture](docs/Architecture.md) — clean boundary maps, database connections, and data flows.
 2. 📘 [Backend Architecture](docs/BackendArchitecture.md) — service, repository, and middleware patterns.
-3. 📘 [API Endpoint Index](docs/API.md) — REST APIs and parameters for Finance, Inventory, CRM & HR.
-4. 📘 [Database Relational Schema](docs/Database.md) — Finance database tables, GL ledgers, inventory, and HR.
-5. 📘 [Finance Setup Guide](docs/FinanceGuide.md) — configuration guide for Chart of Accounts, Invoices, Bills, Banking & Assets.
+3. 📘 [Manufacturing Guide](docs/ManufacturingGuide.md) — work centers, machines fleet, and maintenance architecture.
+4. 📘 [Production Guide](docs/ProductionGuide.md) — shop floor execution, scrap recording, and MRP engine.
+5. 📘 [BOM Guide](docs/BOMGuide.md) — multi-level Bill of Materials, versioning, and cost rollup methodology.
+6. 📘 [Finance Setup Guide](docs/FinanceGuide.md) — configuration guide for Chart of Accounts, Invoices, Bills & Banking.
+
 6. 📘 [Double-Entry Accounting Guide](docs/AccountingGuide.md) — double-entry ledger posting rules and transaction workflows.
 7. 📘 [Financial Reports Guide](docs/FinancialReportsGuide.md) — Trial Balance, Balance Sheet, P&L, Cash Flow, and Aging Reports.
 8. 📘 [Entity-Relationship Diagram](docs/ERD.md) — Mermaid database schema associations.

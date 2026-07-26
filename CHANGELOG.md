@@ -4,7 +4,25 @@ All notable changes to the **VertexERP AI** project will be documented in this f
 
 The project follows [Semantic Versioning](https://semver.org/).
 
+## [0.8.0] - 2026-07-26 (Phase 8 - Manufacturing & Production Intelligence Platform)
+
+### Added
+- **Product Structure**: Finished Goods, Semi-Finished Goods, Raw Materials, Product Families, and Product Versions.
+- **Bill of Materials (BOM)**: Multi-Level BOM tree hierarchy, version control, component scrap factors %, cost rollup calculation engine, and BOM approval workflow (`DRAFT`, `APPROVED`).
+- **Routings & Operations**: Manufacturing operation sequences, setup time, machine time, labor time, standard cycle times, and hourly cost rates.
+- **Work Centers & Machines**: Plant layout work centers, shift calendars, daily capacity hours, and machine fleet inventory with operational status indicators (`OPERATIONAL`, `MAINTENANCE`, `BREAKDOWN`).
+- **Production Orders**: Order scheduling, priority management, start/end dates, material reservation checks, and progress tracking.
+- **Shop Floor Execution**: Operator execution log interface, good output recording, scrap tracking, and material consumption logging.
+- **Quality Control**: Inspection lots, parameter test results, pass/fail decisions, and corrective action records.
+- **Maintenance & Downtime**: Breakdown service tickets, technician dispatch, preventive maintenance schedules, and machine downtime tracking.
+- **MRP Engine**: Material Requirement Planning calculation engine generating raw material procurement recommendations, planned production recommendations, and work center capacity planning.
+- **Manufacturing Dashboard**: Enterprise dashboard with OEE gauges, machine telemetry status, OEE utilization bars, and quality pass rates.
+- **AI Readiness**: Integrated `health_score`, `predicted_failure_date`, `failure_risk_index`, and `sensor_telemetry_summary` placeholders across database models and API schemas.
+
+---
+
 ## [0.7.0] - 2026-07-26 (Phase 7 - Finance & Accounting Intelligence Platform)
+
 
 ### Added
 - **Chart of Accounts**: Hierarchical account tree (Assets, Liabilities, Equity, Income, Expenses), opening balances, running balance logic, and CSV export.
