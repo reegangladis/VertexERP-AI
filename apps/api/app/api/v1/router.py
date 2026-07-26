@@ -63,6 +63,13 @@ from app.api.v1.endpoints import (
     integration_queues,
     integration_auth,
     integration_analytics,
+    # Phase 19 – Production Readiness, Performance & Security Hardening
+    production_security,
+    production_performance,
+    production_compliance,
+    production_backups,
+    production_recovery,
+    production_readiness,
 )
 
 api_router = APIRouter()
@@ -133,4 +140,13 @@ api_router.include_router(integration_events.router, prefix="/integration/events
 api_router.include_router(integration_queues.router, prefix="/integration/queues", tags=["integration-platform"])
 api_router.include_router(integration_auth.router, prefix="/integration/auth", tags=["integration-platform"])
 api_router.include_router(integration_analytics.router, prefix="/integration/analytics", tags=["integration-platform"])
+
+# Phase 19 – Production Readiness, Performance & Security Hardening
+api_router.include_router(production_security.router, prefix="/production/security", tags=["production-readiness"])
+api_router.include_router(production_performance.router, prefix="/production/performance", tags=["production-readiness"])
+api_router.include_router(production_compliance.router, prefix="/production/compliance", tags=["production-readiness"])
+api_router.include_router(production_backups.router, prefix="/production/backups", tags=["production-readiness"])
+api_router.include_router(production_recovery.router, prefix="/production/recovery", tags=["production-readiness"])
+api_router.include_router(production_readiness.router, prefix="/production/readiness", tags=["production-readiness"])
+
 

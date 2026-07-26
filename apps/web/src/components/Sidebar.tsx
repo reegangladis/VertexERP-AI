@@ -133,6 +133,17 @@ export function Sidebar() {
     { label: 'API Analytics', path: '/integrations/analytics', icon: <TrendingUp className="h-4 w-4" /> },
   ];
 
+  // Phase 19 – Production Readiness, Performance & Security Hardening
+  const productionItems = [
+    { label: 'Security Hardening', path: '/production/security', icon: <Shield className="h-4 w-4" /> },
+    { label: 'Performance & Latency', path: '/production/performance', icon: <Zap className="h-4 w-4" /> },
+    { label: 'Compliance Center', path: '/production/compliance', icon: <CheckCircle2 className="h-4 w-4" /> },
+    { label: 'Backup Center', path: '/production/backups', icon: <Building2 className="h-4 w-4" /> },
+    { label: 'Disaster Recovery', path: '/production/recovery', icon: <Activity className="h-4 w-4" /> },
+    { label: 'System Readiness', path: '/production/readiness', icon: <Award className="h-4 w-4" /> },
+  ];
+
+
 
   const analyticsItems = [
 
@@ -671,14 +682,40 @@ export function Sidebar() {
             ))}
           </nav>
         </div>
+
+        {/* Production Readiness & Security (Phase 19) */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Production Readiness
+          </h3>
+          <nav className="space-y-0.5">
+            {productionItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
       </div>
 
       <div className="border-t border-border pt-3 text-[10px] text-muted-foreground/60 text-center">
-        <p className="font-mono">Phase 18 Integration Platform Active</p>
+        <p className="font-mono">Phase 19 Production Readiness Active</p>
       </div>
     </aside>
   );
 }
 export default Sidebar;
+
 
 

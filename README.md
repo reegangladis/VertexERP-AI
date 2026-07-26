@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents **Phase 18 (Enterprise Integration Platform)**, implementing a cloud-agnostic integration suite supporting REST APIs, GraphQL, Webhooks, Message Queues, Event Bus, File Transfers, API Gateway, and pluggable connectors for ERP, CRM, Payment, Storage, Email, SMS, Messaging, AI, and Identity Providers.
+This repository represents **Phase 19 (Production Readiness, Performance & Security Hardening)**, delivering enterprise OWASP Top 10 security hardening, HTTP security headers (CSP, HSTS), Circuit Breaker & Bulkhead resilience patterns, database query profiling, disaster recovery RPO/RTO automation, SOC 2 / ISO 27001 / GDPR compliance governance, 6 new database tables, 6 backend API groups, 6 React frontend pages, and automated unit test suites.
 
 ---
 
@@ -17,6 +17,7 @@ This repository represents **Phase 18 (Enterprise Integration Platform)**, imple
 | **ML Studio & Engines** | scikit-learn, XGBoost, LightGBM, CatBoost, TensorFlow, PyTorch, Prophet | Universal Adapter Pattern |
 | **XAI & Profiling** | SHAP, LIME, Permutation Importance | Enterprise Explainability |
 | **Integration Platform** | API Gateway, Webhook Engine, Event Bus, Queue Engine, Connector Framework | Vendor-Agnostic Hybrid Multi-Cloud |
+| **Production Readiness** | CSP, HSTS, Circuit Breaker, Bulkhead, PITR Restore, SOC 2 / GDPR | OWASP Top 10 Hardened |
 | **DevOps** | Docker, Docker Compose, GitHub Actions | Multi-stage Compilation |
 | **Formatting** | Ruff, Black, ESLint, Prettier | Strict Quality Gates |
 
@@ -26,7 +27,13 @@ This repository represents **Phase 18 (Enterprise Integration Platform)**, imple
 
 Detailed operational documentation is available under the `docs/` directory:
 
-1. 📘 [Integration Guide](docs/IntegrationGuide.md) — API Gateway, Webhooks, Event Bus, Queues, and File Integration.
+1. 📘 [Production Readiness Guide](docs/ProductionReadinessGuide.md) — pre-flight deployment scorecard and high availability architecture.
+2. 📘 [Security Hardening Guide](docs/SecurityGuide.md) — OWASP Top 10 defenses, CSP, HSTS, account lockouts, and secret rotation.
+3. 📘 [Performance Optimization Guide](docs/PerformanceGuide.md) — P95/P99 latency benchmarks, query profiling, and Redis caching.
+4. 📘 [Disaster Recovery Guide](docs/DisasterRecoveryGuide.md) — PITR snapshot backups, SHA-256 integrity, RPO (<15m) and RTO (<60m).
+5. 📘 [Compliance Guide](docs/ComplianceGuide.md) — SOC 2 Type II, ISO 27001, GDPR right-to-be-forgotten, and HIPAA security controls.
+6. 📘 [Integration Guide](docs/IntegrationGuide.md) — API Gateway, Webhooks, Event Bus, Queues, and File Integration.
+
 2. 📘 [Connector Guide](docs/ConnectorGuide.md) — pluggable connectors for ERP, CRM, Payment, Storage, Email, SMS, Messaging, AI, and IdP.
 3. 📘 [Webhook Guide](docs/WebhookGuide.md) — HMAC SHA256 signatures, event subscriptions, and exponential retries.
 4. 📘 [API Gateway Guide](docs/APIGatewayGuide.md) — routing, versioning, rate limiting, caching, and API keys.

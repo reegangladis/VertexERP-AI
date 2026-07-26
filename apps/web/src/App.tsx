@@ -205,6 +205,15 @@ import EventMonitor from '@/pages/integration/EventMonitor';
 import QueueDashboard from '@/pages/integration/QueueDashboard';
 import ApiAnalyticsPage from '@/pages/integration/ApiAnalyticsPage';
 
+// Production Readiness, Performance & Security Hardening (Phase 19)
+import SecurityDashboard from '@/pages/production/SecurityDashboard';
+import PerformanceDashboard from '@/pages/production/PerformanceDashboard';
+import ComplianceCenter from '@/pages/production/ComplianceCenter';
+import BackupCenter from '@/pages/production/BackupCenter';
+import RecoveryCenter from '@/pages/production/RecoveryCenter';
+import SystemReadinessDashboard from '@/pages/production/SystemReadinessDashboard';
+
+
 
 
 
@@ -405,6 +414,15 @@ function App() {
                         <Route path="integrations/events" element={<EventMonitor />} />
                         <Route path="integrations/queues" element={<QueueDashboard />} />
                         <Route path="integrations/analytics" element={<ApiAnalyticsPage />} />
+
+                        {/* Production Readiness, Performance & Security Hardening (Phase 19) */}
+                        <Route path="production/security" element={<SecurityDashboard />} />
+                        <Route path="production/performance" element={<PerformanceDashboard />} />
+                        <Route path="production/compliance" element={<ComplianceCenter />} />
+                        <Route path="production/backups" element={<BackupCenter />} />
+                        <Route path="production/recovery" element={<RecoveryCenter />} />
+                        <Route path="production/readiness" element={<SystemReadinessDashboard />} />
+
 
 
                         {/* Security & Identity Dashboards */}
