@@ -64,3 +64,23 @@ The client panel uses a modular Component-Layout-Page separation:
 - **Predictive AI Telemetry Hook Design**: Relational schemas for Leads, Deals, Support Tickets, and Campaigns are structured with telemetry indexes. These design choices prepare records for future ML Lead Scoring and Churn Predictions without introducing raw model code or packages prematurely.
 - **Transactional Quotation Versioning**: Deals capture expected valuations while Quotations allow multiple version sequences linked to the parent deal, preserving historical terms and pricing schedules.
 - **Deduplication Check Mechanics**: Lead creation endpoints trigger verification queries to detect duplicate contact details under the active organization tenant before registering new items.
+
+---
+
+## Phase 13: Enterprise RAG & Knowledge Intelligence Platform Architecture
+- **Provider Abstraction Layer**: Standard interfaces wrap multiple LLM and Embedding APIs (OpenAI, Gemini, Azure, Anthropic, Local) ensuring zero provider hardcoding.
+- **Pluggable Vector DB Adaptability**: Storage drivers support FAISS similarity indexes, local ChromaDB instances, and production PostgreSQL PgVector configurations with in-memory fallbacks.
+- **Strict Tenant & Permission Boundaries**: Ingestion, vector storage, and retrieval flows append explicit multitenancy filters to prevent any cross-tenant metadata leakage.
+- **Attributed Pipeline Generations**: Response generation assemblies trace contexts, construct prompt models, track conversation windows, and output verifiable sources/citations.
+
+---
+
+## Phase 14: Enterprise AI Copilot Platform Architecture
+- **Dynamic Tool Execution Pipeline**: The `CopilotService` orchestrates an automated loop that takes user input, renders templates, queries the LLM provider, detects tool calls, executes them via the `ToolRegistry` (respecting RBAC rules), and returns results to the assistant.
+- **Sandboxed Execution Enforcer**: The tool runner intercepts requests and validates that:
+  1. The user possesses the role required by the tool.
+  2. The organization contexts are matched.
+  3. Sensitive PII attributes (SSN, Phone, Email, Salaries) are masked automatically using regular expression validators if the user role is restricted.
+- **Redis Rate Limiting Integration**: Requests check user queries count against a sliding-window counter in Redis, blocking spam or malicious loops at the gateway.
+
+

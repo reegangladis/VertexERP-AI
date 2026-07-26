@@ -2,6 +2,15 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+// Phase 17 – Enterprise Workflow Automation Platform
+import { WorkflowDashboard } from '@/pages/workflow/WorkflowDashboard';
+import { WorkflowDesigner } from '@/pages/workflow/WorkflowDesigner';
+import { RuleBuilder } from '@/pages/workflow/RuleBuilder';
+import { ApprovalCenter } from '@/pages/workflow/ApprovalCenter';
+import { SchedulerPage } from '@/pages/workflow/SchedulerPage';
+import { ExecutionMonitor } from '@/pages/workflow/ExecutionMonitor';
+import { WorkflowTemplates } from '@/pages/workflow/WorkflowTemplates';
+
 import { ThemeProvider } from '@/store/ThemeContext';
 import { UIProvider } from '@/store/UIContext';
 import { NotificationProvider } from '@/store/NotificationContext';
@@ -97,6 +106,126 @@ import {
   MaintenancePage,
   MRPPage,
 } from '@/pages/manufacturing';
+
+// Business Intelligence & Analytics Platform Page Views
+import {
+  ExecutiveDashboard,
+  HRAnalyticsPage,
+  CRMAnalyticsPage,
+  InventoryAnalyticsPage,
+  FinanceAnalyticsPage,
+  ManufacturingAnalyticsPage,
+  CustomReportsPage,
+  DashboardBuilderPage,
+} from '@/pages/analytics';
+
+// Enterprise Data Engineering Platform Page Views
+import {
+  DataEngineeringDashboard,
+  PipelineMonitor,
+  DatasetExplorer,
+  FeatureStorePage,
+  MetadataCatalogPage,
+  DataQualityDashboard,
+  LineageViewer,
+} from '@/pages/data-engineering';
+
+// Enterprise Machine Learning Platform Page Views
+import {
+  MLDashboard,
+  ModelRegistry,
+  TrainingJobs,
+  ExperimentsPage,
+  PredictionsPage,
+  EvaluationMetricsPage,
+} from '@/pages/ml';
+
+// Enterprise ML Studio & Model Management Platform (Phase 12)
+import {
+  MLStudioDashboard,
+  DatasetExplorer as StudioDatasetExplorer,
+  NotebookRegistry,
+  ExperimentTracker,
+  TrainingJobsManager,
+  ModelRegistryStudio,
+  ModelComparisonPage,
+  EvaluationReportsPage,
+  ExplainabilityDashboard,
+} from '@/pages/ml-studio';
+
+// Enterprise RAG & Knowledge Intelligence Platform (Phase 13)
+import {
+  KnowledgeDashboard,
+  DocumentLibrary,
+  CollectionsPage,
+  UploadCenter,
+  KnowledgeSearch,
+  AIChat,
+  ConversationHistoryPage,
+} from '@/pages/rag';
+
+// Enterprise AI Copilot Platform (Phase 14)
+import {
+  AICopilot,
+  ConversationHistory,
+  PromptManager,
+  ToolRegistry,
+  AIDashboard,
+  Settings as CopilotSettings,
+} from '@/pages/copilot';
+
+// Enterprise MLOps Platform (Phase 15)
+import {
+  MLOpsDashboard,
+  DeploymentCenter,
+  PipelineManager,
+  MonitoringDashboard,
+  ApprovalQueue,
+  RetrainingCenter,
+} from '@/pages/mlops';
+
+// Enterprise Monitoring & Observability Platform (Phase 16)
+import {
+  MonitoringDashboard as ObservabilityDashboard,
+  SystemHealth,
+  LogExplorer,
+  MetricsExplorer,
+  TraceViewer,
+  AlertCenter,
+  BusinessDashboard as ObservabilityBusinessDashboard,
+  AIMonitoringDashboard,
+} from '@/pages/observability';
+
+// Enterprise Integration Platform Page Views (Phase 18)
+import IntegrationDashboard from '@/pages/integration/IntegrationDashboard';
+import ConnectorMarketplace from '@/pages/integration/ConnectorMarketplace';
+import ApiGatewayPage from '@/pages/integration/ApiGatewayPage';
+import WebhookCenter from '@/pages/integration/WebhookCenter';
+import EventMonitor from '@/pages/integration/EventMonitor';
+import QueueDashboard from '@/pages/integration/QueueDashboard';
+import ApiAnalyticsPage from '@/pages/integration/ApiAnalyticsPage';
+
+// Production Readiness, Performance & Security Hardening (Phase 19)
+import SecurityDashboard from '@/pages/production/SecurityDashboard';
+import PerformanceDashboard from '@/pages/production/PerformanceDashboard';
+import ComplianceCenter from '@/pages/production/ComplianceCenter';
+import BackupCenter from '@/pages/production/BackupCenter';
+import RecoveryCenter from '@/pages/production/RecoveryCenter';
+import SystemReadinessDashboard from '@/pages/production/SystemReadinessDashboard';
+
+// Enterprise Cloud Deployment & Global Release (Phase 20)
+import ReleaseDashboard from '@/pages/cloud/ReleaseDashboard';
+import DeploymentDashboard from '@/pages/cloud/DeploymentDashboard';
+import CloudOperations from '@/pages/cloud/CloudOperations';
+import FinOpsDashboard from '@/pages/cloud/FinOpsDashboard';
+import IncidentCenter from '@/pages/cloud/IncidentCenter';
+import SystemStatus from '@/pages/cloud/SystemStatus';
+
+
+
+
+
+
 
 
 // Setup TanStack Query Client
@@ -201,6 +330,116 @@ function App() {
                         <Route path="manufacturing/quality" element={<QualityControlPage />} />
                         <Route path="manufacturing/maintenance" element={<MaintenancePage />} />
                         <Route path="manufacturing/mrp" element={<MRPPage />} />
+
+                        {/* Business Intelligence & Analytics Platform */}
+                        <Route path="analytics/executive" element={<ExecutiveDashboard />} />
+                        <Route path="analytics/hr" element={<HRAnalyticsPage />} />
+                        <Route path="analytics/crm" element={<CRMAnalyticsPage />} />
+                        <Route path="analytics/inventory" element={<InventoryAnalyticsPage />} />
+                        <Route path="analytics/finance" element={<FinanceAnalyticsPage />} />
+                        <Route path="analytics/manufacturing" element={<ManufacturingAnalyticsPage />} />
+                        <Route path="analytics/reports" element={<CustomReportsPage />} />
+                        <Route path="analytics/builder" element={<DashboardBuilderPage />} />
+
+                        {/* Enterprise Data Engineering Platform */}
+                        <Route path="data-engineering/dashboard" element={<DataEngineeringDashboard />} />
+                        <Route path="data-engineering/pipelines" element={<PipelineMonitor />} />
+                        <Route path="data-engineering/datasets" element={<DatasetExplorer />} />
+                        <Route path="data-engineering/feature-store" element={<FeatureStorePage />} />
+                        <Route path="data-engineering/metadata" element={<MetadataCatalogPage />} />
+                        <Route path="data-engineering/quality" element={<DataQualityDashboard />} />
+                        <Route path="data-engineering/lineage" element={<LineageViewer />} />
+
+                        {/* Enterprise Machine Learning Platform */}
+                        <Route path="ml/dashboard" element={<MLDashboard />} />
+                        <Route path="ml/registry" element={<ModelRegistry />} />
+                        <Route path="ml/training" element={<TrainingJobs />} />
+                        <Route path="ml/experiments" element={<ExperimentsPage />} />
+                        <Route path="ml/predictions" element={<PredictionsPage />} />
+                        <Route path="ml/evaluation" element={<EvaluationMetricsPage />} />
+
+                        {/* Enterprise ML Studio & Model Management Platform (Phase 12) */}
+                        <Route path="ml-studio/dashboard" element={<MLStudioDashboard />} />
+                        <Route path="ml-studio/datasets" element={<StudioDatasetExplorer />} />
+                        <Route path="ml-studio/notebooks" element={<NotebookRegistry />} />
+                        <Route path="ml-studio/experiments" element={<ExperimentTracker />} />
+                        <Route path="ml-studio/training" element={<TrainingJobsManager />} />
+                        <Route path="ml-studio/registry" element={<ModelRegistryStudio />} />
+                        <Route path="ml-studio/comparison" element={<ModelComparisonPage />} />
+                        <Route path="ml-studio/evaluation" element={<EvaluationReportsPage />} />
+                        <Route path="ml-studio/explainability" element={<ExplainabilityDashboard />} />
+
+                        {/* Enterprise RAG & Knowledge Intelligence Platform (Phase 13) */}
+                        <Route path="rag/dashboard" element={<KnowledgeDashboard />} />
+                        <Route path="rag/documents" element={<DocumentLibrary />} />
+                        <Route path="rag/collections" element={<CollectionsPage />} />
+                        <Route path="rag/upload" element={<UploadCenter />} />
+                        <Route path="rag/search" element={<KnowledgeSearch />} />
+                        <Route path="rag/chat" element={<AIChat />} />
+                        <Route path="rag/history" element={<ConversationHistoryPage />} />
+
+                        {/* Enterprise AI Copilot Platform (Phase 14) */}
+                        <Route path="copilot/chat" element={<AICopilot />} />
+                        <Route path="copilot/history" element={<ConversationHistory />} />
+                        <Route path="copilot/prompts" element={<PromptManager />} />
+                        <Route path="copilot/tools" element={<ToolRegistry />} />
+                        <Route path="copilot/dashboard" element={<AIDashboard />} />
+                        <Route path="copilot/settings" element={<CopilotSettings />} />
+
+
+                        {/* Enterprise MLOps Platform (Phase 15) */}
+                        <Route path="mlops/dashboard" element={<MLOpsDashboard />} />
+                        <Route path="mlops/deployments" element={<DeploymentCenter />} />
+                        <Route path="mlops/pipelines" element={<PipelineManager />} />
+                        <Route path="mlops/monitoring" element={<MonitoringDashboard />} />
+                        <Route path="mlops/approvals" element={<ApprovalQueue />} />
+                        <Route path="mlops/retraining" element={<RetrainingCenter />} />
+
+                        {/* Enterprise Monitoring & Observability Platform (Phase 16) */}
+                        <Route path="observability/dashboard" element={<ObservabilityDashboard />} />
+                        <Route path="observability/health" element={<SystemHealth />} />
+                        <Route path="observability/logs" element={<LogExplorer />} />
+                        <Route path="observability/metrics" element={<MetricsExplorer />} />
+                        <Route path="observability/traces" element={<TraceViewer />} />
+                        <Route path="observability/alerts" element={<AlertCenter />} />
+                        <Route path="observability/business" element={<ObservabilityBusinessDashboard />} />
+                        <Route path="observability/ai" element={<AIMonitoringDashboard />} />
+
+                        {/* Enterprise Workflow Automation Platform (Phase 17) */}
+                        <Route path="workflows/dashboard" element={<WorkflowDashboard />} />
+                        <Route path="workflows/designer" element={<WorkflowDesigner />} />
+                        <Route path="workflows/designer/:id" element={<WorkflowDesigner />} />
+                        <Route path="workflows/rules" element={<RuleBuilder />} />
+                        <Route path="workflows/approvals" element={<ApprovalCenter />} />
+                        <Route path="workflows/scheduler" element={<SchedulerPage />} />
+                        <Route path="workflows/executions" element={<ExecutionMonitor />} />
+                        <Route path="workflows/templates" element={<WorkflowTemplates />} />
+
+                        {/* Enterprise Integration Platform (Phase 18) */}
+                        <Route path="integrations/dashboard" element={<IntegrationDashboard />} />
+                        <Route path="integrations/connectors" element={<ConnectorMarketplace />} />
+                        <Route path="integrations/gateway" element={<ApiGatewayPage />} />
+                        <Route path="integrations/webhooks" element={<WebhookCenter />} />
+                        <Route path="integrations/events" element={<EventMonitor />} />
+                        <Route path="integrations/queues" element={<QueueDashboard />} />
+                        <Route path="integrations/analytics" element={<ApiAnalyticsPage />} />
+
+                        {/* Production Readiness, Performance & Security Hardening (Phase 19) */}
+                        <Route path="production/security" element={<SecurityDashboard />} />
+                        <Route path="production/performance" element={<PerformanceDashboard />} />
+                        <Route path="production/compliance" element={<ComplianceCenter />} />
+                        <Route path="production/backups" element={<BackupCenter />} />
+                        <Route path="production/recovery" element={<RecoveryCenter />} />
+                        <Route path="production/readiness" element={<SystemReadinessDashboard />} />
+
+                        {/* Enterprise Cloud Deployment & Global Release (Phase 20) */}
+                        <Route path="cloud/releases" element={<ReleaseDashboard />} />
+                        <Route path="cloud/deployments" element={<DeploymentDashboard />} />
+                        <Route path="cloud/operations" element={<CloudOperations />} />
+                        <Route path="cloud/finops" element={<FinOpsDashboard />} />
+                        <Route path="cloud/incidents" element={<IncidentCenter />} />
+                        <Route path="cloud/status" element={<SystemStatus />} />
+
 
 
 

@@ -6,6 +6,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
+  icon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
 
@@ -15,11 +16,13 @@ export function Button({
   size = 'md',
   isLoading = false,
   leftIcon,
+  icon,
   rightIcon,
   className = '',
   disabled,
   ...props
 }: ButtonProps) {
+  const displayLeftIcon = leftIcon || icon;
   const baseStyle =
     'inline-flex items-center justify-center font-medium rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer';
 
@@ -44,7 +47,7 @@ export function Button({
       {...props}
     >
       {isLoading && <Spinner className="mr-2 h-4 w-4 animate-spin" />}
-      {!isLoading && leftIcon && <span className="mr-2">{leftIcon}</span>}
+      {!isLoading && displayLeftIcon && <span className="mr-2">{displayLeftIcon}</span>}
       {children}
       {!isLoading && rightIcon && <span className="ml-2">{rightIcon}</span>}
     </button>

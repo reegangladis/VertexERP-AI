@@ -4,7 +4,24 @@ All notable changes to the **VertexERP AI** project will be documented in this f
 
 The project follows [Semantic Versioning](https://semver.org/).
 
-## [0.8.0] - 2026-07-26 (Phase 8 - Manufacturing & Production Intelligence Platform)
+## [1.0.0] - 2026-07-26 (Phase 10 - Enterprise Data Engineering Platform)
+
+### Added
+- **Enterprise Data Warehouse**: Star and Snowflake schema architecture with Slowly Changing Dimensions (SCD Type 2: `dim_customers`, `dim_employees`, `dim_products`, `dim_suppliers`, `dim_organizations`, `dim_dates`), Fact Tables (`fact_sales`, `fact_inventory`, `fact_financials`, `fact_manufacturing`, `fact_hr`), and point-in-time `historical_snapshots`.
+- **Data Lake Multi-Zone Abstraction**: 4 isolated storage zones (`RAW`, `PROCESSED`, `CURATED`, `ARCHIVE`) tracked via `data_lake_objects`.
+- **ETL / ELT Pipeline Engine**: Incremental and full load pipelines, cron scheduling, retry mechanisms, and detailed execution logging (`etl_jobs`, `etl_runs`, `pipeline_logs`).
+- **Data Quality Engine**: Automated null checks, duplicate detection, schema validation, referential integrity verification, and quality score computation (`data_quality_reports`).
+- **Master Data Management (MDM)**: Golden record entity resolution, deduplication match rules, and confidence scoring for Customer, Employee, Product, Supplier, and Org master records (`mdm_golden_records`).
+- **Data Catalog & Lineage**: Enterprise dataset catalog (`datasets`, `dataset_versions`), searchable column glossary with PII classification (`metadata_catalog`), and interactive graph lineage (`data_lineage`).
+- **AI Feature Store**: Feature Groups (`feature_groups`), Feature Registry (`feature_registry`), versioning, offline store dataset exporter, and online cache architecture placeholder.
+- **Pre-Generated Analytics Datasets**: 7 domain datasets exported in JSON format to root `datasets/` directory (`employee_dataset.json`, `customer_dataset.json`, `inventory_dataset.json`, `financial_dataset.json`, `manufacturing_dataset.json`, `sales_dataset.json`, `supplier_dataset.json`).
+- **Frontend Views**: Data Engineering Dashboard, Pipeline Monitor, Dataset Explorer, Feature Store, Metadata Catalog, Data Quality Dashboard, and Lineage Viewer.
+- **Backend APIs & Testing**: Comprehensive `/api/v1/data-engineering/*` FastAPI endpoints and unit/integration test suites.
+
+---
+
+## [0.9.0] - 2026-07-26 (Phase 9 - Business Intelligence & Analytics Platform)
+
 
 ### Added
 - **Product Structure**: Finished Goods, Semi-Finished Goods, Raw Materials, Product Families, and Product Versions.

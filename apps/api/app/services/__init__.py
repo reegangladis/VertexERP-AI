@@ -5,6 +5,8 @@ from app.services.permission import PermissionService
 from app.services.session import SessionService
 from app.services.audit import AuditService, LoginHistoryService
 from app.services.auth import AuthService
+from app.services.mlops_service import MLOpsService
+from app.services.observability_service import ObservabilityService
 
 __all__ = [
     "UserService",
@@ -17,4 +19,7 @@ __all__ = [
     "AuditService",
     "LoginHistoryService",
     "AuthService",
+    "MLOpsService",
+    "ObservabilityService",
 ]
+

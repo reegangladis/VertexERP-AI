@@ -341,3 +341,64 @@ To bind employees to designations and hierarchy reporting structures, the follow
 *   `end_date`: DATE
 *   `budget`: DECIMAL(15,2)
 *   `expected_revenue`: DECIMAL(15,2)
+
+---
+
+## 6. Enterprise Data Engineering Platform Tables (Phase 10)
+
+### 6.1. Core Pipelines & Infrastructure
+*   `etl_jobs`: Job definitions (`name`, `source_type`, `target_type`, `frequency`, `schedule_cron`, `status`, `retry_limit`, `configuration`, `priority`, `is_incremental`)
+*   `etl_runs`: Execution runs (`job_id`, `run_number`, `status`, `start_time`, `end_time`, `duration_seconds`, `rows_extracted`, `rows_transformed`, `rows_loaded`)
+*   `pipeline_logs`: Log events (`run_id`, `timestamp`, `log_level`, `phase`, `message`, `details`)
+
+### 6.2. Data Warehouse (Star & Snowflake Schema with SCD Type 2)
+*   `dim_customers`, `dim_employees`, `dim_products`, `dim_suppliers`, `dim_organizations`: SCD Type 2 dimensions (`effective_date`, `expiration_date`, `is_current`, `version`)
+*   `dim_dates`: Time dimension (`date_key`, `full_date`, `year`, `quarter`, `month`, `day_of_week`, `is_weekend`)
+*   `fact_sales`, `fact_inventory`, `fact_financials`, `fact_manufacturing`, `fact_hr`: Fact tables
+*   `historical_snapshots`: Point-in-time warehouse checksum audit snapshots
+
+### 6.3. Data Lake, MDM, Catalog & Feature Store
+*   `data_lake_objects`: Data Lake storage zone objects (`zone`, `object_path`, `file_format`, `file_size_bytes`, `record_count`)
+*   `mdm_golden_records`: Master Data Management golden records (`entity_type`, `golden_id`, `master_data`, `confidence_score`, `match_rules_applied`)
+*   `datasets` & `dataset_versions`: Analytics dataset catalog & version snapshots
+*   `metadata_catalog`: Business dictionary & PII column definitions (`column_name`, `data_type`, `business_definition`, `is_pii`, `data_steward`)
+*   `feature_groups` & `feature_registry`: AI Feature Store groups, features, and vector flags
+*   `data_quality_reports`: Validation rules & quality scores
+*   `data_lineage`: Pipeline and dataset DAG lineage edges
+
+---
+
+## 7. Enterprise RAG Platform Tables (Phase 13)
+
+### 7.1. Relational Content & Vector Mapping
+*   `knowledge_collections`: Logical directories grouping documents (`organization_id`, `name`, `slug`, `description`, `category`, `tags`, `is_public`, `metadata_json`, `created_by`)
+*   `documents`: Ingested document records (`organization_id`, `collection_id`, `title`, `file_name`, `file_path`, `file_size`, `mime_type`, `document_type`, `format`, `language`, `category`, `tags`, `current_version`, `status`, `approval_status`, `retention_days`, `metadata_json`, `created_by`, `updated_by`)
+*   `document_versions`: Document history version records (`document_id`, `version_number`, `file_path`, `file_size`, `file_hash`, `change_summary`, `metadata_json`, `created_by`)
+*   `document_chunks`: Extracted semantic text segments (`document_id`, `version_id`, `chunk_index`, `content`, `clean_content`, `token_count`, `word_count`, `chunk_hash`, `language`, `metadata_json`)
+*   `embeddings_metadata`: Vector DB references (`chunk_id`, `provider`, `model_name`, `vector_id`, `dimension`, `status`, `metadata_json`)
+
+### 7.2. Chat Telemetry & Auditing Logs
+*   `chat_sessions`: Persistent RAG chatbot conversations (`organization_id`, `user_id`, `title`, `is_pinned`, `context_metadata`)
+*   `chat_messages`: Question & Answer histories (`session_id`, `role`, `content`, `prompt_tokens`, `completion_tokens`, `citations`, `feedback_rating`, `feedback_text`)
+*   `retrieval_logs`: Full-text logs auditing retrieval execution (`organization_id`, `session_id`, `user_id`, `query_text`, `top_k`, `retrieved_chunk_ids`, `scores`, `execution_time_ms`, `search_type`)
+*   `feedback`: User accuracy reports mapping chunks (`organization_id`, `user_id`, `chat_message_id`, `chunk_id`, `rating`, `feedback_type`, `comments`, `metadata_json`)
+
+---
+
+## 8. Enterprise AI Copilot Platform Tables (Phase 14)
+
+### 8.1. Sessions & Messages
+*   `copilot_sessions`: Multi-tenant session identifiers (`organization_id`, `user_id`, `title`, `is_pinned`, `context_metadata`, `created_at`, `updated_at`)
+*   `copilot_messages`: Timelines logs (`session_id`, `role`, `content`, `prompt_tokens`, `completion_tokens`, `latency_ms`, `tool_calls` (JSON), `citations` (JSON), `generated_from` (Prompt version), `created_at`)
+
+### 8.2. Prompt Templates & Registry
+*   `copilot_prompts`: Customizable prompt templates database (`organization_id`, `name`, `type` [system/department], `department`, `template`, `variables` (JSON), `version`, `is_active`, `created_by`, `created_at`, `updated_at`)
+*   `tool_registry`: Backend operation interfaces catalog (`name`, `description`, `parameters_schema` (JSON), `required_role`, `is_active`, `created_at`, `updated_at`)
+
+### 8.3. Executions & Feedback
+*   `tool_executions`: Trace details of tool runs (`message_id`, `tool_name`, `arguments` (JSON), `result` (JSON), `status` [success/failed], `error_message`, `execution_time_ms`, `created_at`)
+*   `conversation_feedback`: Ratings audit reports (`message_id`, `user_id`, `rating` [1-5], `comment`, `created_at`)
+*   `conversation_metadata`: Session key-value mappings (`session_id`, `meta_key`, `meta_value`, `created_at`)
+
+
+

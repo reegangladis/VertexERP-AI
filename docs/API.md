@@ -291,3 +291,178 @@ List marketing campaigns, budgets, and expected revenues.
 
 ### `POST /api/v1/crm/campaigns`
 Launch a new marketing campaign.
+
+---
+
+## 11. Data Engineering Platform APIs (Phase 10)
+
+### `GET /api/v1/data-engineering/etl-jobs`
+List all configured enterprise ETL/ELT pipeline job definitions.
+
+### `POST /api/v1/data-engineering/etl-jobs`
+Create a new pipeline job definition.
+
+### `POST /api/v1/data-engineering/etl-jobs/{id}/run`
+Manually trigger execution run for an ETL pipeline job.
+
+### `GET /api/v1/data-engineering/runs/{id}/logs`
+Fetch execution logs for a pipeline run.
+
+### `GET /api/v1/data-engineering/datasets`
+List all analytics datasets in the catalog.
+
+### `POST /api/v1/data-engineering/datasets`
+Register a new analytics dataset.
+
+### `POST /api/v1/data-engineering/datasets/generate-root-files`
+Export standard JSON analytics datasets to root `datasets/` directory.
+
+### `GET /api/v1/data-engineering/metadata`
+Search metadata catalog and business dictionary.
+
+### `GET /api/v1/data-engineering/feature-groups`
+List registered Feature Groups in the Feature Store.
+
+### `POST /api/v1/data-engineering/feature-groups`
+Register a new Feature Group.
+
+### `POST /api/v1/data-engineering/features`
+Register an individual feature into a Feature Group.
+
+### `GET /api/v1/data-engineering/data-quality`
+List data quality profiling inspection reports.
+
+### `POST /api/v1/data-engineering/data-quality/validate`
+Run data quality validation rules against a target table or dataset.
+
+### `GET /api/v1/data-engineering/lineage`
+Fetch pipeline and dataset lineage DAG graph.
+
+### `GET /api/v1/data-engineering/datalake/objects`
+List objects in Data Lake zones (`RAW`, `PROCESSED`, `CURATED`, `ARCHIVE`).
+
+### `GET /api/v1/data-engineering/master-data/records`
+List Master Data Management (MDM) golden record entities.
+
+### `GET /api/v1/data-engineering/monitoring/summary`
+Fetch Data Engineering platform system status, metrics, and data freshness audit.
+
+---
+
+## 7. Enterprise RAG APIs (Phase 13)
+
+### `GET /api/v1/rag/collections`
+List logical knowledge collections.
+
+### `POST /api/v1/rag/collections`
+Create a new knowledge collection partition.
+
+### `GET /api/v1/rag/collections/{collection_id}`
+Retrieve details of a specific knowledge collection.
+
+### `DELETE /api/v1/rag/collections/{collection_id}`
+Soft-delete a knowledge collection.
+
+### `POST /api/v1/rag/documents`
+Upload and process a document file (multipart/form-data) into vector chunks.
+
+### `GET /api/v1/rag/documents`
+List files registered in the document library.
+
+### `GET /api/v1/rag/documents/{document_id}`
+Retrieve metadata details for a specific document.
+
+### `DELETE /api/v1/rag/documents/{document_id}`
+Soft-delete a file and remove vector indexes.
+
+### `POST /api/v1/rag/retrieval/search`
+Execute a semantic or hybrid search query over context metadata.
+
+### `POST /api/v1/rag/chat/sessions`
+Start a new RAG AI chatbot conversation session.
+
+### `GET /api/v1/rag/chat/sessions`
+List historical chat sessions.
+
+### `GET /api/v1/rag/chat/sessions/{session_id}/messages`
+Retrieve message log timelines for a chat session.
+
+### `POST /api/v1/rag/chat/sessions/{session_id}/messages`
+Post prompt messages and receive context-attributed answers.
+
+### `POST /api/v1/rag/chat/sessions/{session_id}/pin`
+Toggle conversation pin status.
+
+### `POST /api/v1/rag/chat/feedback`
+Submit rating score feedback for AI responses.
+
+---
+
+## 8. Enterprise AI Copilot Platform APIs (Phase 14)
+
+### `POST /api/v1/copilot/sessions`
+Create a new multi-tenant conversation session.
+*   **Request Payload**:
+    ```json
+    {
+      "title": "Q3 Budget Review"
+    }
+    ```
+
+### `GET /api/v1/copilot/sessions`
+List historical conversation sessions filtered by the user's tenant ID.
+
+### `GET /api/v1/copilot/sessions/{session_id}`
+Retrieve metadata details for a session.
+
+### `PUT /api/v1/copilot/sessions/{session_id}`
+Modify session parameters (e.g. title, pinning status).
+
+### `DELETE /api/v1/copilot/sessions/{session_id}`
+Soft-delete a conversation thread.
+
+### `POST /api/v1/copilot/sessions/{session_id}/chat`
+Submit user prompts and retrieve AI-synthesized response containing tool execution logs.
+*   **Request Payload**:
+    ```json
+    {
+      "content": "Check my vacation balance",
+      "provider": "openai",
+      "model_name": "gpt-4o",
+      "temperature": 0.7,
+      "department": "hr"
+    }
+    ```
+
+### `GET /api/v1/copilot/sessions/{session_id}/messages`
+Retrieve full message transcript logs for a session.
+
+### `POST /api/v1/copilot/prompts`
+Create a reusable prompt template (Administrative).
+
+### `GET /api/v1/copilot/prompts`
+List active prompt templates matching the user's organization.
+
+### `PUT /api/v1/copilot/prompts/{prompt_id}`
+Modify prompt instructions version.
+
+### `POST /api/v1/copilot/prompts/test`
+Sandbox compiler utility rendering test variables in template structures.
+
+### `GET /api/v1/copilot/tools`
+List pluggable backend operations (CRM, HR, BI, RAG search).
+
+### `PUT /api/v1/copilot/tools/{tool_name}/status`
+Toggle tool configuration active status.
+
+### `GET /api/v1/copilot/sessions/{session_id}/tool-executions`
+Audit logs of tool runs within a session context.
+
+### `POST /api/v1/copilot/messages/{message_id}/feedback`
+Submit ratings feedback (1-5) and reviews for responses.
+
+### `GET /api/v1/copilot/analytics`
+Retrieve token usage metrics, latency statistics, and tool success rates.
+
+
+
