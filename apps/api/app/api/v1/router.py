@@ -45,12 +45,17 @@ from app.api.v1.endpoints import (
     ml,
     ml_studio,
     rag,
+    copilot,
+    mlops,
+    observability,
 )
 
 api_router = APIRouter()
 
 api_router.include_router(health.router, prefix="/health", tags=["system"])
 api_router.include_router(version.router, prefix="/version", tags=["system"])
+api_router.include_router(observability.router, prefix="/observability", tags=["observability"])
+
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(organization.router, prefix="/organizations", tags=["organizations"])
 api_router.include_router(user.router, prefix="/users", tags=["users"])
@@ -94,6 +99,8 @@ api_router.include_router(data_engineering.router, prefix="/data-engineering", t
 api_router.include_router(ml.router, prefix="/ml", tags=["machine-learning"])
 api_router.include_router(ml_studio.router, prefix="/ml-studio", tags=["ml-studio"])
 api_router.include_router(rag.router, prefix="/rag", tags=["rag"])
+api_router.include_router(copilot.router, prefix="/copilot", tags=["copilot"])
+api_router.include_router(mlops.router, prefix="/mlops", tags=["mlops"])
 
 
 

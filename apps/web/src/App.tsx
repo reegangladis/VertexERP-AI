@@ -92,6 +92,12 @@ import {
   WorkCentersPage,
   MachinesPage,
   ProductionOrdersPage,
+  ShopFloorPage,
+  QualityControlPage,
+  MaintenancePage,
+  MRPPage,
+} from '@/pages/manufacturing';
+
 // Business Intelligence & Analytics Platform Page Views
 import {
   ExecutiveDashboard,
@@ -148,6 +154,39 @@ import {
   AIChat,
   ConversationHistoryPage,
 } from '@/pages/rag';
+
+// Enterprise AI Copilot Platform (Phase 14)
+import {
+  AICopilot,
+  ConversationHistory,
+  PromptManager,
+  ToolRegistry,
+  AIDashboard,
+  Settings as CopilotSettings,
+} from '@/pages/copilot';
+
+// Enterprise MLOps Platform (Phase 15)
+import {
+  MLOpsDashboard,
+  DeploymentCenter,
+  PipelineManager,
+  MonitoringDashboard,
+  ApprovalQueue,
+  RetrainingCenter,
+} from '@/pages/mlops';
+
+// Enterprise Monitoring & Observability Platform (Phase 16)
+import {
+  MonitoringDashboard as ObservabilityDashboard,
+  SystemHealth,
+  LogExplorer,
+  MetricsExplorer,
+  TraceViewer,
+  AlertCenter,
+  BusinessDashboard as ObservabilityBusinessDashboard,
+  AIMonitoringDashboard,
+} from '@/pages/observability';
+
 
 
 
@@ -302,9 +341,32 @@ function App() {
                         <Route path="rag/chat" element={<AIChat />} />
                         <Route path="rag/history" element={<ConversationHistoryPage />} />
 
+                        {/* Enterprise AI Copilot Platform (Phase 14) */}
+                        <Route path="copilot/chat" element={<AICopilot />} />
+                        <Route path="copilot/history" element={<ConversationHistory />} />
+                        <Route path="copilot/prompts" element={<PromptManager />} />
+                        <Route path="copilot/tools" element={<ToolRegistry />} />
+                        <Route path="copilot/dashboard" element={<AIDashboard />} />
+                        <Route path="copilot/settings" element={<CopilotSettings />} />
 
 
+                        {/* Enterprise MLOps Platform (Phase 15) */}
+                        <Route path="mlops/dashboard" element={<MLOpsDashboard />} />
+                        <Route path="mlops/deployments" element={<DeploymentCenter />} />
+                        <Route path="mlops/pipelines" element={<PipelineManager />} />
+                        <Route path="mlops/monitoring" element={<MonitoringDashboard />} />
+                        <Route path="mlops/approvals" element={<ApprovalQueue />} />
+                        <Route path="mlops/retraining" element={<RetrainingCenter />} />
 
+                        {/* Enterprise Monitoring & Observability Platform (Phase 16) */}
+                        <Route path="observability/dashboard" element={<ObservabilityDashboard />} />
+                        <Route path="observability/health" element={<SystemHealth />} />
+                        <Route path="observability/logs" element={<LogExplorer />} />
+                        <Route path="observability/metrics" element={<MetricsExplorer />} />
+                        <Route path="observability/traces" element={<TraceViewer />} />
+                        <Route path="observability/alerts" element={<AlertCenter />} />
+                        <Route path="observability/business" element={<ObservabilityBusinessDashboard />} />
+                        <Route path="observability/ai" element={<AIMonitoringDashboard />} />
 
                         {/* Security & Identity Dashboards */}
                         <Route path="admin/users" element={<UserManagement />} />

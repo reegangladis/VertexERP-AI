@@ -34,6 +34,10 @@ import {
   CheckCircle2,
   Brain,
   Zap,
+  Search,
+  MessageSquare,
+  ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { useUI } from '@/hooks/useUI';
 
@@ -77,6 +81,36 @@ export function Sidebar() {
     { label: 'AI Chat', path: '/rag/chat', icon: <MessageSquare className="h-4 w-4" /> },
     { label: 'Chat History', path: '/rag/history', icon: <History className="h-4 w-4" /> },
   ];
+
+  const copilotItems = [
+    { label: 'AI Copilot Chat', path: '/copilot/chat', icon: <MessageSquare className="h-4 w-4" /> },
+    { label: 'Conversation History', path: '/copilot/history', icon: <History className="h-4 w-4" /> },
+    { label: 'Prompt Manager', path: '/copilot/prompts', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Tool Registry', path: '/copilot/tools', icon: <Layers className="h-4 w-4" /> },
+    { label: 'AI Dashboard', path: '/copilot/dashboard', icon: <Activity className="h-4 w-4" /> },
+    { label: 'Copilot Settings', path: '/copilot/settings', icon: <Settings className="h-4 w-4" /> },
+  ];
+
+  const mlopsItems = [
+    { label: 'MLOps Dashboard', path: '/mlops/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Deployment Center', path: '/mlops/deployments', icon: <Cpu className="h-4 w-4" /> },
+    { label: 'Pipeline Manager', path: '/mlops/pipelines', icon: <GitBranch className="h-4 w-4" /> },
+    { label: 'Monitoring Dashboard', path: '/mlops/monitoring', icon: <Activity className="h-4 w-4" /> },
+    { label: 'Approval Queue', path: '/mlops/approvals', icon: <ShieldCheck className="h-4 w-4" /> },
+    { label: 'Retraining Center', path: '/mlops/retraining', icon: <RefreshCw className="h-4 w-4" /> },
+  ];
+
+  const observabilityItems = [
+    { label: 'Ops Dashboard', path: '/observability/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'System Health', path: '/observability/health', icon: <Activity className="h-4 w-4" /> },
+    { label: 'Log Explorer', path: '/observability/logs', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Metrics Explorer', path: '/observability/metrics', icon: <TrendingUp className="h-4 w-4" /> },
+    { label: 'Trace Viewer', path: '/observability/traces', icon: <GitBranch className="h-4 w-4" /> },
+    { label: 'Alert Center', path: '/observability/alerts', icon: <ShieldAlert className="h-4 w-4" /> },
+    { label: 'Business Telemetry', path: '/observability/business', icon: <DollarSign className="h-4 w-4" /> },
+    { label: 'AI Monitoring', path: '/observability/ai', icon: <Brain className="h-4 w-4" /> },
+  ];
+
 
 
 
@@ -318,7 +352,80 @@ export function Sidebar() {
           </nav>
         </div>
 
+        {/* Enterprise AI Copilot Platform (Phase 14) */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            AI Copilot Platform
+          </h3>
+          <nav className="space-y-0.5">
+            {copilotItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-[10px] px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
 
+        {/* Enterprise MLOps Platform (Phase 15) */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            MLOps Platform
+          </h3>
+          <nav className="space-y-0.5">
+            {mlopsItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-[10px] px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        {/* Enterprise Monitoring & Observability Platform (Phase 16) */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Monitoring & Observability
+          </h3>
+          <nav className="space-y-0.5">
+            {observabilityItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-[10px] px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
 
         {/* Enterprise Data Engineering Platform */}
         <div>

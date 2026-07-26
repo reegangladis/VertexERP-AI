@@ -1,4 +1,4 @@
-import api from './api';
+import { apiClient as api } from './apiClient';
 
 export interface DatasetItem {
   id: string;
@@ -44,7 +44,7 @@ export interface RegisteredModelItem {
   target_column: string;
   current_version: string;
   stage: string;
-  approval_status: str;
+  approval_status: string;
   approval_notes: string;
   approved_by: string;
   approved_at: string;
@@ -141,7 +141,7 @@ export const mlStudioService = {
     });
     return res.data;
   },
-  async promoteModel(id: string, stage: str): Promise<RegisteredModelItem> {
+  async promoteModel(id: string, stage: string): Promise<RegisteredModelItem> {
     const res = await api.post(`/ml-studio/models/${id}/promote`, { stage });
     return res.data;
   },

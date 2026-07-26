@@ -383,4 +383,22 @@ To bind employees to designations and hierarchy reporting structures, the follow
 *   `retrieval_logs`: Full-text logs auditing retrieval execution (`organization_id`, `session_id`, `user_id`, `query_text`, `top_k`, `retrieved_chunk_ids`, `scores`, `execution_time_ms`, `search_type`)
 *   `feedback`: User accuracy reports mapping chunks (`organization_id`, `user_id`, `chat_message_id`, `chunk_id`, `rating`, `feedback_type`, `comments`, `metadata_json`)
 
+---
+
+## 8. Enterprise AI Copilot Platform Tables (Phase 14)
+
+### 8.1. Sessions & Messages
+*   `copilot_sessions`: Multi-tenant session identifiers (`organization_id`, `user_id`, `title`, `is_pinned`, `context_metadata`, `created_at`, `updated_at`)
+*   `copilot_messages`: Timelines logs (`session_id`, `role`, `content`, `prompt_tokens`, `completion_tokens`, `latency_ms`, `tool_calls` (JSON), `citations` (JSON), `generated_from` (Prompt version), `created_at`)
+
+### 8.2. Prompt Templates & Registry
+*   `copilot_prompts`: Customizable prompt templates database (`organization_id`, `name`, `type` [system/department], `department`, `template`, `variables` (JSON), `version`, `is_active`, `created_by`, `created_at`, `updated_at`)
+*   `tool_registry`: Backend operation interfaces catalog (`name`, `description`, `parameters_schema` (JSON), `required_role`, `is_active`, `created_at`, `updated_at`)
+
+### 8.3. Executions & Feedback
+*   `tool_executions`: Trace details of tool runs (`message_id`, `tool_name`, `arguments` (JSON), `result` (JSON), `status` [success/failed], `error_message`, `execution_time_ms`, `created_at`)
+*   `conversation_feedback`: Ratings audit reports (`message_id`, `user_id`, `rating` [1-5], `comment`, `created_at`)
+*   `conversation_metadata`: Session key-value mappings (`session_id`, `meta_key`, `meta_value`, `created_at`)
+
+
 

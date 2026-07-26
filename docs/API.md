@@ -396,4 +396,73 @@ Toggle conversation pin status.
 ### `POST /api/v1/rag/chat/feedback`
 Submit rating score feedback for AI responses.
 
+---
+
+## 8. Enterprise AI Copilot Platform APIs (Phase 14)
+
+### `POST /api/v1/copilot/sessions`
+Create a new multi-tenant conversation session.
+*   **Request Payload**:
+    ```json
+    {
+      "title": "Q3 Budget Review"
+    }
+    ```
+
+### `GET /api/v1/copilot/sessions`
+List historical conversation sessions filtered by the user's tenant ID.
+
+### `GET /api/v1/copilot/sessions/{session_id}`
+Retrieve metadata details for a session.
+
+### `PUT /api/v1/copilot/sessions/{session_id}`
+Modify session parameters (e.g. title, pinning status).
+
+### `DELETE /api/v1/copilot/sessions/{session_id}`
+Soft-delete a conversation thread.
+
+### `POST /api/v1/copilot/sessions/{session_id}/chat`
+Submit user prompts and retrieve AI-synthesized response containing tool execution logs.
+*   **Request Payload**:
+    ```json
+    {
+      "content": "Check my vacation balance",
+      "provider": "openai",
+      "model_name": "gpt-4o",
+      "temperature": 0.7,
+      "department": "hr"
+    }
+    ```
+
+### `GET /api/v1/copilot/sessions/{session_id}/messages`
+Retrieve full message transcript logs for a session.
+
+### `POST /api/v1/copilot/prompts`
+Create a reusable prompt template (Administrative).
+
+### `GET /api/v1/copilot/prompts`
+List active prompt templates matching the user's organization.
+
+### `PUT /api/v1/copilot/prompts/{prompt_id}`
+Modify prompt instructions version.
+
+### `POST /api/v1/copilot/prompts/test`
+Sandbox compiler utility rendering test variables in template structures.
+
+### `GET /api/v1/copilot/tools`
+List pluggable backend operations (CRM, HR, BI, RAG search).
+
+### `PUT /api/v1/copilot/tools/{tool_name}/status`
+Toggle tool configuration active status.
+
+### `GET /api/v1/copilot/sessions/{session_id}/tool-executions`
+Audit logs of tool runs within a session context.
+
+### `POST /api/v1/copilot/messages/{message_id}/feedback`
+Submit ratings feedback (1-5) and reviews for responses.
+
+### `GET /api/v1/copilot/analytics`
+Retrieve token usage metrics, latency statistics, and tool success rates.
+
+
 

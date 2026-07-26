@@ -1,4 +1,4 @@
-import { api } from './api';
+import { apiClient as api } from './apiClient';
 
 export interface ETLJob {
   id: string;
@@ -88,7 +88,7 @@ export interface FeatureRegistry {
   status: string;
   aggregation_window?: string;
   ml_feature_type: string;
-  online_ttl_seconds: int;
+  online_ttl_seconds: number;
   created_at: string;
 }
 

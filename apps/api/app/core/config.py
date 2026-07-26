@@ -76,6 +76,16 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     JWT_ALGORITHM: str = "HS256"
 
+    # LLM APIs Configuration
+    OPENAI_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None
+    ANTHROPIC_API_KEY: str | None = None
+    AZURE_OPENAI_API_KEY: str | None = None
+    AZURE_OPENAI_ENDPOINT: str | None = None
+    LOCAL_MODEL_URL: str = "http://localhost:11434"
+    DEFAULT_LLM_PROVIDER: str = "openai"
+    DEFAULT_LLM_MODEL: str = "gpt-4o"
+
     @property
     def log_dir_path(self) -> str:
         # Ensure log directory is relative to the apps/api folder if run locally,

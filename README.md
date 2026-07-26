@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents **Phase 13 (Enterprise RAG & Knowledge Intelligence Platform)**, implementing a production-ready Retrieval-Augmented Generation engine supporting document upload, versioning, sliding window chunking, embedding abstraction, pluggable vector databases (FAISS, Chroma, PgVector), hybrid vector-keyword searches, tenant isolation, citations, pinned chats, and feedback collection.
+This repository represents **Phase 16 (Enterprise Monitoring & Observability Platform)**, implementing a unified system metrics, structured logs, and distributed traces collection and analysis ecosystem. It supports multi-tenant telemetry isolation, rule-based alerts threshold evaluation, Gantt calling sequences reconstruction, service health diagnostics, and custom layout configuration panels.
 
 ---
 
@@ -25,12 +25,18 @@ This repository represents **Phase 13 (Enterprise RAG & Knowledge Intelligence P
 
 Detailed operational documentation is available under the `docs/` directory:
 
-1. 📘 [RAG Guide](docs/RAGGuide.md) — modular pipeline layers, embedding providers, and vector databases.
+1. 📘 [AI Copilot Guide](docs/CopilotGuide.md) — multi-tenant sessions isolation, rate limiting, and interface guidelines.
+2. 📘 [Prompt Engineering Guide](docs/PromptEngineeringGuide.md) — templates variables, versions control, and sandbox testing.
+3. 📘 [Tool Integration Guide](docs/ToolIntegrationGuide.md) — pluggable tool decorator syntax, JSON validation, and RBAC privilege checks.
+4. 📘 [RAG Guide](docs/RAGGuide.md) — modular pipeline layers, embedding providers, and vector databases.
 2. 📘 [Knowledge Base Guide](docs/KnowledgeBaseGuide.md) — ingestion, multi-format parsing, chunking, and document lifecycle.
 3. 📘 [Retrieval Guide](docs/RetrievalGuide.md) — hybrid search scoring, tenant isolation, and RBAC controls.
 4. 📘 [ML Studio Guide](docs/MLStudioGuide.md) — datasets, notebooks, experiments, training, evaluation, comparison, explainability, packaging.
 2. 📘 [Model Registry Guide](docs/ModelRegistryGuide.md) — model versions, lifecycle stages, and approval sign-off workflows.
-3. 📘 [Explainability Guide](docs/ExplainabilityGuide.md) — SHAP, LIME, Permutation Importance, and waterfall prediction decision explainers.
+3. 📘 [MLOps Guide](docs/mlops/MLOpsGuide.md) — governance workflows, retraining rules, and model lifecycle audits.
+4. 📘 [Deployment Routing Guide](docs/mlops/DeploymentGuide.md) — Blue-Green shifting, Canary splits, and version rollbacks.
+5. 📘 [Pipeline Orchestration Guide](docs/mlops/PipelineGuide.md) — versioned pipeline templates, verification checks, and console outputs.
+6. 📘 [Explainability Guide](docs/ExplainabilityGuide.md) — SHAP, LIME, Permutation Importance, and waterfall prediction decision explainers.
 
 3. 📘 [Inference Guide](docs/InferenceGuide.md) — real-time/batch prediction APIs, latency monitoring, and ground truth feedback loop.
 4. 📘 [Data Engineering Guide](docs/DataEngineeringGuide.md) — data warehouse star/snowflake schema, data lake zones, MDM, and quality engine.

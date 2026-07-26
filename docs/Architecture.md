@@ -73,3 +73,14 @@ The client panel uses a modular Component-Layout-Page separation:
 - **Strict Tenant & Permission Boundaries**: Ingestion, vector storage, and retrieval flows append explicit multitenancy filters to prevent any cross-tenant metadata leakage.
 - **Attributed Pipeline Generations**: Response generation assemblies trace contexts, construct prompt models, track conversation windows, and output verifiable sources/citations.
 
+---
+
+## Phase 14: Enterprise AI Copilot Platform Architecture
+- **Dynamic Tool Execution Pipeline**: The `CopilotService` orchestrates an automated loop that takes user input, renders templates, queries the LLM provider, detects tool calls, executes them via the `ToolRegistry` (respecting RBAC rules), and returns results to the assistant.
+- **Sandboxed Execution Enforcer**: The tool runner intercepts requests and validates that:
+  1. The user possesses the role required by the tool.
+  2. The organization contexts are matched.
+  3. Sensitive PII attributes (SSN, Phone, Email, Salaries) are masked automatically using regular expression validators if the user role is restricted.
+- **Redis Rate Limiting Integration**: Requests check user queries count against a sliding-window counter in Redis, blocking spam or malicious loops at the gateway.
+
+
