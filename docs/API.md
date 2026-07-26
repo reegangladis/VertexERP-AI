@@ -347,3 +347,53 @@ List Master Data Management (MDM) golden record entities.
 ### `GET /api/v1/data-engineering/monitoring/summary`
 Fetch Data Engineering platform system status, metrics, and data freshness audit.
 
+---
+
+## 7. Enterprise RAG APIs (Phase 13)
+
+### `GET /api/v1/rag/collections`
+List logical knowledge collections.
+
+### `POST /api/v1/rag/collections`
+Create a new knowledge collection partition.
+
+### `GET /api/v1/rag/collections/{collection_id}`
+Retrieve details of a specific knowledge collection.
+
+### `DELETE /api/v1/rag/collections/{collection_id}`
+Soft-delete a knowledge collection.
+
+### `POST /api/v1/rag/documents`
+Upload and process a document file (multipart/form-data) into vector chunks.
+
+### `GET /api/v1/rag/documents`
+List files registered in the document library.
+
+### `GET /api/v1/rag/documents/{document_id}`
+Retrieve metadata details for a specific document.
+
+### `DELETE /api/v1/rag/documents/{document_id}`
+Soft-delete a file and remove vector indexes.
+
+### `POST /api/v1/rag/retrieval/search`
+Execute a semantic or hybrid search query over context metadata.
+
+### `POST /api/v1/rag/chat/sessions`
+Start a new RAG AI chatbot conversation session.
+
+### `GET /api/v1/rag/chat/sessions`
+List historical chat sessions.
+
+### `GET /api/v1/rag/chat/sessions/{session_id}/messages`
+Retrieve message log timelines for a chat session.
+
+### `POST /api/v1/rag/chat/sessions/{session_id}/messages`
+Post prompt messages and receive context-attributed answers.
+
+### `POST /api/v1/rag/chat/sessions/{session_id}/pin`
+Toggle conversation pin status.
+
+### `POST /api/v1/rag/chat/feedback`
+Submit rating score feedback for AI responses.
+
+

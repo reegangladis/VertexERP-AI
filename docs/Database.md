@@ -366,3 +366,21 @@ To bind employees to designations and hierarchy reporting structures, the follow
 *   `data_quality_reports`: Validation rules & quality scores
 *   `data_lineage`: Pipeline and dataset DAG lineage edges
 
+---
+
+## 7. Enterprise RAG Platform Tables (Phase 13)
+
+### 7.1. Relational Content & Vector Mapping
+*   `knowledge_collections`: Logical directories grouping documents (`organization_id`, `name`, `slug`, `description`, `category`, `tags`, `is_public`, `metadata_json`, `created_by`)
+*   `documents`: Ingested document records (`organization_id`, `collection_id`, `title`, `file_name`, `file_path`, `file_size`, `mime_type`, `document_type`, `format`, `language`, `category`, `tags`, `current_version`, `status`, `approval_status`, `retention_days`, `metadata_json`, `created_by`, `updated_by`)
+*   `document_versions`: Document history version records (`document_id`, `version_number`, `file_path`, `file_size`, `file_hash`, `change_summary`, `metadata_json`, `created_by`)
+*   `document_chunks`: Extracted semantic text segments (`document_id`, `version_id`, `chunk_index`, `content`, `clean_content`, `token_count`, `word_count`, `chunk_hash`, `language`, `metadata_json`)
+*   `embeddings_metadata`: Vector DB references (`chunk_id`, `provider`, `model_name`, `vector_id`, `dimension`, `status`, `metadata_json`)
+
+### 7.2. Chat Telemetry & Auditing Logs
+*   `chat_sessions`: Persistent RAG chatbot conversations (`organization_id`, `user_id`, `title`, `is_pinned`, `context_metadata`)
+*   `chat_messages`: Question & Answer histories (`session_id`, `role`, `content`, `prompt_tokens`, `completion_tokens`, `citations`, `feedback_rating`, `feedback_text`)
+*   `retrieval_logs`: Full-text logs auditing retrieval execution (`organization_id`, `session_id`, `user_id`, `query_text`, `top_k`, `retrieved_chunk_ids`, `scores`, `execution_time_ms`, `search_type`)
+*   `feedback`: User accuracy reports mapping chunks (`organization_id`, `user_id`, `chat_message_id`, `chunk_id`, `rating`, `feedback_type`, `comments`, `metadata_json`)
+
+

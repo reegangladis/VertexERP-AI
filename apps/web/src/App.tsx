@@ -138,6 +138,18 @@ import {
   ExplainabilityDashboard,
 } from '@/pages/ml-studio';
 
+// Enterprise RAG & Knowledge Intelligence Platform (Phase 13)
+import {
+  KnowledgeDashboard,
+  DocumentLibrary,
+  CollectionsPage,
+  UploadCenter,
+  KnowledgeSearch,
+  AIChat,
+  ConversationHistoryPage,
+} from '@/pages/rag';
+
+
 
 
 // Setup TanStack Query Client
@@ -280,6 +292,16 @@ function App() {
                         <Route path="ml-studio/comparison" element={<ModelComparisonPage />} />
                         <Route path="ml-studio/evaluation" element={<EvaluationReportsPage />} />
                         <Route path="ml-studio/explainability" element={<ExplainabilityDashboard />} />
+
+                        {/* Enterprise RAG & Knowledge Intelligence Platform (Phase 13) */}
+                        <Route path="rag/dashboard" element={<KnowledgeDashboard />} />
+                        <Route path="rag/documents" element={<DocumentLibrary />} />
+                        <Route path="rag/collections" element={<CollectionsPage />} />
+                        <Route path="rag/upload" element={<UploadCenter />} />
+                        <Route path="rag/search" element={<KnowledgeSearch />} />
+                        <Route path="rag/chat" element={<AIChat />} />
+                        <Route path="rag/history" element={<ConversationHistoryPage />} />
+
 
 
 

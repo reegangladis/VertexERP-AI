@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents **Phase 12 (Enterprise ML Studio & Model Management Platform)**, implementing a unified enterprise workbench for Datasets (versioning, statistics, validation, preview, lineage), Interactive Notebook Registry (cell execution simulator, templates), Experiment Tracker (hyperparameter tracking, comparative trial matrices), Training Jobs Manager (status queue, logs stream, retries), Model Registry (semantic versions, approval review workflow, stage promotions), Model Evaluation Reports (ROC AUC curves, PR curves, Confusion Matrix, Learning Curves), Model Explainability (TreeSHAP, LIME local linear surrogates, Permutation Importance, local prediction waterfall explainer), Model Comparison matrix, and Model Packaging container preparation — without implementing production MLOps deployment pipelines.
+This repository represents **Phase 13 (Enterprise RAG & Knowledge Intelligence Platform)**, implementing a production-ready Retrieval-Augmented Generation engine supporting document upload, versioning, sliding window chunking, embedding abstraction, pluggable vector databases (FAISS, Chroma, PgVector), hybrid vector-keyword searches, tenant isolation, citations, pinned chats, and feedback collection.
 
 ---
 
@@ -13,6 +13,7 @@ This repository represents **Phase 12 (Enterprise ML Studio & Model Management P
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, TanStack Query | Strict TS, React Router v7 |
 | **Backend** | Python 3.12, FastAPI, SQLAlchemy 2, Alembic, Uvicorn | Clean Architecture |
 | **Database & Cache** | PostgreSQL 17, Redis 7 | Persistent Volume Mapping |
+| **Vector DB** | FAISS, ChromaDB, PgVector | Pluggable Adaptability |
 | **ML Studio & Engines** | scikit-learn, XGBoost, LightGBM, CatBoost, TensorFlow, PyTorch, Prophet | Universal Adapter Pattern |
 | **XAI & Profiling** | SHAP, LIME, Permutation Importance | Enterprise Explainability |
 | **DevOps** | Docker, Docker Compose, GitHub Actions | Multi-stage Compilation |
@@ -24,7 +25,10 @@ This repository represents **Phase 12 (Enterprise ML Studio & Model Management P
 
 Detailed operational documentation is available under the `docs/` directory:
 
-1. 📘 [ML Studio Guide](docs/MLStudioGuide.md) — datasets, notebooks, experiments, training, evaluation, comparison, explainability, packaging.
+1. 📘 [RAG Guide](docs/RAGGuide.md) — modular pipeline layers, embedding providers, and vector databases.
+2. 📘 [Knowledge Base Guide](docs/KnowledgeBaseGuide.md) — ingestion, multi-format parsing, chunking, and document lifecycle.
+3. 📘 [Retrieval Guide](docs/RetrievalGuide.md) — hybrid search scoring, tenant isolation, and RBAC controls.
+4. 📘 [ML Studio Guide](docs/MLStudioGuide.md) — datasets, notebooks, experiments, training, evaluation, comparison, explainability, packaging.
 2. 📘 [Model Registry Guide](docs/ModelRegistryGuide.md) — model versions, lifecycle stages, and approval sign-off workflows.
 3. 📘 [Explainability Guide](docs/ExplainabilityGuide.md) — SHAP, LIME, Permutation Importance, and waterfall prediction decision explainers.
 

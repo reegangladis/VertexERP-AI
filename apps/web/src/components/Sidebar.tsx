@@ -68,6 +68,18 @@ export function Sidebar() {
     { label: 'Explainability (XAI)', path: '/ml-studio/explainability', icon: <TrendingUp className="h-4 w-4" /> },
   ];
 
+  const ragItems = [
+    { label: 'RAG Dashboard', path: '/rag/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Document Library', path: '/rag/documents', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Collections', path: '/rag/collections', icon: <Layers className="h-4 w-4" /> },
+    { label: 'Upload Center', path: '/rag/upload', icon: <Play className="h-4 w-4" /> },
+    { label: 'Knowledge Search', path: '/rag/search', icon: <Search className="h-4 w-4" /> },
+    { label: 'AI Chat', path: '/rag/chat', icon: <MessageSquare className="h-4 w-4" /> },
+    { label: 'Chat History', path: '/rag/history', icon: <History className="h-4 w-4" /> },
+  ];
+
+
+
 
   const analyticsItems = [
 
@@ -280,6 +292,32 @@ export function Sidebar() {
             ))}
           </nav>
         </div>
+
+        {/* Enterprise RAG & Knowledge Intelligence Platform (Phase 13) */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Enterprise RAG Platform
+          </h3>
+          <nav className="space-y-0.5">
+            {ragItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-[10px] px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
 
 
         {/* Enterprise Data Engineering Platform */}

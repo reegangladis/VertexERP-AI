@@ -44,6 +44,7 @@ from app.api.v1.endpoints import (
     data_engineering,
     ml,
     ml_studio,
+    rag,
 )
 
 api_router = APIRouter()
@@ -92,6 +93,8 @@ api_router.include_router(analytics.router, prefix="/analytics", tags=["analytic
 api_router.include_router(data_engineering.router, prefix="/data-engineering", tags=["data-engineering"])
 api_router.include_router(ml.router, prefix="/ml", tags=["machine-learning"])
 api_router.include_router(ml_studio.router, prefix="/ml-studio", tags=["ml-studio"])
+api_router.include_router(rag.router, prefix="/rag", tags=["rag"])
+
 
 
 
