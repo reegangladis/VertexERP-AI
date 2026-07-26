@@ -49,14 +49,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; frame-ancestors 'none';"
-        )
+
+        # Bypass CSP restriction for interactive Swagger / ReDoc docs endpoints
+        if not (request.url.path.startswith("/docs") or request.url.path.startswith("/redoc") or request.url.path.endswith("openapi.json")):
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; frame-ancestors 'none';"
+            )
 
         if settings.ENVIRONMENT == "production":
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains"
             )
+
 
         return response
 
