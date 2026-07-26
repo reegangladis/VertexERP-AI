@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: vertexerp-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: vertexerp
+      POSTGRES_USER: vertex_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ProductionSecurePassword2026!}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vertex_admin -d vertexerp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: vertexerp-redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-RedisSecurePass2026!}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_prod_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: ../../docker/Dockerfile.api
+    container_name: vertexerp-api
+    restart: always
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: vertexerp
+      POSTGRES_USER: vertex_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ProductionSecurePassword2026!}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-RedisSecurePass2026!}
+      SECRET_KEY: ${SECRET_KEY:-vertexerp-prod-secret-key-v1-0-0}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: ../../docker/Dockerfile.web
+    container_name: vertexerp-web
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_prod_data:
+  redis_prod_data:

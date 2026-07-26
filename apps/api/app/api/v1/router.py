@@ -70,6 +70,13 @@ from app.api.v1.endpoints import (
     production_backups,
     production_recovery,
     production_readiness,
+    # Phase 20 – Enterprise Cloud Deployment & Global Release
+    cloud_deployments,
+    cloud_releases,
+    cloud_regions,
+    cloud_incidents,
+    cloud_costs,
+    cloud_status,
 )
 
 api_router = APIRouter()
@@ -148,5 +155,14 @@ api_router.include_router(production_compliance.router, prefix="/production/comp
 api_router.include_router(production_backups.router, prefix="/production/backups", tags=["production-readiness"])
 api_router.include_router(production_recovery.router, prefix="/production/recovery", tags=["production-readiness"])
 api_router.include_router(production_readiness.router, prefix="/production/readiness", tags=["production-readiness"])
+
+# Phase 20 – Enterprise Cloud Deployment & Global Release
+api_router.include_router(cloud_deployments.router, prefix="/cloud/deployments", tags=["cloud-release"])
+api_router.include_router(cloud_releases.router, prefix="/cloud/releases", tags=["cloud-release"])
+api_router.include_router(cloud_regions.router, prefix="/cloud/regions", tags=["cloud-release"])
+api_router.include_router(cloud_incidents.router, prefix="/cloud/incidents", tags=["cloud-release"])
+api_router.include_router(cloud_costs.router, prefix="/cloud/costs", tags=["cloud-release"])
+api_router.include_router(cloud_status.router, prefix="/cloud/status", tags=["cloud-release"])
+
 
 

@@ -143,6 +143,17 @@ export function Sidebar() {
     { label: 'System Readiness', path: '/production/readiness', icon: <Award className="h-4 w-4" /> },
   ];
 
+  // Phase 20 – Enterprise Cloud Deployment & Global Release
+  const cloudItems = [
+    { label: 'Release Dashboard', path: '/cloud/releases', icon: <Tag className="h-4 w-4" /> },
+    { label: 'Deployment Dashboard', path: '/cloud/deployments', icon: <Server className="h-4 w-4" /> },
+    { label: 'Cloud Operations', path: '/cloud/operations', icon: <Globe className="h-4 w-4" /> },
+    { label: 'FinOps Dashboard', path: '/cloud/finops', icon: <DollarSign className="h-4 w-4" /> },
+    { label: 'Incident Center', path: '/cloud/incidents', icon: <ShieldAlert className="h-4 w-4" /> },
+    { label: 'Global System Status', path: '/cloud/status', icon: <Activity className="h-4 w-4" /> },
+  ];
+
+
 
 
   const analyticsItems = [
@@ -707,15 +718,41 @@ export function Sidebar() {
             ))}
           </nav>
         </div>
+
+        {/* Enterprise Cloud Deployment & Global Release (Phase 20) */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Cloud & Global Release
+          </h3>
+          <nav className="space-y-0.5">
+            {cloudItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
       </div>
 
       <div className="border-t border-border pt-3 text-[10px] text-muted-foreground/60 text-center">
-        <p className="font-mono">Phase 19 Production Readiness Active</p>
+        <p className="font-mono">VertexERP AI v1.0.0 Global Release Active</p>
       </div>
     </aside>
   );
 }
 export default Sidebar;
+
 
 
 

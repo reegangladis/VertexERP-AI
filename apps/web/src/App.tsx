@@ -213,6 +213,15 @@ import BackupCenter from '@/pages/production/BackupCenter';
 import RecoveryCenter from '@/pages/production/RecoveryCenter';
 import SystemReadinessDashboard from '@/pages/production/SystemReadinessDashboard';
 
+// Enterprise Cloud Deployment & Global Release (Phase 20)
+import ReleaseDashboard from '@/pages/cloud/ReleaseDashboard';
+import DeploymentDashboard from '@/pages/cloud/DeploymentDashboard';
+import CloudOperations from '@/pages/cloud/CloudOperations';
+import FinOpsDashboard from '@/pages/cloud/FinOpsDashboard';
+import IncidentCenter from '@/pages/cloud/IncidentCenter';
+import SystemStatus from '@/pages/cloud/SystemStatus';
+
+
 
 
 
@@ -422,6 +431,15 @@ function App() {
                         <Route path="production/backups" element={<BackupCenter />} />
                         <Route path="production/recovery" element={<RecoveryCenter />} />
                         <Route path="production/readiness" element={<SystemReadinessDashboard />} />
+
+                        {/* Enterprise Cloud Deployment & Global Release (Phase 20) */}
+                        <Route path="cloud/releases" element={<ReleaseDashboard />} />
+                        <Route path="cloud/deployments" element={<DeploymentDashboard />} />
+                        <Route path="cloud/operations" element={<CloudOperations />} />
+                        <Route path="cloud/finops" element={<FinOpsDashboard />} />
+                        <Route path="cloud/incidents" element={<IncidentCenter />} />
+                        <Route path="cloud/status" element={<SystemStatus />} />
+
 
 
 
