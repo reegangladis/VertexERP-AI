@@ -2,6 +2,15 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+// Phase 17 – Enterprise Workflow Automation Platform
+import { WorkflowDashboard } from '@/pages/workflow/WorkflowDashboard';
+import { WorkflowDesigner } from '@/pages/workflow/WorkflowDesigner';
+import { RuleBuilder } from '@/pages/workflow/RuleBuilder';
+import { ApprovalCenter } from '@/pages/workflow/ApprovalCenter';
+import { SchedulerPage } from '@/pages/workflow/SchedulerPage';
+import { ExecutionMonitor } from '@/pages/workflow/ExecutionMonitor';
+import { WorkflowTemplates } from '@/pages/workflow/WorkflowTemplates';
+
 import { ThemeProvider } from '@/store/ThemeContext';
 import { UIProvider } from '@/store/UIContext';
 import { NotificationProvider } from '@/store/NotificationContext';
@@ -367,6 +376,16 @@ function App() {
                         <Route path="observability/alerts" element={<AlertCenter />} />
                         <Route path="observability/business" element={<ObservabilityBusinessDashboard />} />
                         <Route path="observability/ai" element={<AIMonitoringDashboard />} />
+
+                        {/* Enterprise Workflow Automation Platform (Phase 17) */}
+                        <Route path="workflows/dashboard" element={<WorkflowDashboard />} />
+                        <Route path="workflows/designer" element={<WorkflowDesigner />} />
+                        <Route path="workflows/designer/:id" element={<WorkflowDesigner />} />
+                        <Route path="workflows/rules" element={<RuleBuilder />} />
+                        <Route path="workflows/approvals" element={<ApprovalCenter />} />
+                        <Route path="workflows/scheduler" element={<SchedulerPage />} />
+                        <Route path="workflows/executions" element={<ExecutionMonitor />} />
+                        <Route path="workflows/templates" element={<WorkflowTemplates />} />
 
                         {/* Security & Identity Dashboards */}
                         <Route path="admin/users" element={<UserManagement />} />

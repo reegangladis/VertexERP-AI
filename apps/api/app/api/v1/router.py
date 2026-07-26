@@ -48,6 +48,13 @@ from app.api.v1.endpoints import (
     copilot,
     mlops,
     observability,
+    # Phase 17 – Enterprise Workflow Automation
+    workflows,
+    rules,
+    executions,
+    approvals,
+    scheduler,
+    templates,
 )
 
 api_router = APIRouter()
@@ -102,9 +109,10 @@ api_router.include_router(rag.router, prefix="/rag", tags=["rag"])
 api_router.include_router(copilot.router, prefix="/copilot", tags=["copilot"])
 api_router.include_router(mlops.router, prefix="/mlops", tags=["mlops"])
 
-
-
-
-
-
-
+# Phase 17 – Enterprise Workflow Automation Platform
+api_router.include_router(workflows.router, prefix="/workflows", tags=["workflow-automation"])
+api_router.include_router(rules.router, prefix="/workflow-rules", tags=["workflow-automation"])
+api_router.include_router(executions.router, prefix="/workflow-executions", tags=["workflow-automation"])
+api_router.include_router(approvals.router, prefix="/approvals", tags=["workflow-automation"])
+api_router.include_router(scheduler.router, prefix="/scheduler", tags=["workflow-automation"])
+api_router.include_router(templates.router, prefix="/workflow-templates", tags=["workflow-automation"])

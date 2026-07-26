@@ -111,9 +111,16 @@ export function Sidebar() {
     { label: 'AI Monitoring', path: '/observability/ai', icon: <Brain className="h-4 w-4" /> },
   ];
 
-
-
-
+  // Phase 17 – Enterprise Workflow Automation
+  const workflowItems = [
+    { label: 'WF Dashboard', path: '/workflows/dashboard', icon: <Zap className="h-4 w-4" /> },
+    { label: 'Workflow Designer', path: '/workflows/designer', icon: <GitBranch className="h-4 w-4" /> },
+    { label: 'Rule Builder', path: '/workflows/rules', icon: <Shield className="h-4 w-4" /> },
+    { label: 'Approval Center', path: '/workflows/approvals', icon: <CheckCircle2 className="h-4 w-4" /> },
+    { label: 'Job Scheduler', path: '/workflows/scheduler', icon: <Calendar className="h-4 w-4" /> },
+    { label: 'Execution Monitor', path: '/workflows/executions', icon: <Activity className="h-4 w-4" /> },
+    { label: 'WF Templates', path: '/workflows/templates', icon: <LayoutDashboard className="h-4 w-4" /> },
+  ];
 
   const analyticsItems = [
 
@@ -602,10 +609,35 @@ export function Sidebar() {
             ))}
           </nav>
         </div>
+
+        {/* Workflow Automation Platform (Phase 17) */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Workflow Automation
+          </h3>
+          <nav className="space-y-0.5">
+            {workflowItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
       </div>
 
       <div className="border-t border-border pt-3 text-[10px] text-muted-foreground/60 text-center">
-        <p className="font-mono">Phase 7 Platform Active</p>
+        <p className="font-mono">Phase 17 Workflow Automation Active</p>
       </div>
     </aside>
   );
