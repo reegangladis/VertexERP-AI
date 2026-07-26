@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents **Phase 11 (Enterprise Machine Learning Platform)**, implementing core clean architecture patterns, reusable ML infrastructure supporting scikit-learn, XGBoost, LightGBM, CatBoost, TensorFlow, PyTorch, and Prophet frameworks, Feature Engineering transformers (Categorical Encoding, Scaling, Outlier & Missing Value Handlers), Model Training Jobs, K-Fold Cross Validation, Model Evaluation Metrics (Accuracy, Precision, Recall, F1, ROC AUC, RMSE, MAE, MAPE, Confusion Matrix, Feature Importance), Model Registry lifecycle versioning and approval workflows, Experiment Tracking, Real-Time & Batch Inference APIs, Prediction History telemetry, and pre-built Business ML Modules for HR, CRM, Finance, Inventory, and Manufacturing domains.
+This repository represents **Phase 12 (Enterprise ML Studio & Model Management Platform)**, implementing a unified enterprise workbench for Datasets (versioning, statistics, validation, preview, lineage), Interactive Notebook Registry (cell execution simulator, templates), Experiment Tracker (hyperparameter tracking, comparative trial matrices), Training Jobs Manager (status queue, logs stream, retries), Model Registry (semantic versions, approval review workflow, stage promotions), Model Evaluation Reports (ROC AUC curves, PR curves, Confusion Matrix, Learning Curves), Model Explainability (TreeSHAP, LIME local linear surrogates, Permutation Importance, local prediction waterfall explainer), Model Comparison matrix, and Model Packaging container preparation — without implementing production MLOps deployment pipelines.
 
 ---
 
@@ -13,7 +13,8 @@ This repository represents **Phase 11 (Enterprise Machine Learning Platform)**, 
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, TanStack Query | Strict TS, React Router v7 |
 | **Backend** | Python 3.12, FastAPI, SQLAlchemy 2, Alembic, Uvicorn | Clean Architecture |
 | **Database & Cache** | PostgreSQL 17, Redis 7 | Persistent Volume Mapping |
-| **ML Engines** | scikit-learn, XGBoost, LightGBM, CatBoost, TensorFlow, PyTorch, Prophet | Universal Adapter Pattern |
+| **ML Studio & Engines** | scikit-learn, XGBoost, LightGBM, CatBoost, TensorFlow, PyTorch, Prophet | Universal Adapter Pattern |
+| **XAI & Profiling** | SHAP, LIME, Permutation Importance | Enterprise Explainability |
 | **DevOps** | Docker, Docker Compose, GitHub Actions | Multi-stage Compilation |
 | **Formatting** | Ruff, Black, ESLint, Prettier | Strict Quality Gates |
 
@@ -23,8 +24,10 @@ This repository represents **Phase 11 (Enterprise Machine Learning Platform)**, 
 
 Detailed operational documentation is available under the `docs/` directory:
 
-1. 📘 [Machine Learning Guide](docs/MachineLearningGuide.md) — framework adapters, algorithm types, feature pipelines, and business ML modules.
-2. 📘 [Model Registry Guide](docs/ModelRegistryGuide.md) — model versions, lifecycle stages, and approval workflows.
+1. 📘 [ML Studio Guide](docs/MLStudioGuide.md) — datasets, notebooks, experiments, training, evaluation, comparison, explainability, packaging.
+2. 📘 [Model Registry Guide](docs/ModelRegistryGuide.md) — model versions, lifecycle stages, and approval sign-off workflows.
+3. 📘 [Explainability Guide](docs/ExplainabilityGuide.md) — SHAP, LIME, Permutation Importance, and waterfall prediction decision explainers.
+
 3. 📘 [Inference Guide](docs/InferenceGuide.md) — real-time/batch prediction APIs, latency monitoring, and ground truth feedback loop.
 4. 📘 [Data Engineering Guide](docs/DataEngineeringGuide.md) — data warehouse star/snowflake schema, data lake zones, MDM, and quality engine.
 

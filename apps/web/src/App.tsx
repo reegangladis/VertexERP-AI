@@ -125,6 +125,20 @@ import {
   EvaluationMetricsPage,
 } from '@/pages/ml';
 
+// Enterprise ML Studio & Model Management Platform (Phase 12)
+import {
+  MLStudioDashboard,
+  DatasetExplorer as StudioDatasetExplorer,
+  NotebookRegistry,
+  ExperimentTracker,
+  TrainingJobsManager,
+  ModelRegistryStudio,
+  ModelComparisonPage,
+  EvaluationReportsPage,
+  ExplainabilityDashboard,
+} from '@/pages/ml-studio';
+
+
 
 // Setup TanStack Query Client
 
@@ -255,6 +269,18 @@ function App() {
                         <Route path="ml/experiments" element={<ExperimentsPage />} />
                         <Route path="ml/predictions" element={<PredictionsPage />} />
                         <Route path="ml/evaluation" element={<EvaluationMetricsPage />} />
+
+                        {/* Enterprise ML Studio & Model Management Platform (Phase 12) */}
+                        <Route path="ml-studio/dashboard" element={<MLStudioDashboard />} />
+                        <Route path="ml-studio/datasets" element={<StudioDatasetExplorer />} />
+                        <Route path="ml-studio/notebooks" element={<NotebookRegistry />} />
+                        <Route path="ml-studio/experiments" element={<ExperimentTracker />} />
+                        <Route path="ml-studio/training" element={<TrainingJobsManager />} />
+                        <Route path="ml-studio/registry" element={<ModelRegistryStudio />} />
+                        <Route path="ml-studio/comparison" element={<ModelComparisonPage />} />
+                        <Route path="ml-studio/evaluation" element={<EvaluationReportsPage />} />
+                        <Route path="ml-studio/explainability" element={<ExplainabilityDashboard />} />
+
 
 
 

@@ -56,6 +56,19 @@ export function Sidebar() {
     { label: 'Evaluation Metrics', path: '/ml/evaluation', icon: <Activity className="h-4 w-4" /> },
   ];
 
+  const mlStudioItems = [
+    { label: 'ML Studio Overview', path: '/ml-studio/dashboard', icon: <Brain className="h-4 w-4" /> },
+    { label: 'Dataset Registry', path: '/ml-studio/datasets', icon: <BookOpen className="h-4 w-4" /> },
+    { label: 'Notebook Registry', path: '/ml-studio/notebooks', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Experiment Tracker', path: '/ml-studio/experiments', icon: <GitBranch className="h-4 w-4" /> },
+    { label: 'Training Manager', path: '/ml-studio/training', icon: <Cpu className="h-4 w-4" /> },
+    { label: 'Model Registry', path: '/ml-studio/registry', icon: <Layers className="h-4 w-4" /> },
+    { label: 'Model Comparison', path: '/ml-studio/comparison', icon: <Activity className="h-4 w-4" /> },
+    { label: 'Evaluation Reports', path: '/ml-studio/evaluation', icon: <CheckCircle2 className="h-4 w-4" /> },
+    { label: 'Explainability (XAI)', path: '/ml-studio/explainability', icon: <TrendingUp className="h-4 w-4" /> },
+  ];
+
+
   const analyticsItems = [
 
     { label: 'Executive Dashboard', path: '/analytics/executive', icon: <LayoutDashboard className="h-4 w-4" /> },
@@ -242,6 +255,32 @@ export function Sidebar() {
             ))}
           </nav>
         </div>
+
+        {/* Enterprise ML Studio & Model Management Platform */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Enterprise ML Studio
+          </h3>
+          <nav className="space-y-0.5">
+            {mlStudioItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-[10px] px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
 
         {/* Enterprise Data Engineering Platform */}
         <div>
