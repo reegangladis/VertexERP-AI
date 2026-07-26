@@ -55,6 +55,14 @@ from app.api.v1.endpoints import (
     approvals,
     scheduler,
     templates,
+    # Phase 18 – Enterprise Integration Platform
+    integration_connectors,
+    integration_gateway,
+    integration_webhooks,
+    integration_events,
+    integration_queues,
+    integration_auth,
+    integration_analytics,
 )
 
 api_router = APIRouter()
@@ -116,3 +124,13 @@ api_router.include_router(executions.router, prefix="/workflow-executions", tags
 api_router.include_router(approvals.router, prefix="/approvals", tags=["workflow-automation"])
 api_router.include_router(scheduler.router, prefix="/scheduler", tags=["workflow-automation"])
 api_router.include_router(templates.router, prefix="/workflow-templates", tags=["workflow-automation"])
+
+# Phase 18 – Enterprise Integration Platform
+api_router.include_router(integration_connectors.router, prefix="/integration/connectors", tags=["integration-platform"])
+api_router.include_router(integration_gateway.router, prefix="/integration/gateway", tags=["integration-platform"])
+api_router.include_router(integration_webhooks.router, prefix="/integration/webhooks", tags=["integration-platform"])
+api_router.include_router(integration_events.router, prefix="/integration/events", tags=["integration-platform"])
+api_router.include_router(integration_queues.router, prefix="/integration/queues", tags=["integration-platform"])
+api_router.include_router(integration_auth.router, prefix="/integration/auth", tags=["integration-platform"])
+api_router.include_router(integration_analytics.router, prefix="/integration/analytics", tags=["integration-platform"])
+

@@ -122,6 +122,18 @@ export function Sidebar() {
     { label: 'WF Templates', path: '/workflows/templates', icon: <LayoutDashboard className="h-4 w-4" /> },
   ];
 
+  // Phase 18 – Enterprise Integration Platform
+  const integrationItems = [
+    { label: 'Integration Dashboard', path: '/integrations/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Connector Marketplace', path: '/integrations/connectors', icon: <Layers className="h-4 w-4" /> },
+    { label: 'API Gateway', path: '/integrations/gateway', icon: <Network className="h-4 w-4" /> },
+    { label: 'Webhook Center', path: '/integrations/webhooks', icon: <MessageSquare className="h-4 w-4" /> },
+    { label: 'Event Monitor', path: '/integrations/events', icon: <Zap className="h-4 w-4" /> },
+    { label: 'Queue Dashboard', path: '/integrations/queues', icon: <Activity className="h-4 w-4" /> },
+    { label: 'API Analytics', path: '/integrations/analytics', icon: <TrendingUp className="h-4 w-4" /> },
+  ];
+
+
   const analyticsItems = [
 
     { label: 'Executive Dashboard', path: '/analytics/executive', icon: <LayoutDashboard className="h-4 w-4" /> },
@@ -634,13 +646,39 @@ export function Sidebar() {
             ))}
           </nav>
         </div>
+
+        {/* Integration Platform (Phase 18) */}
+        <div>
+          <h3 className="px-3 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">
+            Integration Platform
+          </h3>
+          <nav className="space-y-0.5">
+            {integrationItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
       </div>
 
       <div className="border-t border-border pt-3 text-[10px] text-muted-foreground/60 text-center">
-        <p className="font-mono">Phase 17 Workflow Automation Active</p>
+        <p className="font-mono">Phase 18 Integration Platform Active</p>
       </div>
     </aside>
   );
 }
 export default Sidebar;
+
 

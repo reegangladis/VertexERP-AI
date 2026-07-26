@@ -196,6 +196,16 @@ import {
   AIMonitoringDashboard,
 } from '@/pages/observability';
 
+// Enterprise Integration Platform Page Views (Phase 18)
+import IntegrationDashboard from '@/pages/integration/IntegrationDashboard';
+import ConnectorMarketplace from '@/pages/integration/ConnectorMarketplace';
+import ApiGatewayPage from '@/pages/integration/ApiGatewayPage';
+import WebhookCenter from '@/pages/integration/WebhookCenter';
+import EventMonitor from '@/pages/integration/EventMonitor';
+import QueueDashboard from '@/pages/integration/QueueDashboard';
+import ApiAnalyticsPage from '@/pages/integration/ApiAnalyticsPage';
+
+
 
 
 
@@ -386,6 +396,16 @@ function App() {
                         <Route path="workflows/scheduler" element={<SchedulerPage />} />
                         <Route path="workflows/executions" element={<ExecutionMonitor />} />
                         <Route path="workflows/templates" element={<WorkflowTemplates />} />
+
+                        {/* Enterprise Integration Platform (Phase 18) */}
+                        <Route path="integrations/dashboard" element={<IntegrationDashboard />} />
+                        <Route path="integrations/connectors" element={<ConnectorMarketplace />} />
+                        <Route path="integrations/gateway" element={<ApiGatewayPage />} />
+                        <Route path="integrations/webhooks" element={<WebhookCenter />} />
+                        <Route path="integrations/events" element={<EventMonitor />} />
+                        <Route path="integrations/queues" element={<QueueDashboard />} />
+                        <Route path="integrations/analytics" element={<ApiAnalyticsPage />} />
+
 
                         {/* Security & Identity Dashboards */}
                         <Route path="admin/users" element={<UserManagement />} />

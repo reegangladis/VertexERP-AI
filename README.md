@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents **Phase 16 (Enterprise Monitoring & Observability Platform)**, implementing a unified system metrics, structured logs, and distributed traces collection and analysis ecosystem. It supports multi-tenant telemetry isolation, rule-based alerts threshold evaluation, Gantt calling sequences reconstruction, service health diagnostics, and custom layout configuration panels.
+This repository represents **Phase 18 (Enterprise Integration Platform)**, implementing a cloud-agnostic integration suite supporting REST APIs, GraphQL, Webhooks, Message Queues, Event Bus, File Transfers, API Gateway, and pluggable connectors for ERP, CRM, Payment, Storage, Email, SMS, Messaging, AI, and Identity Providers.
 
 ---
 
@@ -16,6 +16,7 @@ This repository represents **Phase 16 (Enterprise Monitoring & Observability Pla
 | **Vector DB** | FAISS, ChromaDB, PgVector | Pluggable Adaptability |
 | **ML Studio & Engines** | scikit-learn, XGBoost, LightGBM, CatBoost, TensorFlow, PyTorch, Prophet | Universal Adapter Pattern |
 | **XAI & Profiling** | SHAP, LIME, Permutation Importance | Enterprise Explainability |
+| **Integration Platform** | API Gateway, Webhook Engine, Event Bus, Queue Engine, Connector Framework | Vendor-Agnostic Hybrid Multi-Cloud |
 | **DevOps** | Docker, Docker Compose, GitHub Actions | Multi-stage Compilation |
 | **Formatting** | Ruff, Black, ESLint, Prettier | Strict Quality Gates |
 
@@ -24,6 +25,13 @@ This repository represents **Phase 16 (Enterprise Monitoring & Observability Pla
 ## 📂 Architecture & Guides
 
 Detailed operational documentation is available under the `docs/` directory:
+
+1. 📘 [Integration Guide](docs/IntegrationGuide.md) — API Gateway, Webhooks, Event Bus, Queues, and File Integration.
+2. 📘 [Connector Guide](docs/ConnectorGuide.md) — pluggable connectors for ERP, CRM, Payment, Storage, Email, SMS, Messaging, AI, and IdP.
+3. 📘 [Webhook Guide](docs/WebhookGuide.md) — HMAC SHA256 signatures, event subscriptions, and exponential retries.
+4. 📘 [API Gateway Guide](docs/APIGatewayGuide.md) — routing, versioning, rate limiting, caching, and API keys.
+5. 📘 [Workflow Automation Guide](docs/WorkflowAutomationGuide.md) — visual DAG execution engine, step handlers, and resilience.
+
 
 1. 📘 [AI Copilot Guide](docs/CopilotGuide.md) — multi-tenant sessions isolation, rate limiting, and interface guidelines.
 2. 📘 [Prompt Engineering Guide](docs/PromptEngineeringGuide.md) — templates variables, versions control, and sandbox testing.

@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.session import get_db
+from app.database.connection import get_db
 from app.repositories.workflow_repository import WorkflowRepository
 from app.services.workflow_engine import WorkflowEngine
 from app.schemas.workflow import (

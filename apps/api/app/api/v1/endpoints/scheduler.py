@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.session import get_db
+from app.database.connection import get_db
 from app.services.scheduler_service import SchedulerService
 from app.schemas.workflow import (
     ScheduledJobCreate,
