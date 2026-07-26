@@ -92,3 +92,26 @@ class AccessLoggingMiddleware(BaseHTTPMiddleware):
                 f"Duration: {process_time:.4f}s"
             )
             raise e
+
+
+class TenantMiddleware(BaseHTTPMiddleware):
+    """Middleware that extracts and sets the active Tenant context (Organization ID) for multi-tenancy."""
+
+    async def dispatch(self, request: Request, call_next) -> Response:
+        tenant_header = request.headers.get("X-Tenant-ID")
+        tenant_id = None
+        if tenant_header:
+            try:
+                tenant_id = uuid.UUID(tenant_header)
+            except ValueError:
+                pass
+
+        # Set tenant ID in async context
+        from app.core.tenant import set_current_tenant_id
+        set_current_tenant_id(tenant_id)
+
+        try:
+            response = await call_next(request)
+            return response
+        finally:
+            set_current_tenant_id(None)

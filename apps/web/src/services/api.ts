@@ -1,3 +1,5 @@
+import { apiClient } from './apiClient';
+
 export interface HealthResponse {
   status: string;
   version: string;
@@ -16,30 +18,20 @@ export interface VersionResponse {
   timestamp: string;
 }
 
-// Default to localhost:8000 which is mapped via Docker Compose/Local setup
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
 export async function fetchHealth(): Promise<HealthResponse> {
-  const res = await fetch(`${API_URL}/api/v1/health`);
-  if (!res.ok) {
-    // Attempt to extract response data anyway
-    try {
-      const data = await res.json();
-      if (data.error) {
-        return data.error as HealthResponse;
-      }
-    } catch {
-      // Fallback if not JSON
+  try {
+    const response = await apiClient.get('/api/v1/health');
+    return response.data.data;
+  } catch (error: any) {
+    // For 503 Service Unavailable, return parsed sub-service statuses if present
+    if (error.response?.data?.data) {
+      return error.response.data.data as HealthResponse;
     }
-    throw new Error('API Health check failed');
+    throw error;
   }
-  return res.json();
 }
 
 export async function fetchVersion(): Promise<VersionResponse> {
-  const res = await fetch(`${API_URL}/api/v1/version`);
-  if (!res.ok) {
-    throw new Error('API Version check failed');
-  }
-  return res.json();
+  const response = await apiClient.get('/api/v1/version');
+  return response.data.data;
 }

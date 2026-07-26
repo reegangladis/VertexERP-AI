@@ -2,7 +2,7 @@
 
 Welcome to **VertexERP AI**, an enterprise cloud-native ERP platform built to coordinate high-throughput business data, real-time intelligence telemetry, and distributed caching at scale.
 
-This repository represents the release of **Sprint 1.2 (Enterprise Backend Foundation)**, implementing core clean architecture patterns, structured multi-destination logging, custom request-tracing middleware, Redis cache service integration, generic repositories, service layers, and health validations.
+This repository represents **Phase 8 (Manufacturing & Production Intelligence Platform)**, implementing core clean architecture patterns, multi-level Bill of Materials (BOM), manufacturing routings, work centers, machines telemetry, production orders scheduling, shop floor execution logging, quality management, preventive maintenance, automated Material Requirement Planning (MRP) engine, and AI readiness data architecture.
 
 ---
 
@@ -18,17 +18,28 @@ This repository represents the release of **Sprint 1.2 (Enterprise Backend Found
 
 ---
 
-## 📂 Architecture Guides
+## 📂 Architecture & Guides
 
 Detailed operational documentation is available under the `docs/` directory:
 
 1. 📘 [System Architecture](docs/Architecture.md) — clean boundary maps, database connections, and data flows.
-2. 📘 [Backend Architecture](docs/BackendArchitecture.md) — service, repository, and middleware patterns implemented in Sprint 1.2.
-3. 📙 [Coding Standards](docs/CodingStandards.md) — engineering principles and rules for Python/Clean architecture.
-4. 🗂️ [Folder Structure Map](docs/FolderStructure.md) — monorepo organization layout.
-5. 💻 [Local Development Guide](docs/DevelopmentGuide.md) — running services locally without containers.
-6. 🐳 [Container Installation Guide](docs/InstallationGuide.md) — building and starting with Docker Compose.
-7. 🤝 [Contributing Standards](docs/Contributing.md) — pull request checklists, branching, and conventional commit rules.
+2. 📘 [Backend Architecture](docs/BackendArchitecture.md) — service, repository, and middleware patterns.
+3. 📘 [Manufacturing Guide](docs/ManufacturingGuide.md) — work centers, machines fleet, and maintenance architecture.
+4. 📘 [Production Guide](docs/ProductionGuide.md) — shop floor execution, scrap recording, and MRP engine.
+5. 📘 [BOM Guide](docs/BOMGuide.md) — multi-level Bill of Materials, versioning, and cost rollup methodology.
+6. 📘 [Finance Setup Guide](docs/FinanceGuide.md) — configuration guide for Chart of Accounts, Invoices, Bills & Banking.
+
+6. 📘 [Double-Entry Accounting Guide](docs/AccountingGuide.md) — double-entry ledger posting rules and transaction workflows.
+7. 📘 [Financial Reports Guide](docs/FinancialReportsGuide.md) — Trial Balance, Balance Sheet, P&L, Cash Flow, and Aging Reports.
+8. 📘 [Entity-Relationship Diagram](docs/ERD.md) — Mermaid database schema associations.
+
+8. 📘 [Sequence Diagrams](docs/SequenceDiagram.md) — Mermaid call sequences.
+9. 📘 [Use Case Diagrams](docs/UseCase.md) — actors and authorizations model.
+10. 📙 [Coding Standards](docs/CodingStandards.md) — engineering principles.
+11. 🗂️ [Folder Structure Map](docs/FolderStructure.md) — monorepo organization layout.
+12. 💻 [Local Development Guide](docs/DevelopmentGuide.md) — running services locally without containers.
+13. 🐳 [Container Installation Guide](docs/InstallationGuide.md) — building and starting with Docker Compose.
+14. 🤝 [Contributing Standards](docs/Contributing.md) — conventional commit rules.
 
 ---
 

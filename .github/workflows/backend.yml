@@ -2,15 +2,16 @@ name: Backend Quality Gate
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, develop ]
     paths:
       - 'apps/api/**'
       - '.github/workflows/backend.yml'
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, develop ]
     paths:
       - 'apps/api/**'
       - '.github/workflows/backend.yml'
+
 
 jobs:
   test:
@@ -20,10 +21,10 @@ jobs:
     - name: Checkout Codebase
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.13
+    - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.12'
         cache: 'pip'
         cache-dependency-path: 'apps/api/requirements.txt'
 

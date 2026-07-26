@@ -15,6 +15,7 @@ from app.middleware.custom import (
     ProcessingTimeMiddleware,
     RequestIDMiddleware,
     SecurityHeadersMiddleware,
+    TenantMiddleware,
 )
 from app.middleware.exception_handler import setup_exception_handlers
 
@@ -38,6 +39,13 @@ async def lifespan(app: FastAPI):
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         logger.info("Database startup healthcheck passed successfully.")
+
+        # Ensure database tables exist
+        from app.database.base import Base
+        import app.models
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database schemas initialized.")
     except Exception as e:
         logger.critical(f"Database connection validation failed during startup: {e}")
         raise RuntimeError(f"Database validation failure: {e}") from e
@@ -85,6 +93,7 @@ app = FastAPI(
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(AccessLoggingMiddleware)
 app.add_middleware(ProcessingTimeMiddleware)
+app.add_middleware(TenantMiddleware)
 app.add_middleware(RequestIDMiddleware)
 
 # Set up CORS middleware (outermost layer wrapping all other custom middlewares)

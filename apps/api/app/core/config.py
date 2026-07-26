@@ -69,6 +69,13 @@ class Settings(BaseSettings):
     LOG_DIR: str = "logs"
     LOG_LEVEL: str = "INFO"
 
+    # JWT Security Configuration
+    JWT_SECRET_KEY: str = "super_secret_jwt_key_vertexerp_ai_phase_2"
+    JWT_REFRESH_SECRET_KEY: str = "super_secret_refresh_jwt_key_vertexerp_ai_phase_2"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    JWT_ALGORITHM: str = "HS256"
+
     @property
     def log_dir_path(self) -> str:
         # Ensure log directory is relative to the apps/api folder if run locally,

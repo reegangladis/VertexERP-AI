@@ -34,3 +34,106 @@ def get_logger(name: str):
         return logging.getLogger(name)
 
     return _logger_dependency
+
+
+# Authentication & Authorization dependencies
+import uuid
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from app.models.user import User
+from app.repositories.user import UserRepository
+from app.core.security import decode_token
+from app.core.tenant import get_current_tenant_id
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl=f"{settings.API_V1_STR}/auth/login",
+    auto_error=False
+)
+
+async def get_current_user(
+    db: AsyncSession = Depends(get_db_session),
+    token: str | None = Depends(oauth2_scheme)
+) -> User:
+    """Dependency to retrieve the currently authenticated user via JWT."""
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    user_id_str = decode_token(token)
+    if not user_id_str:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    try:
+        user_id = uuid.UUID(user_id_str)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format",
+        )
+        
+    user_repo = UserRepository(db)
+    user = await user_repo.get(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account not found",
+        )
+        
+    if user.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account is suspended or locked",
+        )
+
+    # Validate Tenant Boundary
+    active_tenant = get_current_tenant_id()
+    if active_tenant and user.organization_id != active_tenant:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Tenant isolation mismatch",
+        )
+        
+    return user
+
+
+class PermissionChecker:
+    """Dependency factory checking user permission credentials."""
+    def __init__(self, permission_name: str):
+        self.permission_name = permission_name
+
+    async def __call__(self, current_user: User = Depends(get_current_user)) -> User:
+        # Super Admin override
+        for role in current_user.roles:
+            if role.name == "Super Admin":
+                return current_user
+            for perm in role.permissions:
+                if perm.name == self.permission_name or perm.name == "admin.full":
+                    return current_user
+                    
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Missing required permission: {self.permission_name}",
+        )
+
+
+class RoleChecker:
+    """Dependency factory checking user role mappings."""
+    def __init__(self, allowed_roles: list[str]):
+        self.allowed_roles = allowed_roles
+
+    async def __call__(self, current_user: User = Depends(get_current_user)) -> User:
+        for role in current_user.roles:
+            if role.name in self.allowed_roles or role.name == "Super Admin":
+                return current_user
+                
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied: Required roles: {', '.join(self.allowed_roles)}",
+        )
