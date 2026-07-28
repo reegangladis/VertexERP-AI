@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.connection import get_db
 from app.repositories.cloud_release_repository import CloudReleaseRepository
 from app.services.cloud_deployment_service import CloudDeploymentService
-from app.models.cloud_release import DeploymentHistory
+from app.models.cloud_release import CloudDeploymentHistory
 from app.schemas.cloud_release import DeploymentTriggerRequest, DeploymentOut
 
 router = APIRouter()
@@ -26,7 +26,7 @@ async def trigger_deployment(
         payload.canary_traffic_percent,
     )
 
-    dep = DeploymentHistory(
+    dep = CloudDeploymentHistory(
         environment_name=res["environment_name"],
         version=res["version"],
         strategy=res["strategy"],

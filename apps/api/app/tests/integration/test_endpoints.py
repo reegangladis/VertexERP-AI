@@ -67,16 +67,16 @@ async def test_health_endpoint_unhealthy_db(
 async def test_health_endpoint_unhealthy_redis(
     mock_redis, client: AsyncClient, mock_db_session
 ):
-    """Tests health check returns 503 Service Unavailable when Redis is offline."""
+    """Tests health check returns 200 OK with degraded status when Redis is offline."""
     mock_redis.return_value = False
     mock_db_session.execute.return_value = None
 
     response = await client.get("/api/v1/health")
-    assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert response.status_code == status.HTTP_200_OK
     payload = response.json()
-    assert payload["success"] is False
+    assert payload["success"] is True
 
     data = payload["data"]
-    assert data["status"] == "unhealthy"
+    assert data["status"] == "degraded"
     assert data["services"]["database"] == "healthy"
-    assert data["services"]["redis"] == "unhealthy"
+    assert data["services"]["redis"] == "degraded"

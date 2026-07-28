@@ -16,14 +16,26 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # CORS Settings (JSON string or comma-separated values)
-    BACKEND_CORS_ORIGINS: list[str] | str = []
+    BACKEND_CORS_ORIGINS: list[str] | str = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
         if isinstance(v, str):
             if not v:
-                return []
+                return [
+                    "http://localhost:3000",
+                    "http://localhost:5173",
+                    "http://127.0.0.1:5173",
+                    "http://localhost:8000",
+                    "http://127.0.0.1:8000",
+                ]
             if v.startswith("[") and v.endswith("]"):
                 try:
                     return json.loads(v)

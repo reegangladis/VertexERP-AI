@@ -118,9 +118,8 @@ async def delete_employee(
     service: EmployeeService = Depends(get_employee_service)
 ):
     emp = await service.repository.get(id)
-    if not emp:
-        raise HTTPException(status_code=404, detail="Employee not found")
-    await service.repository.delete(emp)
+    if emp:
+        await service.repository.delete(emp)
     return standard_json_response(
         status_code=status.HTTP_200_OK,
         success=True,

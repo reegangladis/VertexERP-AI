@@ -255,7 +255,7 @@ function App() {
                       {/* DashboardLayout coordinates Navbar and Sidebar navigations */}
                       <Route element={<DashboardLayout />}>
                         <Route path="/" element={<LandingPage />} />
-                        <Route path="dashboard" element={<DashboardPlaceholder />} />
+                        <Route path="dashboard" element={<ExecutiveDashboard />} />
                         <Route path="unauthorized" element={<Unauthorized />} />
                         <Route path="maintenance" element={<Maintenance />} />
                         <Route path="500" element={<ServerError />} />

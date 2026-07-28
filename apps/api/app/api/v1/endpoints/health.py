@@ -29,11 +29,11 @@ async def get_health(
 
     # 2. Validate Redis connectivity
     redis_ok = await check_redis_health()
-    redis_status = "healthy" if redis_ok else "unhealthy"
+    redis_status = "healthy" if redis_ok else "degraded"
 
     # Determine overall status
-    is_healthy = db_status == "healthy" and redis_status == "healthy"
-    overall_status = "healthy" if is_healthy else "unhealthy"
+    is_healthy = db_status == "healthy"
+    overall_status = "healthy" if (is_healthy and redis_ok) else ("degraded" if is_healthy else "unhealthy")
 
     # Return standard health payload
     health_data = HealthResponse(
@@ -45,16 +45,15 @@ async def get_health(
     )
 
     if not is_healthy:
-        # Return 503 Service Unavailable using standard response envelope
         return standard_json_response(
             status_code=503,
             success=False,
-            message="One or more internal services are unhealthy",
+            message="One or more critical internal services are unhealthy",
             data=health_data.model_dump(),
         )
 
     return APIResponse(
         success=True,
-        message="All services are healthy",
+        message="All services are healthy" if overall_status == "healthy" else "Services operational (Redis in memory fallback)",
         data=health_data,
     )

@@ -90,7 +90,8 @@ def setup_exception_handlers(app: FastAPI) -> None:
 
         meta = {}
         if settings_is_dev():
-            meta = {"details": str(exc)}
+            import traceback
+            meta = {"details": str(exc), "traceback": traceback.format_exc()}
 
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

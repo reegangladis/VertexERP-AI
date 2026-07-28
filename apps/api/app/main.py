@@ -36,18 +36,24 @@ async def lifespan(app: FastAPI):
 
     # 2. Verify Database connectivity
     try:
-        async with engine.connect() as conn:
+        from app.database.connection import engine as db_engine
+        async with db_engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         logger.info("Database startup healthcheck passed successfully.")
+    except Exception as e:
+        logger.warning(f"PostgreSQL connection validation warning: {e}. Switching to standalone SQLite database.")
+        from app.database.connection import set_fallback_sqlite_engine
+        set_fallback_sqlite_engine()
 
-        # Ensure database tables exist
+    try:
         from app.database.base import Base
         import app.models
-        async with engine.begin() as conn:
+        from app.database.connection import engine as active_engine
+        async with active_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database schemas initialized.")
     except Exception as e:
-        logger.warning(f"Database connection validation warning: {e}. Running in standalone mode.")
+        logger.error(f"Failed to initialize database schemas: {e}")
 
     # 3. Verify Redis connectivity
     try:
@@ -98,14 +104,18 @@ app.add_middleware(TenantMiddleware)
 app.add_middleware(RequestIDMiddleware)
 
 # Set up CORS middleware (outermost layer wrapping all other custom middlewares)
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+cors_origins = [str(origin) for origin in settings.BACKEND_CORS_ORIGINS] if settings.BACKEND_CORS_ORIGINS else []
+for dev_origin in ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8000", "http://127.0.0.1:8000"]:
+    if dev_origin not in cors_origins:
+        cors_origins.append(dev_origin)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Register exception handlers
 setup_exception_handlers(app)

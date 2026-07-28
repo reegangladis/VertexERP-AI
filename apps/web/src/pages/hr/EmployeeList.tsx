@@ -9,7 +9,7 @@ import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { useNotification } from '@/hooks/useNotification';
-import { apiClient } from '@/services/apiClient';
+import { apiClient, getApiBaseUrl } from '@/services/apiClient';
 
 const employeeSchema = z.object({
   employee_code: z.string().min(2, 'Employee Code must be at least 2 characters'),
@@ -161,7 +161,7 @@ export function HREmployeeList() {
             <input type="file" accept=".csv" className="hidden" onChange={handleCsvUpload} />
           </label>
           <a
-            href="http://localhost:8000/api/v1/employees/export/csv"
+            href={`${getApiBaseUrl()}/api/v1/employees/export/csv`}
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-2 px-3 py-2 border border-border rounded bg-secondary/35 text-xs font-semibold hover:bg-secondary cursor-pointer select-none"

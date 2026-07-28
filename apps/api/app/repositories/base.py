@@ -17,7 +17,7 @@ class BaseRepository[ModelType: Base]:
         """Retrieves a single record by primary key."""
         stmt = select(self.model).where(self.model.id == id)
         if hasattr(self.model, "is_deleted"):
-            stmt = stmt.where(not self.model.is_deleted)
+            stmt = stmt.where(self.model.is_deleted == False)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -25,7 +25,7 @@ class BaseRepository[ModelType: Base]:
         """Retrieves multiple records with support for pagination (sprint 1.1 compatible)."""
         stmt = select(self.model)
         if hasattr(self.model, "is_deleted"):
-            stmt = stmt.where(not self.model.is_deleted)
+            stmt = stmt.where(self.model.is_deleted == False)
         stmt = stmt.offset(skip).limit(limit)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
@@ -44,7 +44,7 @@ class BaseRepository[ModelType: Base]:
 
         # Filter out soft-deleted records by default
         if hasattr(self.model, "is_deleted") and not include_deleted:
-            stmt = stmt.where(not self.model.is_deleted)
+            stmt = stmt.where(self.model.is_deleted == False)
 
         # Dynamic filtering
         if filters:
@@ -95,6 +95,7 @@ class BaseRepository[ModelType: Base]:
 
     async def update(self, db_obj: ModelType, obj_in: Any) -> ModelType:
         """Updates an existing database record with the provided parameters."""
+        db_obj = await self.db.merge(db_obj)
         if hasattr(obj_in, "model_dump"):
             update_data = obj_in.model_dump(exclude_unset=True)
         elif isinstance(obj_in, dict):

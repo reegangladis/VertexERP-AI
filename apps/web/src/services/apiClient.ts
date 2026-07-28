@@ -9,8 +9,12 @@ function generateRequestId(): string {
   });
 }
 
-// Read API base URL from environments
-const baseURL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000';
+// Read API base URL from environments dynamically
+export function getApiBaseUrl(): string {
+  return (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000';
+}
+
+const baseURL = getApiBaseUrl();
 
 export const apiClient = axios.create({
   baseURL,
@@ -20,11 +24,17 @@ export const apiClient = axios.create({
   },
 });
 
-// Request Interceptor: Inject unique Request IDs for tracing
+// Request Interceptor: Inject unique Request IDs for tracing and Authorization token
 apiClient.interceptors.request.use(
   (config) => {
-    if (config.headers && !config.headers['X-Request-ID']) {
-      config.headers['X-Request-ID'] = generateRequestId();
+    if (config.headers) {
+      if (!config.headers['X-Request-ID']) {
+        config.headers['X-Request-ID'] = generateRequestId();
+      }
+      const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+      if (token && !config.headers['Authorization']) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
     }
     return config;
   },
