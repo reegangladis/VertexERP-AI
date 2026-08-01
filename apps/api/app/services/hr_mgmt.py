@@ -289,5 +289,95 @@ class DocumentUploadService(BaseService[EmployeeDocument, EmployeeDocumentReposi
         })
 
 
+from app.models.payroll import SalaryStructure, PayrollRun, Payslip
+from app.repositories.hr_mgmt import PayrollRunRepository, PayslipRepository
+
+class PayrollService(BaseService[PayrollRun, PayrollRunRepository]):
+    def __init__(self, repository: PayrollRunRepository, payslip_repo: PayslipRepository, salary_repo: SalaryStructureRepository, employee_repo: EmployeeRepository):
+        super().__init__(repository)
+        self.payslip_repo = payslip_repo
+        self.salary_repo = salary_repo
+        self.employee_repo = employee_repo
+
+    async def process_payroll(self, org_id: uuid.UUID, month: int, year: int) -> PayrollRun:
+        existing = await self.repository.get_by_period(org_id, month, year)
+        if existing and existing.status == "paid":
+            raise HRServiceException(f"Payroll for {month}/{year} is already finalized and paid.")
+
+        if not existing:
+            payroll_run = await self.repository.create({
+                "organization_id": org_id,
+                "period_month": month,
+                "period_year": year,
+                "status": "processing",
+                "total_gross": 0.0,
+                "total_deductions": 0.0,
+                "total_net": 0.0,
+            })
+        else:
+            payroll_run = existing
+            payroll_run.status = "processing"
+
+        employees = await self.employee_repo.get_by_org(org_id)
+        active_employees = [e for e in employees if e.status == "active"]
+
+        total_gross = 0.0
+        total_deductions = 0.0
+        total_net = 0.0
+
+        for emp in active_employees:
+            stmt = select(SalaryStructure).where(
+                SalaryStructure.employee_id == emp.id,
+                SalaryStructure.is_deleted == False
+            )
+            res = await self.repository.db.execute(stmt)
+            struct = res.scalars().first()
+
+            base_salary = float(struct.base_salary) if struct else 5000.0
+            allowances_dict = struct.allowances if (struct and isinstance(struct.allowances, dict)) else {"housing": 1000.0, "transport": 500.0}
+            deductions_dict = struct.deductions if (struct and isinstance(struct.deductions, dict)) else {"tax": base_salary * 0.1, "insurance": 200.0}
+
+            total_allow = sum(float(v) for v in allowances_dict.values())
+            total_deduct = sum(float(v) for v in deductions_dict.values())
+            net = (base_salary + total_allow) - total_deduct
+
+            total_gross += (base_salary + total_allow)
+            total_deductions += total_deduct
+            total_net += net
+
+            stmt_ps = select(Payslip).where(
+                Payslip.payroll_run_id == payroll_run.id,
+                Payslip.employee_id == emp.id,
+                Payslip.is_deleted == False
+            )
+            res_ps = await self.repository.db.execute(stmt_ps)
+            ps_existing = res_ps.scalar_one_or_none()
+
+            ps_data = {
+                "payroll_run_id": payroll_run.id,
+                "employee_id": emp.id,
+                "base_salary": base_salary,
+                "total_allowances": total_allow,
+                "total_deductions": total_deduct,
+                "net_salary": net,
+                "allowances_breakdown": allowances_dict,
+                "deductions_breakdown": deductions_dict,
+                "status": "generated"
+            }
+
+            if ps_existing:
+                await self.payslip_repo.update(ps_existing, ps_data)
+            else:
+                await self.payslip_repo.create(ps_data)
+
+        payroll_run.status = "approved"
+        payroll_run.total_gross = total_gross
+        payroll_run.total_deductions = total_deductions
+        payroll_run.total_net = total_net
+        payroll_run.processed_at = datetime.now()
+
+        return await self.repository.update(payroll_run, {})
+
+
 # Add model utilities to repository subclass
 EmployeeRepository.get_code = EmployeeRepository.get_code if hasattr(EmployeeRepository, "get_code") else lambda self, org_id, code: self.get_by_code(org_id, code)

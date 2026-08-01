@@ -153,3 +153,18 @@ class InventoryCountRepository(BaseRepository[InventoryCount]):
         stmt = select(InventoryCount).where(InventoryCount.organization_id == org_id, InventoryCount.is_deleted == False)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+from app.models.inventory_transaction import InventoryTransaction, StockMovement, InventoryAdjustment, InventoryCount, StockTransfer, StockTransferItem
+
+class StockTransferRepository(BaseRepository[StockTransfer]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(StockTransfer, db)
+
+    async def get_by_org(self, org_id: uuid.UUID) -> List[StockTransfer]:
+        stmt = select(StockTransfer).where(StockTransfer.organization_id == org_id, StockTransfer.is_deleted == False).order_by(StockTransfer.created_at.desc())
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+class StockTransferItemRepository(BaseRepository[StockTransferItem]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(StockTransferItem, db)

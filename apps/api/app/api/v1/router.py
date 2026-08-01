@@ -13,6 +13,7 @@ from app.api.v1.endpoints import (
     teams,
     designations,
     locations,
+    business_units,
     calendar,
     reporting,
     documents,
@@ -96,6 +97,7 @@ api_router.include_router(departments.router, prefix="/departments", tags=["depa
 api_router.include_router(teams.router, prefix="/teams", tags=["teams"])
 api_router.include_router(designations.router, prefix="/designations", tags=["designations"])
 api_router.include_router(locations.router, prefix="/locations", tags=["locations"])
+api_router.include_router(business_units.router, prefix="/business-units", tags=["business-units"])
 api_router.include_router(calendar.router, prefix="/business-calendar", tags=["calendar"])
 api_router.include_router(reporting.router, prefix="/reporting-structure", tags=["reporting"])
 api_router.include_router(documents.router, prefix="/documents", tags=["documents"])

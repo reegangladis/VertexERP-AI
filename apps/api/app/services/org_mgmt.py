@@ -13,6 +13,7 @@ from app.repositories.org_mgmt import (
     TeamRepository,
     DesignationRepository,
     LocationRepository,
+    BusinessUnitRepository,
     CalendarRepository,
     WorkingDayRepository,
     HolidayRepository,
@@ -25,6 +26,7 @@ from app.models.department import Department
 from app.models.team import Team
 from app.models.designation import Designation
 from app.models.location import Location
+from app.models.business_unit import BusinessUnit
 from app.models.calendar import BusinessCalendar, WorkingDay, Holiday
 from app.models.document import OrganizationDocument
 from app.models.metadata import OrganizationMetadata
@@ -123,6 +125,14 @@ class LocationService(BaseService[Location, LocationRepository]):
         super().__init__(repository)
 
     async def get_by_org(self, org_id: uuid.UUID) -> List[Location]:
+        return await self.repository.get_by_org(org_id)
+
+
+class BusinessUnitService(BaseService[BusinessUnit, BusinessUnitRepository]):
+    def __init__(self, repository: BusinessUnitRepository):
+        super().__init__(repository)
+
+    async def get_by_org(self, org_id: uuid.UUID) -> List[BusinessUnit]:
         return await self.repository.get_by_org(org_id)
 
 

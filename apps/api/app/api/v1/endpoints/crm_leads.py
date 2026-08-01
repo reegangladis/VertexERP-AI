@@ -9,9 +9,17 @@ from sqlalchemy import select, or_
 from app.core.dependencies import get_db_session, get_current_user
 from app.models.user import User
 from app.models.crm_lead import Lead, LeadSource
-from app.repositories.crm_mgmt import LeadRepository, LeadSourceRepository, LeadActivityRepository
+from app.repositories.crm_mgmt import (
+    LeadRepository,
+    LeadSourceRepository,
+    LeadActivityRepository,
+    CustomerRepository,
+    ContactRepository,
+    OpportunityRepository,
+    DealRepository,
+)
 from app.services.crm_mgmt import LeadService
-from app.schemas.crm_mgmt import LeadResponse, LeadCreate, LeadUpdate
+from app.schemas.crm_mgmt import LeadResponse, LeadCreate, LeadUpdate, LeadConvertRequest
 from app.schemas.response import APIResponse
 from app.utils.response import standard_json_response
 
@@ -72,6 +80,59 @@ async def create_lead(
             success=True,
             message="Lead captured successfully",
             data=lead
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/{id}", response_model=APIResponse[LeadResponse])
+async def get_lead(
+    id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    service: LeadService = Depends(get_lead_service)
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+
+    lead = await service.repository.get(id)
+    if not lead or lead.organization_id != current_user.organization_id or lead.is_deleted:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    return standard_json_response(
+        status_code=status.HTTP_200_OK,
+        success=True,
+        message="Lead details retrieved",
+        data=lead
+    )
+
+@router.post("/{id}/convert")
+async def convert_lead(
+    id: uuid.UUID,
+    payload: LeadConvertRequest,
+    current_user: User = Depends(get_current_user),
+    service: LeadService = Depends(get_lead_service),
+    db=Depends(get_db_session)
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+
+    try:
+        res = await service.convert_lead(
+            lead_id=id,
+            customer_repo=CustomerRepository(db),
+            contact_repo=ContactRepository(db),
+            opp_repo=OpportunityRepository(db),
+            deal_repo=DealRepository(db),
+            payload_data=payload.dict()
+        )
+        return standard_json_response(
+            status_code=status.HTTP_200_OK,
+            success=True,
+            message="Lead converted successfully to Customer account and Deal.",
+            data={
+                "customer_id": res["customer"].id,
+                "contact_id": res["contact"].id,
+                "deal_id": res["deal"].id if res["deal"] else None,
+            }
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

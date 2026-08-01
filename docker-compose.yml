@@ -39,8 +39,8 @@ services:
 
   backend:
     build:
-      context: ./apps/api
-      dockerfile: ../../docker/Dockerfile.api
+      context: .
+      dockerfile: docker/Dockerfile.api
     container_name: vertexerp_backend
     restart: always
     environment:
@@ -73,8 +73,8 @@ services:
 
   frontend:
     build:
-      context: ./apps/web
-      dockerfile: ../../docker/Dockerfile.web
+      context: .
+      dockerfile: docker/Dockerfile.web
     container_name: vertexerp_frontend
     restart: always
     ports:

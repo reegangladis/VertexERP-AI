@@ -78,6 +78,24 @@ async def create_purchase_order(
         data=po
     )
 
+@router.put("/{id}/approve", response_model=APIResponse[PurchaseOrderResponse])
+async def approve_purchase_order(
+    id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    service: PurchaseOrderService = Depends(get_po_service)
+):
+    po = await service.repository.get(id)
+    if not po or po.organization_id != current_user.organization_id or po.is_deleted:
+        raise HTTPException(status_code=404, detail="Purchase order not found")
+
+    updated = await service.repository.update(po, {"status": "ordered", "approved_by_id": current_user.id})
+    return standard_json_response(
+        status_code=status.HTTP_200_OK,
+        success=True,
+        message=f"Purchase order {po.po_number} approved and marked as ordered",
+        data=updated
+    )
+
 @router.post("/{id}/receive", response_model=APIResponse[GoodsReceiptResponse])
 async def receive_purchase_order_goods(
     id: uuid.UUID,

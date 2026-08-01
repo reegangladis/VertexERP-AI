@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Any, Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -148,8 +149,8 @@ class RAGService:
                 text=sc.content,
                 provider="openai"
             )
-            vector_id = str(uuid.uuid4())
-            
+            vector_id = str(sc.id)
+
             # Save Embedding Metadata
             emb_meta = EmbeddingMetadata(
                 chunk_id=sc.id,
@@ -276,7 +277,6 @@ class RAGService:
         if not session:
             raise ValueError("Chat session not found")
 
-        # Compile chat history context
         history = []
         for msg in session.messages[-10:]:
             history.append({
@@ -284,7 +284,6 @@ class RAGService:
                 "content": msg.content
             })
 
-        # Process User Message
         user_message = RAGChatMessage(
             session_id=session_id,
             role="user",
@@ -292,7 +291,6 @@ class RAGService:
         )
         user_msg = await self.repository.add_chat_message(user_message)
 
-        # Call pipeline service
         pipeline_output = await self.pipeline_service.answer_query(
             org_id=org_id,
             user_id=user_id,
@@ -307,7 +305,6 @@ class RAGService:
             search_type=search_type
         )
 
-        # Process Assistant Message
         assistant_message = RAGChatMessage(
             session_id=session_id,
             role="assistant",
@@ -318,9 +315,9 @@ class RAGService:
         )
         assistant_msg = await self.repository.add_chat_message(assistant_message)
 
-        # Update session update timestamp
-        session.updated_at = uuid.datetime_now() if hasattr(uuid, "datetime_now") else None # SQLAlchemy tracks changes
-        
+        session.updated_at = datetime.utcnow()
+        await self.db.flush()
+
         return user_msg, assistant_msg
 
     async def toggle_pin_session(self, session_id: uuid.UUID, org_id: uuid.UUID, user_id: uuid.UUID) -> bool:

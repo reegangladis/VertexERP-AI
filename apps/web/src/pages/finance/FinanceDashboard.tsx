@@ -34,26 +34,34 @@ export function FinanceDashboard() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const pl = await financeService.getProfitLoss();
-      const bs = await financeService.getBalanceSheet();
-      const banks = await financeService.getBankAccounts();
-      const totalCash = banks.reduce((acc, b) => acc + Number(b.current_balance), 0);
-
+      const summary = await financeService.getDashboardSummary();
       setMetrics({
-        revenue: pl.total_revenue || 125000,
-        expenses: pl.total_expenses || 42000,
-        netProfit: pl.net_profit || 83000,
-        cashBalance: totalCash || 98500,
-        receivables: bs.total_assets * 0.15 || 15400,
-        payables: bs.total_liabilities * 0.20 || 8900,
-        budgetUtil: 68.5,
+        revenue: summary.total_revenue || 0,
+        expenses: summary.total_expenses || 0,
+        netProfit: summary.net_profit || 0,
+        cashBalance: summary.total_cash_balance || 0,
+        receivables: summary.total_receivables || 0,
+        payables: summary.total_payables || 0,
+        budgetUtil: summary.budget_utilization_pct || 0,
       });
     } catch (err) {
-      // Fallback telemetry defaults
+      // Fallback defaults
+      try {
+        const pl = await financeService.getProfitLoss();
+        setMetrics((prev) => ({
+          ...prev,
+          revenue: pl.total_revenue || prev.revenue,
+          expenses: pl.total_expenses || prev.expenses,
+          netProfit: pl.net_profit || prev.netProfit,
+        }));
+      } catch (e) {
+        // preserve initial state
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;

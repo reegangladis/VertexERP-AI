@@ -1,7 +1,7 @@
 import os
 import json
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Dict, Any
 
 from app.repositories.data_engineering_repository import DataEngineeringRepository
@@ -133,7 +133,7 @@ class DataEngineeringService:
             job_id=job_id,
             run_number=run_number,
             status="RUNNING",
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
             execution_params={"is_incremental": job.is_incremental, "source": job.source_type},
         )
         created_run = await self.repo.create_run(run)
@@ -175,7 +175,7 @@ class DataEngineeringService:
         )
 
         # Complete run
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         duration = (end_time - created_run.start_time).total_seconds()
 
         updated_run = await self.repo.update_run(

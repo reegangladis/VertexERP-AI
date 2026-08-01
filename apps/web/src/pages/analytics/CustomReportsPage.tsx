@@ -1,206 +1,212 @@
 import React, { useState, useEffect } from 'react';
-import {
-  FileText,
-  Filter,
-  Download,
-  Play,
-  Save,
-  Printer,
-  Calendar,
-  Layers,
-  Search,
-  RefreshCw,
-  CheckCircle2,
-} from 'lucide-react';
+import { FileText, Download, Play, Filter, Plus, CheckCircle2, X } from 'lucide-react';
 import { analyticsService, ReportExecuteResponse } from '@/services/analyticsService';
 
 export function CustomReportsPage() {
   const [domain, setDomain] = useState('FINANCE');
+  const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<ReportExecuteResponse | null>(null);
-  const [saveTitle, setSaveTitle] = useState('');
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [executedReport, setExecutedReport] = useState<ReportExecuteResponse | null>(null);
+
+  // Export Modal
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFormat, setExportFormat] = useState('CSV');
+  const [exporting, setExporting] = useState(false);
+
+  const fetchReports = async () => {
+    try {
+      const data = await analyticsService.getReports(domain);
+      setReports(data || []);
+    } catch (err) {
+      console.error('Error fetching reports', err);
+    }
+  };
 
   useEffect(() => {
-    runReport();
+    fetchReports();
   }, [domain]);
 
-  const runReport = async () => {
+  const handleExecute = async () => {
     setLoading(true);
     try {
       const res = await analyticsService.executeReport({
         domain,
+        columns: ['id', 'code', 'name', 'category', 'amount', 'status', 'date'],
         page: 1,
-        page_size: 50,
+        page_size: 10,
       });
-      setData(res);
+      setExecutedReport(res);
     } catch (err) {
-      console.error('Failed to execute report:', err);
+      console.error('Error executing report', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExport = async (fmt: 'CSV' | 'JSON' | 'PDF') => {
-    if (!data) return;
+  const handleExport = async () => {
+    if (!executedReport) return;
+    setExporting(true);
     try {
-      const exp = await analyticsService.exportReport({
-        report_name: data.report_title,
-        export_format: fmt,
-        dataset: data.data,
-        columns: data.columns,
+      const res = await analyticsService.exportReport({
+        report_name: executedReport.report_title,
+        export_format: exportFormat,
+        dataset: executedReport.data,
+        columns: executedReport.columns,
       });
-
+      
       // Trigger download
       const element = document.createElement('a');
-      const file = new Blob([atob(exp.content_base64)], { type: 'text/plain' });
-      element.href = URL.createObjectURL(file);
-      element.download = exp.filename;
+      element.setAttribute('href', `data:text/plain;base64,${res.content_base64}`);
+      element.setAttribute('download', res.filename);
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
-    } catch (err) {
-      console.error('Export failed:', err);
-    }
-  };
 
-  const handleSaveReport = async () => {
-    if (!saveTitle) return;
-    try {
-      await analyticsService.createReport({
-        name: saveTitle,
-        report_category: domain,
-        description: `Custom saved snapshot for ${domain}`,
-      });
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3000);
-      setSaveTitle('');
+      setShowExportModal(false);
     } catch (err) {
-      console.error('Save failed:', err);
+      console.error('Error exporting report data', err);
+    } finally {
+      setExporting(false);
     }
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 max-w-7xl mx-auto p-6">
       {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Enterprise Custom Report Builder</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Build, execute, filter, and export cross-departmental tabular reports with real-time aggregation.
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <FileText className="h-6 w-6 text-primary" />
+            Enterprise Custom Reports & Query Engine
+          </h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Dynamic Dataset Querying, Column Customization & Multi-Format Data Exporting (CSV, Excel, PDF)
           </p>
         </div>
+
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleExport('CSV')}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+          <select
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+            className="text-xs bg-card border border-border px-3 py-2 rounded-xl font-semibold focus:outline-none"
           >
-            <Download className="h-3.5 w-3.5" /> Export CSV
-          </button>
+            <option value="FINANCE">Finance Domain</option>
+            <option value="CRM">CRM & Sales</option>
+            <option value="HR">HR & Workforce</option>
+            <option value="INVENTORY">Inventory & Supply</option>
+            <option value="MANUFACTURING">Manufacturing</option>
+          </select>
+
           <button
-            onClick={() => handleExport('JSON')}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            onClick={handleExecute}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground rounded-xl shadow hover:bg-primary/90 transition"
           >
-            <FileText className="h-3.5 w-3.5" /> Export JSON
-          </button>
-          <button
-            onClick={() => alert('Print preview placeholder rendered successfully.')}
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm"
-          >
-            <Printer className="h-3.5 w-3.5" /> Print Preview
+            <Play className="h-4 w-4" />
+            Run Report Query
           </button>
         </div>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Domain:</span>
-              <select
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-              >
-                <option value="FINANCE">Finance & Accounting</option>
-                <option value="HR">HR & Workforce</option>
-                <option value="CRM">CRM & Sales</option>
-                <option value="INVENTORY">Inventory & Warehouse</option>
-                <option value="MANUFACTURING">Manufacturing & Plant</option>
-              </select>
+      {/* Executed Report Output */}
+      {executedReport && (
+        <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">{executedReport.report_title}</h2>
+              <p className="text-xs text-muted-foreground">
+                Domain: {executedReport.domain} | Total Records: {executedReport.total_records}
+              </p>
             </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Branch:</span>
-              <select className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
-                <option value="ALL">All Enterprise Branches</option>
-                <option value="HQ">Headquarters (NYC)</option>
-                <option value="WEST">West Coast Operation</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Saved Report Title..."
-              value={saveTitle}
-              onChange={(e) => setSaveTitle(e.target.value)}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-            />
             <button
-              onClick={handleSaveReport}
-              disabled={!saveTitle}
-              className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+              onClick={() => setShowExportModal(true)}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
             >
-              <Save className="h-3.5 w-3.5" /> Save Preset
+              <Download className="h-4 w-4" />
+              Export Dataset
             </button>
-            {savedSuccess && (
-              <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Saved!
-              </span>
-            )}
           </div>
-        </div>
-      </div>
 
-      {/* Dataset Results Table */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">{data?.report_title || 'Report Output'}</h3>
-          <span className="text-xs text-slate-500 dark:text-slate-400">Total Records: {data?.total_records || 0}</span>
-        </div>
-
-        {loading ? (
-          <div className="flex h-48 items-center justify-center">
-            <RefreshCw className="h-6 w-6 animate-spin text-blue-600 dark:text-blue-400" />
-          </div>
-        ) : (
-          <div className="mt-4 overflow-x-auto">
+          <div className="border border-border rounded-lg overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-400 uppercase tracking-wider">
+              <thead className="bg-muted/50 border-b border-border text-muted-foreground font-medium uppercase text-[10px]">
                 <tr>
-                  {data?.columns.map((col) => (
-                    <th key={col} className="py-2.5 px-3">{col}</th>
+                  {executedReport.columns.map((c, i) => (
+                    <th key={i} className="px-4 py-3">{c}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {data?.data.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    {data.columns.map((col) => (
-                      <td key={col} className="py-3 px-3 text-slate-800 dark:text-slate-200 font-medium">
-                        {row[col] !== undefined ? String(row[col]) : '-'}
-                      </td>
+              <tbody className="divide-y divide-border/60 text-foreground font-mono">
+                {executedReport.data.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-muted/30">
+                    {executedReport.columns.map((c, i) => (
+                      <td key={i} className="px-4 py-3 font-sans">{String(row[c] || '')}</td>
                     ))}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {!executedReport && (
+        <div className="bg-card border border-border rounded-xl p-16 text-center text-xs text-muted-foreground">
+          Select a domain and click "Run Report Query" to generate live dynamic report data.
+        </div>
+      )}
+
+      {/* EXPORT MODAL */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card border border-border rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <Download className="h-5 w-5 text-emerald-500" />
+                Export Analytics Dataset
+              </h3>
+              <button onClick={() => setShowExportModal(false)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-medium text-foreground mb-1">Select Export Format</label>
+                <select
+                  value={exportFormat}
+                  onChange={(e) => setExportFormat(e.target.value)}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none"
+                >
+                  <option value="CSV">Comma Separated Values (.CSV)</option>
+                  <option value="JSON">Structured Data (.JSON / Excel Data)</option>
+                  <option value="PDF">PDF Preview Print Stream</option>
+                </select>
+              </div>
+
+              <div className="p-3 bg-muted/40 rounded-lg text-muted-foreground">
+                Dataset contains {executedReport?.total_records} records across {executedReport?.columns.length} columns.
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-border text-xs">
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="px-4 py-2 border border-border rounded-lg hover:bg-muted"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExport}
+                disabled={exporting}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold shadow hover:bg-emerald-700 flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {exporting ? 'Generating...' : 'Download File'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

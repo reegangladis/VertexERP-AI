@@ -36,11 +36,10 @@ export function CRMCustomerDetails() {
     const fetchDetails = async () => {
       try {
         const [custRes, contactRes] = await Promise.all([
-          apiClient.get('/api/v1/crm/customers'),
+          apiClient.get(`/api/v1/crm/customers/${id}`),
           apiClient.get(`/api/v1/crm/contacts?customer_id=${id}`),
         ]);
-        const found = (custRes.data.data || []).find((c: Customer) => c.id === id);
-        setCustomer(found || null);
+        setCustomer(custRes.data.data || null);
         setContacts(contactRes.data.data || []);
       } catch (err) {
         console.error("Failed to load customer details", err);
@@ -48,7 +47,7 @@ export function CRMCustomerDetails() {
         setLoading(false);
       }
     };
-    fetchDetails();
+    if (id) fetchDetails();
   }, [id]);
 
   if (loading) {

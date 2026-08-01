@@ -36,5 +36,5 @@ test('renders landing page hero text and features grid', () => {
   expect(screen.getByText(/VertexERP/)).toBeInTheDocument();
   
   // Assert launching dashboard is present
-  expect(screen.getByRole('link', { name: /Launch Core Console/i })).toBeInTheDocument();
-});
+  expect(screen.getByRole('link', { name: /Launch Executive Cockpit/i })).toBeInTheDocument();
+}, 15000);

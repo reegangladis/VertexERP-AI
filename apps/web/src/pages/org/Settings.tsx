@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { useNotification } from '@/hooks/useNotification';
-import { apiClient } from '@/services/apiClient';
+import { apiClient, getApiBaseUrl } from '@/services/apiClient';
 import { Settings, Save, Sparkles, FolderOpen, FileText, Plus, Trash2, Download } from 'lucide-react';
 
 interface OrgSetting {
@@ -362,7 +362,7 @@ export function OrgSettings() {
                     </div>
                     <div className="flex items-center gap-2">
                       <a
-                        href={`http://localhost:8000/api/v1/documents/${doc.id}/download`}
+                        href={`${getApiBaseUrl()}/api/v1/documents/${doc.id}/download`}
                         download
                         target="_blank"
                         rel="noreferrer"

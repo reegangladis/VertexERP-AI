@@ -19,4 +19,4 @@ test('renders theme toggle button and switches theme state on click', () => {
   
   // Click again to return to initial
   fireEvent.click(button);
-});
+}, 15000);

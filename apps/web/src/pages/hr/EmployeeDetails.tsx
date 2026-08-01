@@ -32,16 +32,15 @@ export function HREmployeeDetails() {
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
-        const res = await apiClient.get(`/api/v1/employees`);
-        const found = (res.data.data || []).find((emp: Employee) => emp.id === id);
-        setEmployee(found || null);
+        const res = await apiClient.get(`/api/v1/employees/${id}`);
+        setEmployee(res.data.data || null);
       } catch (err) {
         console.error("Failed to fetch employee detail", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchEmployee();
+    if (id) fetchEmployee();
   }, [id]);
 
   if (loading) {

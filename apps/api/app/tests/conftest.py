@@ -15,6 +15,10 @@ from app.main import app
 def mock_db_session() -> MagicMock:
     session = MagicMock(spec=AsyncSession)
     session.execute = AsyncMock()
+    session.merge = AsyncMock(side_effect=lambda x: x)
+    session.commit = AsyncMock()
+    session.refresh = AsyncMock()
+    session.delete = AsyncMock()
     return session
 
 

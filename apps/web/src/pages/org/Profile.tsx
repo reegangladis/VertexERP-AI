@@ -63,7 +63,7 @@ export function OrgProfile() {
   const onSubmit = async (values: OrgFormValues) => {
     setLoading(true);
     try {
-      await apiClient.put('/api/v1/organizations/me', values);
+      await apiClient.put('/api/v1/organizations/me', { ...values, logo: logoUrl });
       addNotification('Organization profile updated successfully', 'success');
     } catch (err: any) {
       addNotification(err.message || 'Failed to update organization profile', 'error');
@@ -118,11 +118,24 @@ export function OrgProfile() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Primary Timezone"
-                  {...register('timezone')}
-                  error={errors.timezone?.message as string}
-                />
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Primary Timezone</label>
+                  <select
+                    {...register('timezone')}
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="UTC">UTC (Coordinated Universal Time)</option>
+                    <option value="EST">EST (Eastern Standard Time)</option>
+                    <option value="CST">CST (Central Standard Time)</option>
+                    <option value="PST">PST (Pacific Standard Time)</option>
+                    <option value="GMT">GMT (Greenwich Mean Time)</option>
+                    <option value="IST">IST (Indian Standard Time)</option>
+                    <option value="JST">JST (Japan Standard Time)</option>
+                  </select>
+                  {errors.timezone?.message && (
+                    <p className="text-xs text-red-500">{errors.timezone.message as string}</p>
+                  )}
+                </div>
               </div>
 
               <Button type="submit" disabled={loading} variant="primary" className="flex items-center gap-2">
@@ -146,6 +159,25 @@ export function OrgProfile() {
                 <Building2 className="h-12 w-12 text-muted-foreground" />
               )}
             </div>
+            <label className="cursor-pointer px-4 py-2 bg-secondary text-secondary-foreground text-xs font-medium rounded hover:bg-secondary/80">
+              Upload Logo File
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setLogoUrl(reader.result as string);
+                      addNotification('Logo asset updated. Click Save to persist changes.', 'info');
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </label>
             <div className="text-center text-xs text-muted-foreground">
               <p>Supports PNG, JPG assets up to 2MB.</p>
             </div>

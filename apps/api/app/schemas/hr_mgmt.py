@@ -154,6 +154,41 @@ class SalaryStructureResponse(SalaryStructureBase):
     id: uuid.UUID
     employee_id: uuid.UUID
 
+class PayrollRunProcessRequest(HRBaseModel):
+    period_month: int
+    period_year: int
+
+class PayslipResponse(HRBaseModel):
+    id: uuid.UUID
+    payroll_run_id: uuid.UUID
+    employee_id: uuid.UUID
+    base_salary: float
+    total_allowances: float
+    total_deductions: float
+    net_salary: float
+    allowances_breakdown: Optional[dict] = None
+    deductions_breakdown: Optional[dict] = None
+    status: str
+
+class PayrollRunResponse(HRBaseModel):
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    period_month: int
+    period_year: int
+    status: str
+    total_gross: float
+    total_deductions: float
+    total_net: float
+    processed_at: Optional[datetime] = None
+    payslips: Optional[List[PayslipResponse]] = None
+
+class EmployeeStatusUpdate(HRBaseModel):
+    status: str  # active, suspended, terminated, onboarded, pending, archived
+    date_terminated: Optional[date] = None
+    department_id: Optional[uuid.UUID] = None
+    designation_id: Optional[uuid.UUID] = None
+    branch_id: Optional[uuid.UUID] = None
+
 # 5. Recruitment Schemas
 class RecruitmentJobBase(HRBaseModel):
     title: str

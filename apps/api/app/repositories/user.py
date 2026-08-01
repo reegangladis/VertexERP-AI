@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, UTC
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.base import BaseRepository
 from app.models.user import User, MfaSetting, PasswordHistory
@@ -16,6 +16,14 @@ class UserRepository(BaseRepository[User]):
 
     async def get_by_username(self, username: str) -> User | None:
         stmt = select(User).where(User.username == username, User.is_deleted == False)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_by_email_or_username(self, identifier: str) -> User | None:
+        stmt = select(User).where(
+            or_(User.email == identifier, User.username == identifier),
+            User.is_deleted == False
+        )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 

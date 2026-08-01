@@ -218,3 +218,24 @@ class AssetCategoryRepository(BaseRepository[AssetCategory]):
         stmt = select(AssetCategory).where(AssetCategory.organization_id == org_id, AssetCategory.is_deleted == False)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+
+class CreditNoteRepository(BaseRepository[CreditNote]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(CreditNote, db)
+
+    async def get_by_org(self, org_id: uuid.UUID) -> List[CreditNote]:
+        stmt = select(CreditNote).where(CreditNote.organization_id == org_id, CreditNote.is_deleted == False).order_by(CreditNote.created_at.desc())
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+
+class DebitNoteRepository(BaseRepository[DebitNote]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(DebitNote, db)
+
+    async def get_by_org(self, org_id: uuid.UUID) -> List[DebitNote]:
+        stmt = select(DebitNote).where(DebitNote.organization_id == org_id, DebitNote.is_deleted == False).order_by(DebitNote.created_at.desc())
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+

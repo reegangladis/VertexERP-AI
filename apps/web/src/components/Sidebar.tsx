@@ -43,11 +43,23 @@ import {
   Globe,
 } from 'lucide-react';
 import { useUI } from '@/hooks/useUI';
+import { useAuth } from '@/store/AuthContext';
 
 export function Sidebar() {
   const { isSidebarOpen } = useUI();
+  const { hasPermission, hasRole } = useAuth();
 
   if (!isSidebarOpen) return null;
+
+  const canAccessAdmin = hasPermission('users.read') || hasRole(['Super Admin', 'Organization Admin', 'Admin']);
+  const canAccessHR = hasPermission('employees.read') || hasPermission('hr.read') || hasRole(['HR Manager', 'HR Executive', 'Super Admin', 'Organization Admin', 'Admin', 'Employee']);
+  const canAccessFinance = hasPermission('finance.read') || hasRole(['Finance Manager', 'Accountant', 'Super Admin', 'Organization Admin', 'Admin']);
+  const canAccessInventory = hasPermission('inventory.read') || hasRole(['Inventory Manager', 'Warehouse Staff', 'Super Admin', 'Organization Admin', 'Admin']);
+  const canAccessCRM = hasPermission('crm.read') || hasRole(['Sales Manager', 'Sales Executive', 'CRM Manager', 'Super Admin', 'Organization Admin', 'Admin']);
+  const canAccessManufacturing = hasPermission('manufacturing.read') || hasRole(['Manufacturing Manager', 'Super Admin', 'Organization Admin', 'Admin']);
+  const canAccessAnalytics = hasPermission('analytics.read') || hasRole(['Super Admin', 'Organization Admin', 'Admin', 'Manager']);
+  const canAccessAI = hasPermission('copilot.use') || hasPermission('rag.use') || hasRole(['Super Admin', 'Organization Admin', 'Admin']);
+
 
   const coreItems = [
     { label: 'Overview', path: '/', icon: <Home className="h-4 w-4" /> },
@@ -203,6 +215,7 @@ export function Sidebar() {
     { label: 'Teams', path: '/org/teams', icon: <Users className="h-4 w-4" /> },
     { label: 'Designations', path: '/org/designations', icon: <Award className="h-4 w-4" /> },
     { label: 'Locations', path: '/org/locations', icon: <MapPin className="h-4 w-4" /> },
+    { label: 'Business Units', path: '/org/business-units', icon: <Building className="h-4 w-4" /> },
     { label: 'Reporting Structure', path: '/org/reporting', icon: <History className="h-4 w-4" /> },
     { label: 'Business Calendar', path: '/org/calendar', icon: <Layers className="h-4 w-4" /> },
     { label: 'Org Settings', path: '/org/settings', icon: <Settings className="h-4 w-4" /> },
@@ -213,6 +226,9 @@ export function Sidebar() {
     { label: 'Role Mapping', path: '/admin/roles', icon: <Shield className="h-4 w-4" /> },
     { label: 'Permission Matrix', path: '/admin/permissions', icon: <Lock className="h-4 w-4" /> },
     { label: 'Tenant Administration', path: '/admin/settings', icon: <Settings className="h-4 w-4" /> },
+    { label: 'Active Sessions', path: '/admin/sessions', icon: <ShieldCheck className="h-4 w-4" /> },
+    { label: 'Login History', path: '/admin/login-history', icon: <History className="h-4 w-4" /> },
+    { label: 'Security Audit Logs', path: '/admin/audit-logs', icon: <ShieldAlert className="h-4 w-4" /> },
   ];
 
   const userItems = [

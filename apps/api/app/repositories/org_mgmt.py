@@ -8,6 +8,7 @@ from app.models.department import Department
 from app.models.team import Team
 from app.models.designation import Designation
 from app.models.location import Location
+from app.models.business_unit import BusinessUnit
 from app.models.calendar import BusinessCalendar, WorkingDay, Holiday
 from app.models.document import OrganizationDocument
 from app.models.metadata import OrganizationMetadata
@@ -59,6 +60,16 @@ class LocationRepository(BaseRepository[Location]):
 
     async def get_by_org(self, org_id: uuid.UUID) -> List[Location]:
         stmt = select(Location).where(Location.organization_id == org_id, Location.is_deleted == False)
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+
+class BusinessUnitRepository(BaseRepository[BusinessUnit]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(BusinessUnit, db)
+
+    async def get_by_org(self, org_id: uuid.UUID) -> List[BusinessUnit]:
+        stmt = select(BusinessUnit).where(BusinessUnit.organization_id == org_id, BusinessUnit.is_deleted == False)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 

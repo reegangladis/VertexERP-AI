@@ -3,7 +3,18 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { NotificationProvider } from '@/store/NotificationContext';
 import { Login, Register } from '@/pages/AuthPages';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
+
+vi.mock('@/store/AuthContext', () => ({
+  useAuth: () => ({
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+    user: null,
+    isAuthenticated: false,
+    loading: false,
+  }),
+}));
 
 test('renders login form items', () => {
   render(
@@ -29,6 +40,7 @@ test('renders register form items', () => {
   );
 
   expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
-  expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
   expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
 });
+

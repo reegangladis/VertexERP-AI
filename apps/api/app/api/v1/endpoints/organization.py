@@ -33,15 +33,48 @@ async def get_security_service(db: AsyncSession = Depends(get_db_session)):
     from app.services.organization import SecuritySettingService
     return SecuritySettingService(SecuritySettingRepository(db))
 
+async def _get_or_create_org(org_service, current_user: User):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User is not associated with an organization")
+
+    # 1. Check if organization exists by user's organization_id
+    org = await org_service.get(current_user.organization_id)
+    if org:
+        return org
+
+    # 2. Check if organization exists by default slug
+    org_by_slug = await org_service.get_by_slug("vertexerp-enterprise")
+    if org_by_slug:
+        return org_by_slug
+
+    # 3. Check if ANY organization exists in database
+    all_orgs = await org_service.get_all(limit=1)
+    if all_orgs:
+        return all_orgs[0]
+
+    # 4. Create first default organization with a unique slug
+    unique_slug = f"vertexerp-enterprise-{uuid.uuid4().hex[:6]}"
+    try:
+        org = await org_service.repository.create({
+            "id": current_user.organization_id,
+            "name": "VertexERP Enterprise",
+            "slug": unique_slug,
+            "email": "admin@vertexerp.ai",
+            "status": "active"
+        })
+        return org
+    except Exception:
+        all_orgs = await org_service.get_all(limit=1)
+        if all_orgs:
+            return all_orgs[0]
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve organization")
+
 @router.get("/me", response_model=APIResponse[OrganizationResponse])
 async def get_my_org(
     current_user: User = Depends(get_current_user),
     org_service = Depends(get_org_service)
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User is not associated with an organization")
-        
-    org = await org_service.get(current_user.organization_id)
+    org = await _get_or_create_org(org_service, current_user)
     return standard_json_response(
         status_code=status.HTTP_200_OK,
         success=True,
@@ -55,43 +88,51 @@ async def update_my_org(
     current_user: User = Depends(get_current_user),
     org_service = Depends(get_org_service)
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User is not associated with an organization")
-        
-    org = await org_service.update(current_user.organization_id, payload)
+    org = await _get_or_create_org(org_service, current_user)
+    updated_org = await org_service.repository.update(org, payload)
     return standard_json_response(
         status_code=status.HTTP_200_OK,
         success=True,
         message="Organization details updated successfully",
-        data=OrganizationResponse.model_validate(org)
+        data=OrganizationResponse.model_validate(updated_org)
     )
 
 @router.get("/me/tenant-settings", response_model=APIResponse[TenantSettingResponse])
 async def get_tenant_settings(
     current_user: User = Depends(get_current_user),
+    org_service = Depends(get_org_service),
     tenant_service = Depends(get_tenant_service)
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User is not associated with an organization")
-        
-    settings = await tenant_service.get_by_org_id(current_user.organization_id)
+    org = await _get_or_create_org(org_service, current_user)
+    settings_obj = await tenant_service.get_by_org_id(org.id)
+    if not settings_obj:
+        settings_obj = await tenant_service.repository.create({
+            "organization_id": org.id,
+            "currency": "USD",
+            "locale": "en_US"
+        })
     return standard_json_response(
         status_code=status.HTTP_200_OK,
         success=True,
         message="Tenant settings retrieved",
-        data=TenantSettingResponse.model_validate(settings)
+        data=TenantSettingResponse.model_validate(settings_obj)
     )
 
 @router.put("/me/tenant-settings", response_model=APIResponse[TenantSettingResponse])
 async def update_tenant_settings(
     payload: TenantSettingUpdate,
     current_user: User = Depends(get_current_user),
+    org_service = Depends(get_org_service),
     tenant_service = Depends(get_tenant_service)
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User is not associated with an organization")
-        
-    settings_obj = await tenant_service.get_by_org_id(current_user.organization_id)
+    org = await _get_or_create_org(org_service, current_user)
+    settings_obj = await tenant_service.get_by_org_id(org.id)
+    if not settings_obj:
+        settings_obj = await tenant_service.repository.create({
+            "organization_id": org.id,
+            "currency": "USD",
+            "locale": "en_US"
+        })
     updated = await tenant_service.update(settings_obj.id, payload)
     return standard_json_response(
         status_code=status.HTTP_200_OK,
@@ -103,17 +144,30 @@ async def update_tenant_settings(
 @router.get("/me/security-settings", response_model=APIResponse[SecuritySettingResponse])
 async def get_security_settings(
     current_user: User = Depends(get_current_user),
+    org_service = Depends(get_org_service),
     security_service = Depends(get_security_service)
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User is not associated with an organization")
-        
-    settings = await security_service.get_by_org_id(current_user.organization_id)
+    org = await _get_or_create_org(org_service, current_user)
+    settings_obj = await security_service.get_by_org_id(org.id)
+    if not settings_obj:
+        settings_obj = await security_service.repository.create({
+            "organization_id": org.id,
+            "password_min_length": 8,
+            "password_require_uppercase": True,
+            "password_require_lowercase": True,
+            "password_require_numbers": True,
+            "password_require_special": True,
+            "password_expiry_days": 90,
+            "session_idle_timeout_minutes": 30,
+            "max_concurrent_sessions": 5,
+            "account_lockout_threshold": 5,
+            "account_lockout_duration_minutes": 15
+        })
     return standard_json_response(
         status_code=status.HTTP_200_OK,
         success=True,
         message="Security settings retrieved",
-        data=SecuritySettingResponse.model_validate(settings)
+        data=SecuritySettingResponse.model_validate(settings_obj)
     )
 
 @router.put("/me/security-settings", response_model=APIResponse[SecuritySettingResponse])
@@ -203,6 +257,7 @@ async def seed_enterprise_data(
     from app.models.department import Department
     from app.models.designation import Designation
     from app.models.location import Location
+    from app.models.business_unit import BusinessUnit
     from app.models.calendar import BusinessCalendar, WorkingDay, Holiday
     from app.models.team import Team
     from app.core.security import hash_password
@@ -213,6 +268,11 @@ async def seed_enterprise_data(
     warehouse = Location(organization_id=org_id, name="Central Logistics Hub", type="warehouse", country="USA", city="Austin", address_line1="500 Logistics Way")
     remote_hub = Location(organization_id=org_id, name="Silicon Valley Hub", type="remote", country="USA", city="San Francisco", address_line1="10 Market St")
     db.add_all([hq, warehouse, remote_hub])
+
+    # 1b. Seed Business Units
+    bu_enterprise = BusinessUnit(organization_id=org_id, name="Enterprise Solutions", slug="enterprise-solutions", code="BU-ENT", description="Enterprise AI & ERP software division")
+    bu_consumer = BusinessUnit(organization_id=org_id, name="Consumer Cloud", slug="consumer-cloud", code="BU-CNS", description="Consumer cloud software division")
+    db.add_all([bu_enterprise, bu_consumer])
     
     # 2. Seed Branches
     head_branch = Branch(organization_id=org_id, name="Headquarters", slug="hq", code="HQ-NY", city="New York", country="USA", timezone="EST")
@@ -541,6 +601,7 @@ async def seed_enterprise_data(
         message="Enterprise seed data injected successfully",
         data={
             "locations": 3,
+            "business_units": 2,
             "branches": 3,
             "departments": 4,
             "teams": 2,

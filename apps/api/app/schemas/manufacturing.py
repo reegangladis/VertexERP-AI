@@ -53,6 +53,14 @@ class BOMItemCreate(ManufacturingBaseModel):
     is_alternative: bool = False
     notes: Optional[str] = None
 
+class BOMItemUpdate(ManufacturingBaseModel):
+    quantity: Optional[float] = None
+    unit_name: Optional[str] = None
+    scrap_factor_percent: Optional[float] = None
+    unit_cost: Optional[float] = None
+    is_alternative: Optional[bool] = None
+    notes: Optional[str] = None
+
 class BOMItemResponse(ManufacturingBaseModel):
     id: uuid.UUID
     bom_id: uuid.UUID
@@ -81,6 +89,8 @@ class BOMUpdate(ManufacturingBaseModel):
     status: Optional[str] = None
     base_quantity: Optional[float] = None
     notes: Optional[str] = None
+    is_active: Optional[bool] = None
+    items: Optional[List[BOMItemCreate]] = None
 
 class BOMResponse(ManufacturingBaseModel):
     id: uuid.UUID
@@ -147,6 +157,7 @@ class RoutingUpdate(ManufacturingBaseModel):
     version: Optional[str] = None
     name: Optional[str] = None
     is_active: Optional[bool] = None
+    operations: Optional[List[RoutingOperationCreate]] = None
 
 class RoutingResponse(ManufacturingBaseModel):
     id: uuid.UUID
@@ -213,6 +224,8 @@ class MachineUpdate(ManufacturingBaseModel):
     status: Optional[str] = None
     hourly_cost: Optional[float] = None
     capacity_units_per_hour: Optional[float] = None
+    model_number: Optional[str] = None
+    serial_number: Optional[str] = None
 
 class MachineResponse(ManufacturingBaseModel):
     id: uuid.UUID
@@ -253,9 +266,17 @@ class ProductionOrderUpdate(ManufacturingBaseModel):
     actual_end_date: Optional[date] = None
     notes: Optional[str] = None
 
+class ProductionOrderItemUpdate(ManufacturingBaseModel):
+    status: Optional[str] = None
+    planned_hours: Optional[float] = None
+    actual_hours: Optional[float] = None
+    completed_qty: Optional[float] = None
+    scrap_qty: Optional[float] = None
+
 class ProductionOrderItemResponse(ManufacturingBaseModel):
     id: uuid.UUID
     production_order_id: uuid.UUID
+    routing_operation_id: Optional[uuid.UUID] = None
     work_center_id: uuid.UUID
     sequence_number: int
     operation_name: str
@@ -287,6 +308,30 @@ class ProductionOrderResponse(ManufacturingBaseModel):
     predicted_completion_delay_days: Optional[float] = 0.0
     items: List[ProductionOrderItemResponse] = []
     created_at: datetime
+
+class MaterialReservationResponse(ManufacturingBaseModel):
+    production_order_id: uuid.UUID
+    material_reservation_status: str
+    allocated_items: List[Dict[str, Any]]
+    shortages: List[Dict[str, Any]]
+
+
+# --- Production Costing Summary ---
+class ProductionCostSummaryResponse(ManufacturingBaseModel):
+    production_order_id: uuid.UUID
+    order_number: str
+    product_id: uuid.UUID
+    planned_quantity: float
+    completed_quantity: float
+    material_cost: float
+    labor_cost: float
+    machine_cost: float
+    overhead_cost: float
+    total_actual_cost: float
+    unit_actual_cost: float
+    estimated_total_cost: float
+    cost_variance: float
+    cost_variance_percent: float
 
 
 # --- Shop Floor Execution ---
@@ -386,6 +431,8 @@ class QualityInspectionUpdate(ManufacturingBaseModel):
     status: Optional[str] = None
     decision: Optional[str] = None
     notes: Optional[str] = None
+    sample_size: Optional[int] = None
+    inspector_name: Optional[str] = None
 
 class QualityInspectionResponse(ManufacturingBaseModel):
     id: uuid.UUID
@@ -424,6 +471,7 @@ class MaintenanceRequestUpdate(ManufacturingBaseModel):
     status: Optional[str] = None
     assigned_technician: Optional[str] = None
     description: Optional[str] = None
+    resolved_at: Optional[datetime] = None
 
 class MaintenanceRequestResponse(ManufacturingBaseModel):
     id: uuid.UUID
@@ -471,7 +519,7 @@ class MRPRunCreate(ManufacturingBaseModel):
     parameters: Optional[Dict[str, Any]] = None
 
 class ProcurementSuggestion(ManufacturingBaseModel):
-    product_id: uuid.UUID
+    product_id: str
     product_name: str
     sku: str
     suggested_qty: float
@@ -480,15 +528,15 @@ class ProcurementSuggestion(ManufacturingBaseModel):
     estimated_cost: float
 
 class ProductionSuggestion(ManufacturingBaseModel):
-    product_id: uuid.UUID
+    product_id: str
     product_name: str
     suggested_order_qty: float
-    planned_start_date: date
-    planned_end_date: date
+    planned_start_date: str
+    planned_end_date: str
     bom_code: str
 
 class CapacityPlanItem(ManufacturingBaseModel):
-    work_center_id: uuid.UUID
+    work_center_id: str
     work_center_name: str
     available_hours: float
     required_hours: float
@@ -503,9 +551,10 @@ class MRPRunResponse(ManufacturingBaseModel):
     total_items_processed: int
     suggestions_count: int
     parameters: Optional[Dict[str, Any]] = None
-    procurement_suggestions: Optional[List[ProcurementSuggestion]] = None
-    production_suggestions: Optional[List[ProductionSuggestion]] = None
-    capacity_planning: Optional[List[CapacityPlanItem]] = None
+    procurement_suggestions: Optional[Dict[str, Any]] = None
+    production_suggestions: Optional[Dict[str, Any]] = None
+    capacity_planning: Optional[Dict[str, Any]] = None
+    created_at: datetime
 
 
 # --- Manufacturing Dashboard KPIs ---

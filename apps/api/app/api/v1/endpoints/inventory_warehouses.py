@@ -19,44 +19,7 @@ from app.utils.response import standard_json_response
 
 router = APIRouter()
 
-# 1. Warehouse CRUD
-@router.get("", response_model=APIResponse[List[WarehouseResponse]])
-async def list_warehouses(
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db_session)
-):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User not bound to organization")
-    repo = WarehouseRepository(db)
-    warehouses = await repo.get_by_org(current_user.organization_id)
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Warehouses retrieved successfully",
-        data=warehouses
-    )
-
-@router.post("", response_model=APIResponse[WarehouseResponse])
-async def create_warehouse(
-    payload: WarehouseCreate,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db_session)
-):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User not bound to organization")
-    repo = WarehouseRepository(db)
-    warehouse = await repo.create({
-        "organization_id": current_user.organization_id,
-        **payload.dict()
-    })
-    return standard_json_response(
-        status_code=status.HTTP_201_CREATED,
-        success=True,
-        message="Warehouse registered successfully",
-        data=warehouse
-    )
-
-# 2. Bins Endpoints
+# 1. Bins & Stock Levels Static Endpoints
 @router.get("/bins", response_model=APIResponse[List[WarehouseBinResponse]])
 async def list_bins(
     warehouse_id: Optional[uuid.UUID] = None,
@@ -93,7 +56,6 @@ async def create_bin(
         data=bin_obj
     )
 
-# 3. Stock Levels
 @router.get("/stock-levels", response_model=APIResponse[List[StockLevelResponse]])
 async def list_stock_levels(
     current_user: User = Depends(get_current_user),
@@ -108,4 +70,61 @@ async def list_stock_levels(
         success=True,
         message="Stock levels retrieved successfully",
         data=levels
+    )
+
+# 2. Warehouse Base & Parameterized Endpoints
+@router.get("", response_model=APIResponse[List[WarehouseResponse]])
+async def list_warehouses(
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db_session)
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    repo = WarehouseRepository(db)
+    warehouses = await repo.get_by_org(current_user.organization_id)
+    return standard_json_response(
+        status_code=status.HTTP_200_OK,
+        success=True,
+        message="Warehouses retrieved successfully",
+        data=warehouses
+    )
+
+@router.get("/{id}", response_model=APIResponse[WarehouseResponse])
+async def get_warehouse(
+    id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db_session)
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    repo = WarehouseRepository(db)
+    wh = await repo.get(id)
+    if not wh or wh.organization_id != current_user.organization_id or wh.is_deleted:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+
+    return standard_json_response(
+        status_code=status.HTTP_200_OK,
+        success=True,
+        message="Warehouse details retrieved",
+        data=wh
+    )
+
+@router.post("", response_model=APIResponse[WarehouseResponse])
+async def create_warehouse(
+    payload: WarehouseCreate,
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db_session)
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    repo = WarehouseRepository(db)
+    warehouse = await repo.create({
+        "organization_id": current_user.organization_id,
+        **payload.dict()
+    })
+    return standard_json_response(
+        status_code=status.HTTP_201_CREATED,
+        success=True,
+        message="Warehouse registered successfully",
+        data=warehouse
     )

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 # --- Canvas Graph Models ---
@@ -72,8 +72,7 @@ class WorkflowResponse(WorkflowBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --- Workflow Version Schemas ---
@@ -94,8 +93,7 @@ class WorkflowVersionResponse(BaseModel):
     created_by: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --- Workflow Execution Schemas ---
@@ -118,8 +116,7 @@ class WorkflowStepResponse(BaseModel):
     error_details: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkflowExecutionResponse(BaseModel):
@@ -137,8 +134,7 @@ class WorkflowExecutionResponse(BaseModel):
     executed_by: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkflowExecutionDetailResponse(WorkflowExecutionResponse):
@@ -168,8 +164,7 @@ class WorkflowTemplateResponse(BaseModel):
     is_system: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --- Business Rule Schemas ---
@@ -217,8 +212,7 @@ class BusinessRuleResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RuleEvaluationRequest(BaseModel):
@@ -265,8 +259,7 @@ class ApprovalHistoryResponse(BaseModel):
     metadata_json: Optional[Dict[str, Any]] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ApprovalRequestResponse(BaseModel):
@@ -287,8 +280,7 @@ class ApprovalRequestResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --- Scheduler Schemas ---
@@ -327,8 +319,7 @@ class ScheduledJobResponse(BaseModel):
     max_retries: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --- Log Schemas ---
@@ -341,5 +332,4 @@ class WorkflowLogResponse(BaseModel):
     details: Optional[Dict[str, Any]] = None
     timestamp: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

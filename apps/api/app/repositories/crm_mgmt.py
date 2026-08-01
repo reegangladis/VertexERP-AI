@@ -5,7 +5,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.base import BaseRepository
 from app.models.crm_lead import LeadSource, Lead, LeadActivity
 from app.models.crm_customer import Customer, Contact, CustomerNote, CustomerDocument
-from app.models.crm_deal import Opportunity, Deal, Quotation
+from app.models.crm_deal import Opportunity, Deal, Quotation, SalesOrder
+
+class SalesOrderRepository(BaseRepository[SalesOrder]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(SalesOrder, db)
+
+    async def get_by_org(self, org_id: uuid.UUID) -> List[SalesOrder]:
+        stmt = select(SalesOrder).where(SalesOrder.organization_id == org_id, SalesOrder.is_deleted == False).order_by(SalesOrder.created_at.desc())
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
 from app.models.crm_activity import CRMTask, Meeting
 from app.models.crm_ticket import SupportTicket
 from app.models.crm_campaign import Campaign

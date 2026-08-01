@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.cloud_release import (
     ReleaseHistory,
-    DeploymentHistory,
+    CloudDeploymentHistory,
     DeploymentEnvironment,
     CloudRegion,
     CostReport,
@@ -42,17 +42,17 @@ class CloudReleaseRepository:
     # ----------------------------------------------------
     # Deployment History Operations
     # ----------------------------------------------------
-    async def create_deployment(self, deployment: DeploymentHistory) -> DeploymentHistory:
+    async def create_deployment(self, deployment: CloudDeploymentHistory) -> CloudDeploymentHistory:
         self.db.add(deployment)
         await self.db.commit()
         await self.db.refresh(deployment)
         return deployment
 
-    async def list_deployments(self, env_name: Optional[str] = None, limit: int = 50) -> List[DeploymentHistory]:
-        stmt = select(DeploymentHistory)
+    async def list_deployments(self, env_name: Optional[str] = None, limit: int = 50) -> List[CloudDeploymentHistory]:
+        stmt = select(CloudDeploymentHistory)
         if env_name:
-            stmt = stmt.where(DeploymentHistory.environment_name == env_name)
-        stmt = stmt.order_by(DeploymentHistory.deployed_at.desc()).limit(limit)
+            stmt = stmt.where(CloudDeploymentHistory.environment_name == env_name)
+        stmt = stmt.order_by(CloudDeploymentHistory.deployed_at.desc()).limit(limit)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 

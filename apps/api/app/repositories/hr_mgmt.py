@@ -58,9 +58,39 @@ class LeaveRequestRepository(BaseRepository[LeaveRequest]):
     def __init__(self, db: AsyncSession):
         super().__init__(LeaveRequest, db)
 
+from app.models.payroll import SalaryStructure, PayrollRun, Payslip
+
 class SalaryStructureRepository(BaseRepository[SalaryStructure]):
     def __init__(self, db: AsyncSession):
         super().__init__(SalaryStructure, db)
+
+class PayrollRunRepository(BaseRepository[PayrollRun]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(PayrollRun, db)
+
+    async def get_by_org(self, org_id: uuid.UUID) -> List[PayrollRun]:
+        stmt = select(PayrollRun).where(PayrollRun.organization_id == org_id, PayrollRun.is_deleted == False).order_by(PayrollRun.created_at.desc())
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_by_period(self, org_id: uuid.UUID, month: int, year: int) -> Optional[PayrollRun]:
+        stmt = select(PayrollRun).where(
+            PayrollRun.organization_id == org_id,
+            PayrollRun.period_month == month,
+            PayrollRun.period_year == year,
+            PayrollRun.is_deleted == False
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+class PayslipRepository(BaseRepository[Payslip]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(Payslip, db)
+
+    async def get_by_payroll_run(self, run_id: uuid.UUID) -> List[Payslip]:
+        stmt = select(Payslip).where(Payslip.payroll_run_id == run_id, Payslip.is_deleted == False)
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
 
 class RecruitmentJobRepository(BaseRepository[RecruitmentJob]):
     def __init__(self, db: AsyncSession):

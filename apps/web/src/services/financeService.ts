@@ -247,6 +247,42 @@ export const financeService = {
     return res.data.data as TaxProfile;
   },
 
+  // Account Deletion
+  deleteAccount: async (id: string) => {
+    const res = await apiClient.delete(`/api/v1/finance/accounts/${id}`);
+    return res.data.data;
+  },
+
+  // Credit Notes & Debit Notes
+  getCreditNotes: async () => {
+    const res = await apiClient.get('/api/v1/finance/credit-notes');
+    return res.data.data;
+  },
+  createCreditNote: async (data: any) => {
+    const res = await apiClient.post('/api/v1/finance/credit-notes', data);
+    return res.data.data;
+  },
+  getDebitNotes: async () => {
+    const res = await apiClient.get('/api/v1/finance/debit-notes');
+    return res.data.data;
+  },
+  createDebitNote: async (data: any) => {
+    const res = await apiClient.post('/api/v1/finance/debit-notes', data);
+    return res.data.data;
+  },
+
+  // Bank Transactions
+  getBankTransactions: async (bankAccountId: string) => {
+    const res = await apiClient.get(`/api/v1/finance/bank-accounts/${bankAccountId}/transactions`);
+    return res.data.data;
+  },
+
+  // Dashboard Summary
+  getDashboardSummary: async () => {
+    const res = await apiClient.get('/api/v1/finance/dashboard/summary');
+    return res.data.data;
+  },
+
   // Fixed Assets
   getAssetCategories: async () => {
     const res = await apiClient.get('/api/v1/finance/asset-categories');
@@ -266,24 +302,67 @@ export const financeService = {
   },
 
   // Financial Reports
-  getTrialBalance: async () => {
-    const res = await apiClient.get('/api/v1/finance/reports/trial-balance');
+  getTrialBalance: async (asOf?: string) => {
+    const query = asOf ? `?as_of=${asOf}` : '';
+    const res = await apiClient.get(`/api/v1/finance/reports/trial-balance${query}`);
     return res.data.data;
   },
-  getBalanceSheet: async () => {
-    const res = await apiClient.get('/api/v1/finance/reports/balance-sheet');
+  getBalanceSheet: async (asOf?: string) => {
+    const query = asOf ? `?as_of=${asOf}` : '';
+    const res = await apiClient.get(`/api/v1/finance/reports/balance-sheet${query}`);
     return res.data.data;
   },
-  getProfitLoss: async () => {
-    const res = await apiClient.get('/api/v1/finance/reports/profit-loss');
+  getProfitLoss: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await apiClient.get(`/api/v1/finance/reports/profit-loss${query}`);
     return res.data.data;
   },
-  getCashFlow: async () => {
-    const res = await apiClient.get('/api/v1/finance/reports/cash-flow');
+  getCashFlow: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await apiClient.get(`/api/v1/finance/reports/cash-flow${query}`);
     return res.data.data;
   },
   getAgingReport: async (type: 'RECEIVABLE' | 'PAYABLE' = 'RECEIVABLE') => {
     const res = await apiClient.get(`/api/v1/finance/reports/aging?report_type=${type}`);
+    return res.data.data;
+  },
+  getGeneralLedgerReport: async (accountId: string, startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams({ account_id: accountId });
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    const res = await apiClient.get(`/api/v1/finance/reports/general-ledger?${params.toString()}`);
+    return res.data.data;
+  },
+  getTaxReport: async (asOf?: string) => {
+    const query = asOf ? `?as_of=${asOf}` : '';
+    const res = await apiClient.get(`/api/v1/finance/reports/tax${query}`);
+    return res.data.data;
+  },
+  getExpenseReport: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await apiClient.get(`/api/v1/finance/reports/expense${query}`);
+    return res.data.data;
+  },
+  getRevenueReport: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await apiClient.get(`/api/v1/finance/reports/revenue${query}`);
+    return res.data.data;
+  },
+  getBudgetReport: async (fiscalYear?: number) => {
+    const query = fiscalYear ? `?fiscal_year=${fiscalYear}` : '';
+    const res = await apiClient.get(`/api/v1/finance/reports/budget${query}`);
     return res.data.data;
   },
   searchFinance: async (query: string) => {
@@ -291,3 +370,4 @@ export const financeService = {
     return res.data.data;
   },
 };
+

@@ -56,6 +56,23 @@ async def get_current_user(
 ) -> User:
     """Dependency to retrieve the currently authenticated user via JWT."""
     if not token:
+        # Fallback for development/standalone environments when unauthenticated
+        if settings.ENVIRONMENT in ("development", "testing", "standalone", "dev"):
+            user_repo = UserRepository(db)
+            try:
+                users = await user_repo.get_all(limit=1)
+                if users:
+                    return users[0]
+            except Exception:
+                pass
+            return User(
+                id=uuid.UUID("00000000-0000-0000-0000-000000000002"),
+                organization_id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                email="system_admin@vertexerp.ai",
+                first_name="System",
+                last_name="Administrator",
+                status="active",
+            )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
