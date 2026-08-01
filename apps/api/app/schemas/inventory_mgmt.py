@@ -236,3 +236,39 @@ class InventoryCountResponse(InventoryBaseModel):
     organization_id: uuid.UUID
     warehouse_id: uuid.UUID
     status: str
+
+# 6. Inter-Warehouse Transfers & Telemetry
+class InterWarehouseTransferItemCreate(InventoryBaseModel):
+    product_id: uuid.UUID
+    quantity: int
+
+class InterWarehouseTransferCreate(InventoryBaseModel):
+    source_warehouse_id: uuid.UUID
+    target_warehouse_id: uuid.UUID
+    items: List[InterWarehouseTransferItemCreate]
+
+class InterWarehouseTransferItemResponse(InventoryBaseModel):
+    id: uuid.UUID
+    stock_transfer_id: uuid.UUID
+    product_id: uuid.UUID
+    quantity: int
+
+class InterWarehouseTransferResponse(InventoryBaseModel):
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    transfer_number: str
+    source_warehouse_id: uuid.UUID
+    target_warehouse_id: uuid.UUID
+    status: str
+    requested_by_id: uuid.UUID
+    approved_by_id: Optional[uuid.UUID] = None
+    items: Optional[List[InterWarehouseTransferItemResponse]] = None
+
+class InventorySummaryResponse(InventoryBaseModel):
+    total_products: int
+    total_warehouses: int
+    total_stock_on_hand: int
+    low_stock_count: int
+    out_of_stock_count: int
+    pending_purchase_orders: int
+    completed_transfers: int

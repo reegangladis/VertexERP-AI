@@ -87,6 +87,15 @@ class MachineRepository(BaseRepository[Machine]):
     def __init__(self, db: AsyncSession):
         super().__init__(Machine, db)
 
+    async def get_downtimes(self, machine_id: uuid.UUID) -> List[MachineDowntime]:
+        stmt = (
+            select(MachineDowntime)
+            .where(MachineDowntime.machine_id == machine_id, MachineDowntime.is_deleted == False)
+            .order_by(desc(MachineDowntime.start_time))
+        )
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
 
 class ProductionOrderRepository(BaseRepository[ProductionOrder]):
     def __init__(self, db: AsyncSession):
@@ -110,6 +119,22 @@ class ProductionOrderRepository(BaseRepository[ProductionOrder]):
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_material_consumptions(self, production_order_id: uuid.UUID) -> List[MaterialConsumption]:
+        stmt = select(MaterialConsumption).where(
+            MaterialConsumption.production_order_id == production_order_id,
+            MaterialConsumption.is_deleted == False,
+        )
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_production_logs(self, production_order_id: uuid.UUID) -> List[ProductionLog]:
+        stmt = select(ProductionLog).where(
+            ProductionLog.production_order_id == production_order_id,
+            ProductionLog.is_deleted == False,
+        ).order_by(desc(ProductionLog.log_time))
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
 
 class QualityInspectionRepository(BaseRepository[QualityInspection]):
     def __init__(self, db: AsyncSession):
@@ -128,6 +153,14 @@ class QualityInspectionRepository(BaseRepository[QualityInspection]):
 class MaintenanceRequestRepository(BaseRepository[MaintenanceRequest]):
     def __init__(self, db: AsyncSession):
         super().__init__(MaintenanceRequest, db)
+
+    async def get_logs_by_request(self, request_id: uuid.UUID) -> List[MaintenanceLog]:
+        stmt = select(MaintenanceLog).where(
+            MaintenanceLog.request_id == request_id,
+            MaintenanceLog.is_deleted == False,
+        ).order_by(desc(MaintenanceLog.created_at))
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
 
 
 class MRPRunRepository(BaseRepository[MRPRun]):

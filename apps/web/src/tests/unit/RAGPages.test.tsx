@@ -32,7 +32,7 @@ test('renders RAG Knowledge Dashboard cleanly', async () => {
     </QueryClientProvider>
   );
 
-  expect(screen.getByText(/Enterprise RAG & Knowledge Intelligence/i)).toBeInTheDocument();
+  expect(screen.getByText(/Total Documents/i)).toBeInTheDocument();
 });
 
 test('renders RAG Document Library Vault', async () => {
@@ -45,5 +45,6 @@ test('renders RAG Document Library Vault', async () => {
     </QueryClientProvider>
   );
 
-  expect(screen.getByText(/Document Library Vault/i)).toBeInTheDocument();
+  expect(screen.getByPlaceholderText(/Search documents by title or file name/i)).toBeInTheDocument();
 });
+

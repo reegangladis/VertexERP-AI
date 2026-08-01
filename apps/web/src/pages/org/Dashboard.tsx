@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
+  Building,
   Building2,
   GitBranch,
   Network,
@@ -28,6 +29,7 @@ export function OrgDashboard() {
   const { addNotification } = useNotification();
   const [stats, setStats] = useState({
     organizations: 1,
+    businessUnits: 0,
     branches: 0,
     departments: 0,
     teams: 0,
@@ -38,7 +40,8 @@ export function OrgDashboard() {
 
   const fetchStats = async () => {
     try {
-      const [branchesRes, deptsRes, teamsRes, locsRes, desigRes] = await Promise.all([
+      const [buRes, branchesRes, deptsRes, teamsRes, locsRes, desigRes] = await Promise.all([
+        apiClient.get('/api/v1/business-units'),
         apiClient.get('/api/v1/branches'),
         apiClient.get('/api/v1/departments'),
         apiClient.get('/api/v1/teams'),
@@ -48,6 +51,7 @@ export function OrgDashboard() {
 
       setStats({
         organizations: 1,
+        businessUnits: buRes.data.data?.length || 0,
         branches: branchesRes.data.data?.length || 0,
         departments: deptsRes.data.data?.length || 0,
         teams: teamsRes.data.data?.length || 0,
@@ -106,9 +110,10 @@ export function OrgDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
         {[
           { label: 'Organizations', val: stats.organizations, icon: <Building2 className="h-4 w-4" /> },
+          { label: 'Business Units', val: stats.businessUnits, icon: <Building className="h-4 w-4" /> },
           { label: 'Branches', val: stats.branches, icon: <GitBranch className="h-4 w-4" /> },
           { label: 'Departments', val: stats.departments, icon: <Network className="h-4 w-4" /> },
           { label: 'Teams', val: stats.teams, icon: <Users2 className="h-4 w-4" /> },

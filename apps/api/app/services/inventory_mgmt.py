@@ -318,3 +318,115 @@ class PurchaseOrderService(BaseService[PurchaseOrder, PurchaseOrderRepository]):
             })
 
         return grn
+
+
+from app.models.inventory_transaction import StockTransfer, StockTransferItem
+from app.repositories.inventory_mgmt import StockTransferRepository, StockTransferItemRepository
+
+class StockTransferService(BaseService[StockTransfer, StockTransferRepository]):
+    def __init__(
+        self,
+        repository: StockTransferRepository,
+        item_repo: StockTransferItemRepository,
+        stock_level_repo: StockLevelRepository,
+        transaction_repo: InventoryTransactionRepository
+    ):
+        super().__init__(repository)
+        self.item_repo = item_repo
+        self.stock_level_repo = stock_level_repo
+        self.transaction_repo = transaction_repo
+
+    async def create_transfer(self, org_id: uuid.UUID, source_wh_id: uuid.UUID, target_wh_id: uuid.UUID, items_data: List[Dict[str, Any]], requested_by_id: uuid.UUID) -> StockTransfer:
+        if source_wh_id == target_wh_id:
+            raise InventoryServiceException("Source and target warehouse cannot be the same.")
+
+        transfer_number = f"TR-{date.today().strftime('%Y%m')}-{uuid.uuid4().hex[:6].upper()}"
+        transfer = await self.repository.create({
+            "organization_id": org_id,
+            "transfer_number": transfer_number,
+            "source_warehouse_id": source_wh_id,
+            "target_warehouse_id": target_wh_id,
+            "status": "draft",
+            "requested_by_id": requested_by_id,
+        })
+
+        for item in items_data:
+            await self.item_repo.create({
+                "stock_transfer_id": transfer.id,
+                "product_id": item["product_id"],
+                "quantity": item["quantity"]
+            })
+
+        return transfer
+
+    async def approve_transfer(self, transfer_id: uuid.UUID, approved_by_id: uuid.UUID) -> StockTransfer:
+        transfer = await self.repository.get(transfer_id)
+        if not transfer or transfer.is_deleted:
+            raise InventoryServiceException("Stock transfer record not found.")
+
+        if transfer.status == "completed":
+            raise InventoryServiceException("Transfer has already been completed.")
+
+        stmt = select(StockTransferItem).where(
+            StockTransferItem.stock_transfer_id == transfer.id,
+            StockTransferItem.is_deleted == False
+        )
+        res = await self.repository.db.execute(stmt)
+        items = list(res.scalars().all())
+
+        for item in items:
+            stmt_src = select(StockLevel).where(
+                StockLevel.organization_id == transfer.organization_id,
+                StockLevel.product_id == item.product_id,
+                StockLevel.warehouse_id == transfer.source_warehouse_id,
+                StockLevel.is_deleted == False
+            )
+            res_src = await self.repository.db.execute(stmt_src)
+            src_stock = res_src.scalars().first()
+            if src_stock:
+                src_stock.available = max(0, src_stock.available - item.quantity)
+                src_stock.on_hand = max(0, src_stock.on_hand - item.quantity)
+                await self.stock_level_repo.update(src_stock, {})
+
+            stmt_tgt = select(StockLevel).where(
+                StockLevel.organization_id == transfer.organization_id,
+                StockLevel.product_id == item.product_id,
+                StockLevel.warehouse_id == transfer.target_warehouse_id,
+                StockLevel.is_deleted == False
+            )
+            res_tgt = await self.repository.db.execute(stmt_tgt)
+            tgt_stock = res_tgt.scalars().first()
+            if not tgt_stock:
+                await self.stock_level_repo.create({
+                    "organization_id": transfer.organization_id,
+                    "product_id": item.product_id,
+                    "warehouse_id": transfer.target_warehouse_id,
+                    "available": item.quantity,
+                    "on_hand": item.quantity,
+                    "reserved": 0
+                })
+            else:
+                tgt_stock.available += item.quantity
+                tgt_stock.on_hand += item.quantity
+                await self.stock_level_repo.update(tgt_stock, {})
+
+            await self.transaction_repo.create({
+                "organization_id": transfer.organization_id,
+                "product_id": item.product_id,
+                "warehouse_id": transfer.source_warehouse_id,
+                "type": "transfer_out",
+                "quantity": -item.quantity,
+                "reference": transfer.transfer_number
+            })
+            await self.transaction_repo.create({
+                "organization_id": transfer.organization_id,
+                "product_id": item.product_id,
+                "warehouse_id": transfer.target_warehouse_id,
+                "type": "transfer_in",
+                "quantity": item.quantity,
+                "reference": transfer.transfer_number
+            })
+
+        transfer.status = "completed"
+        transfer.approved_by_id = approved_by_id
+        return await self.repository.update(transfer, {})

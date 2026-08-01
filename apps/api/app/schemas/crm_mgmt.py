@@ -47,6 +47,12 @@ class LeadResponse(CRMBaseModel):
     score: int
     assigned_to_id: Optional[uuid.UUID] = None
 
+class LeadConvertRequest(CRMBaseModel):
+    customer_name: Optional[str] = None
+    create_opportunity: bool = True
+    opportunity_title: Optional[str] = None
+    deal_amount: Optional[float] = 0.0
+
 # 2. Customer & Contact Schemas
 class ContactCreate(CRMBaseModel):
     first_name: str
@@ -132,20 +138,41 @@ class DealResponse(CRMBaseModel):
     status: str
     won_lost_reason: Optional[str] = None
 
-# 4. Quotation Schemas
+# 4. Quotation & Sales Order Schemas
 class QuotationCreate(CRMBaseModel):
     deal_id: uuid.UUID
+    total_amount: float = 0.0
     terms: Optional[str] = None
     valid_until: date
+
+class QuotationStatusUpdate(CRMBaseModel):
+    status: str # draft, sent, approved, rejected
 
 class QuotationResponse(CRMBaseModel):
     id: uuid.UUID
     deal_id: uuid.UUID
     version: int
     status: str
+    total_amount: float
     terms: Optional[str] = None
     valid_until: date
     file_path: Optional[str] = None
+
+class SalesOrderCreate(CRMBaseModel):
+    customer_id: uuid.UUID
+    quotation_id: Optional[uuid.UUID] = None
+    total_amount: float
+    order_date: date
+
+class SalesOrderResponse(CRMBaseModel):
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    customer_id: uuid.UUID
+    quotation_id: Optional[uuid.UUID] = None
+    order_number: str
+    total_amount: float
+    status: str
+    order_date: date
 
 # 5. Activity Schemas
 class CRMTaskCreate(CRMBaseModel):

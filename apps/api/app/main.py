@@ -96,14 +96,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Custom Middlewares (registered innermost first, outermost last)
-app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(AccessLoggingMiddleware)
-app.add_middleware(ProcessingTimeMiddleware)
-app.add_middleware(TenantMiddleware)
-app.add_middleware(RequestIDMiddleware)
-
-# Set up CORS middleware (outermost layer wrapping all other custom middlewares)
+# Set up CORS middleware (must be registered FIRST so it is the outermost wrapper for all requests & responses)
 cors_origins = [str(origin) for origin in settings.BACKEND_CORS_ORIGINS] if settings.BACKEND_CORS_ORIGINS else []
 for dev_origin in ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8000", "http://127.0.0.1:8000"]:
     if dev_origin not in cors_origins:
@@ -112,10 +105,18 @@ for dev_origin in ["http://localhost:3000", "http://127.0.0.1:3000", "http://loc
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Custom Middlewares (registered inside CORS wrapper)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AccessLoggingMiddleware)
+app.add_middleware(ProcessingTimeMiddleware)
+app.add_middleware(TenantMiddleware)
+app.add_middleware(RequestIDMiddleware)
 
 # Register exception handlers
 setup_exception_handlers(app)

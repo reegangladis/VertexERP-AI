@@ -113,6 +113,65 @@ class LeadService(BaseService[Lead, LeadRepository]):
             count += 1
         return count
 
+    async def convert_lead(self, lead_id: uuid.UUID, customer_repo: CustomerRepository, contact_repo: ContactRepository, opp_repo: OpportunityRepository, deal_repo: DealRepository, payload_data: Dict[str, Any]) -> Dict[str, Any]:
+        from datetime import date
+        lead = await self.repository.get(lead_id)
+        if not lead or lead.is_deleted:
+            raise CRMServiceException("Lead not found.")
+
+        if lead.status == "converted":
+            raise CRMServiceException("Lead has already been converted.")
+
+        company_name = payload_data.get("customer_name") or lead.company or f"{lead.first_name} {lead.last_name}"
+        
+        customer = await customer_repo.create({
+            "organization_id": lead.organization_id,
+            "name": company_name,
+            "type": "business" if lead.company else "individual",
+            "status": "active",
+        })
+
+        contact = await contact_repo.create({
+            "organization_id": lead.organization_id,
+            "customer_id": customer.id,
+            "first_name": lead.first_name,
+            "last_name": lead.last_name,
+            "email": lead.email,
+            "phone": lead.phone,
+            "is_primary": True,
+        })
+
+        deal = None
+        opportunity = None
+        if payload_data.get("create_opportunity", True):
+            opp_title = payload_data.get("opportunity_title") or f"Opportunity for {company_name}"
+            opportunity = await opp_repo.create({
+                "organization_id": lead.organization_id,
+                "title": opp_title,
+                "stage": "qualification",
+                "close_date": date.today(),
+            })
+
+            deal = await deal_repo.create({
+                "organization_id": lead.organization_id,
+                "opportunity_id": opportunity.id,
+                "customer_id": customer.id,
+                "title": f"Deal - {company_name}",
+                "amount": payload_data.get("deal_amount", 0.0),
+                "probability": 20,
+                "status": "pipeline",
+            })
+
+        lead.status = "converted"
+        await self.repository.update(lead, {})
+
+        return {
+            "customer": customer,
+            "contact": contact,
+            "opportunity": opportunity,
+            "deal": deal,
+        }
+
 
 class CustomerService(BaseService[Customer, CustomerRepository]):
     def __init__(self, repository: CustomerRepository, contact_repo: ContactRepository):
@@ -157,6 +216,9 @@ class CustomerService(BaseService[Customer, CustomerRepository]):
         return count
 
 
+from app.models.crm_deal import SalesOrder
+from app.repositories.crm_mgmt import SalesOrderRepository
+
 class DealService(BaseService[Deal, DealRepository]):
     def __init__(self, repository: DealRepository, quotation_repo: QuotationRepository):
         super().__init__(repository)
@@ -174,3 +236,41 @@ class DealService(BaseService[Deal, DealRepository]):
         elif status == "lost":
             deal.probability = 0
         return await self.repository.update(deal, {})
+
+
+class SalesOrderService(BaseService[SalesOrder, SalesOrderRepository]):
+    def __init__(self, repository: SalesOrderRepository, quotation_repo: QuotationRepository):
+        super().__init__(repository)
+        self.quotation_repo = quotation_repo
+
+    async def convert_quotation_to_order(self, quotation_id: uuid.UUID, org_id: uuid.UUID) -> SalesOrder:
+        from datetime import date
+        quotation = await self.quotation_repo.get(quotation_id)
+        if not quotation or quotation.is_deleted:
+            raise CRMServiceException("Quotation not found.")
+
+        stmt = select(Deal).where(Deal.id == quotation.deal_id)
+        res = await self.repository.db.execute(stmt)
+        deal = res.scalar_one_or_none()
+        if not deal:
+            raise CRMServiceException("Associated deal not found.")
+
+        order_number = f"SO-{date.today().strftime('%Y%m')}-{uuid.uuid4().hex[:6].upper()}"
+        sales_order = await self.repository.create({
+            "organization_id": org_id,
+            "customer_id": deal.customer_id,
+            "quotation_id": quotation.id,
+            "order_number": order_number,
+            "total_amount": quotation.total_amount or deal.amount,
+            "status": "confirmed",
+            "order_date": date.today(),
+        })
+
+        quotation.status = "approved"
+        await self.quotation_repo.update(quotation, {})
+
+        deal.status = "won"
+        deal.probability = 100
+        await self.repository.db.commit()
+
+        return sales_order

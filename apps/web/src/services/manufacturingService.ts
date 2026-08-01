@@ -48,6 +48,15 @@ export interface BillOfMaterial {
   created_at: string;
 }
 
+export interface BOMCostRollupResponse {
+  bom_id: string;
+  product_id: string;
+  material_cost: number;
+  operation_cost: number;
+  total_calculated_cost: number;
+  cost_breakdown: Array<Record<string, any>>;
+}
+
 export interface RoutingOperation {
   id?: string;
   routing_id?: string;
@@ -107,6 +116,18 @@ export interface Machine {
   created_at: string;
 }
 
+export interface MachineDowntime {
+  id: string;
+  machine_id: string;
+  work_center_id?: string;
+  production_order_id?: string;
+  start_time: string;
+  end_time?: string;
+  duration_minutes: number;
+  reason_category: string;
+  comments?: string;
+}
+
 export interface ProductionOrderItem {
   id: string;
   production_order_id: string;
@@ -142,6 +163,30 @@ export interface ProductionOrder {
   predicted_completion_delay_days?: number;
   items: ProductionOrderItem[];
   created_at: string;
+}
+
+export interface MaterialReservationResponse {
+  production_order_id: string;
+  material_reservation_status: string;
+  allocated_items: Array<Record<string, any>>;
+  shortages: Array<Record<string, any>>;
+}
+
+export interface ProductionCostSummaryResponse {
+  production_order_id: string;
+  order_number: string;
+  product_id: string;
+  planned_quantity: number;
+  completed_quantity: number;
+  material_cost: number;
+  labor_cost: number;
+  machine_cost: number;
+  overhead_cost: number;
+  total_actual_cost: number;
+  unit_actual_cost: number;
+  estimated_total_cost: number;
+  cost_variance: number;
+  cost_variance_percent: number;
 }
 
 export interface ProductionLog {
@@ -202,6 +247,19 @@ export interface MaintenanceRequest {
   resolved_at?: string;
 }
 
+export interface MaintenanceLog {
+  id?: string;
+  request_id?: string;
+  machine_id: string;
+  technician_name: string;
+  maintenance_date?: string;
+  duration_hours: number;
+  work_done: string;
+  parts_replaced?: string;
+  total_cost: number;
+  created_at?: string;
+}
+
 export interface ProcurementSuggestion {
   product_id: string;
   product_name: string;
@@ -249,6 +307,7 @@ export const manufacturingService = {
     return res.data;
   },
 
+  // --- BOM ---
   getBOMs: async (search?: string): Promise<BillOfMaterial[]> => {
     const res = await apiClient.get<BillOfMaterial[]>('/manufacturing/boms', { params: { search } });
     return res.data;
@@ -259,16 +318,31 @@ export const manufacturingService = {
     return res.data;
   },
 
+  getBOM: async (id: string): Promise<BillOfMaterial> => {
+    const res = await apiClient.get<BillOfMaterial>(`/manufacturing/boms/${id}`);
+    return res.data;
+  },
+
+  updateBOM: async (id: string, data: Partial<BillOfMaterial>): Promise<BillOfMaterial> => {
+    const res = await apiClient.put<BillOfMaterial>(`/manufacturing/boms/${id}`, data);
+    return res.data;
+  },
+
+  deleteBOM: async (id: string): Promise<void> => {
+    await apiClient.delete(`/manufacturing/boms/${id}`);
+  },
+
   approveBOM: async (id: string): Promise<BillOfMaterial> => {
     const res = await apiClient.post<BillOfMaterial>(`/manufacturing/boms/${id}/approve`);
     return res.data;
   },
 
-  calculateCostRollup: async (id: string): Promise<any> => {
-    const res = await apiClient.post<any>(`/manufacturing/boms/${id}/cost-rollup`);
+  calculateCostRollup: async (id: string): Promise<BOMCostRollupResponse> => {
+    const res = await apiClient.post<BOMCostRollupResponse>(`/manufacturing/boms/${id}/cost-rollup`);
     return res.data;
   },
 
+  // --- ROUTINGS ---
   getRoutings: async (search?: string): Promise<Routing[]> => {
     const res = await apiClient.get<Routing[]>('/manufacturing/routings', { params: { search } });
     return res.data;
@@ -279,6 +353,21 @@ export const manufacturingService = {
     return res.data;
   },
 
+  getRouting: async (id: string): Promise<Routing> => {
+    const res = await apiClient.get<Routing>(`/manufacturing/routings/${id}`);
+    return res.data;
+  },
+
+  updateRouting: async (id: string, data: Partial<Routing>): Promise<Routing> => {
+    const res = await apiClient.put<Routing>(`/manufacturing/routings/${id}`, data);
+    return res.data;
+  },
+
+  deleteRouting: async (id: string): Promise<void> => {
+    await apiClient.delete(`/manufacturing/routings/${id}`);
+  },
+
+  // --- WORK CENTERS & MACHINES ---
   getWorkCenters: async (search?: string): Promise<WorkCenter[]> => {
     const res = await apiClient.get<WorkCenter[]>('/manufacturing/work-centers', { params: { search } });
     return res.data;
@@ -287,6 +376,15 @@ export const manufacturingService = {
   createWorkCenter: async (data: Partial<WorkCenter>): Promise<WorkCenter> => {
     const res = await apiClient.post<WorkCenter>('/manufacturing/work-centers', data);
     return res.data;
+  },
+
+  updateWorkCenter: async (id: string, data: Partial<WorkCenter>): Promise<WorkCenter> => {
+    const res = await apiClient.put<WorkCenter>(`/manufacturing/work-centers/${id}`, data);
+    return res.data;
+  },
+
+  deleteWorkCenter: async (id: string): Promise<void> => {
+    await apiClient.delete(`/manufacturing/work-centers/${id}`);
   },
 
   getMachines: async (work_center_id?: string): Promise<Machine[]> => {
@@ -299,6 +397,26 @@ export const manufacturingService = {
     return res.data;
   },
 
+  updateMachine: async (id: string, data: Partial<Machine>): Promise<Machine> => {
+    const res = await apiClient.put<Machine>(`/manufacturing/machines/${id}`, data);
+    return res.data;
+  },
+
+  deleteMachine: async (id: string): Promise<void> => {
+    await apiClient.delete(`/manufacturing/machines/${id}`);
+  },
+
+  logMachineDowntime: async (data: Partial<MachineDowntime>): Promise<MachineDowntime> => {
+    const res = await apiClient.post<MachineDowntime>('/manufacturing/machines/downtime', data);
+    return res.data;
+  },
+
+  getMachineDowntimes: async (machine_id: string): Promise<MachineDowntime[]> => {
+    const res = await apiClient.get<MachineDowntime[]>(`/manufacturing/machines/${machine_id}/downtimes`);
+    return res.data;
+  },
+
+  // --- PRODUCTION ORDERS ---
   getProductionOrders: async (status_filter?: string): Promise<ProductionOrder[]> => {
     const res = await apiClient.get<ProductionOrder[]>('/manufacturing/production-orders', { params: { status_filter } });
     return res.data;
@@ -309,11 +427,42 @@ export const manufacturingService = {
     return res.data;
   },
 
+  getProductionOrder: async (id: string): Promise<ProductionOrder> => {
+    const res = await apiClient.get<ProductionOrder>(`/manufacturing/production-orders/${id}`);
+    return res.data;
+  },
+
+  updateProductionOrder: async (id: string, data: Partial<ProductionOrder>): Promise<ProductionOrder> => {
+    const res = await apiClient.put<ProductionOrder>(`/manufacturing/production-orders/${id}`, data);
+    return res.data;
+  },
+
+  deleteProductionOrder: async (id: string): Promise<void> => {
+    await apiClient.delete(`/manufacturing/production-orders/${id}`);
+  },
+
+  reserveMaterials: async (id: string): Promise<MaterialReservationResponse> => {
+    const res = await apiClient.post<MaterialReservationResponse>(`/manufacturing/production-orders/${id}/reserve-materials`);
+    return res.data;
+  },
+
+  getCostSummary: async (id: string): Promise<ProductionCostSummaryResponse> => {
+    const res = await apiClient.get<ProductionCostSummaryResponse>(`/manufacturing/production-orders/${id}/cost-summary`);
+    return res.data;
+  },
+
+  updateWorkOrderItem: async (itemId: string, data: Partial<ProductionOrderItem>): Promise<ProductionOrderItem> => {
+    const res = await apiClient.put<ProductionOrderItem>(`/manufacturing/production-orders/items/${itemId}`, data);
+    return res.data;
+  },
+
+  // --- SHOP FLOOR ---
   logShopFloorProgress: async (data: Partial<ProductionLog>): Promise<ProductionLog> => {
     const res = await apiClient.post<ProductionLog>('/manufacturing/shop-floor/logs', data);
     return res.data;
   },
 
+  // --- QUALITY CONTROL ---
   getQualityInspections: async (): Promise<QualityInspection[]> => {
     const res = await apiClient.get<QualityInspection[]>('/manufacturing/quality/inspections');
     return res.data;
@@ -324,6 +473,16 @@ export const manufacturingService = {
     return res.data;
   },
 
+  updateQualityInspection: async (id: string, data: Partial<QualityInspection>): Promise<QualityInspection> => {
+    const res = await apiClient.put<QualityInspection>(`/manufacturing/quality/inspections/${id}`, data);
+    return res.data;
+  },
+
+  deleteQualityInspection: async (id: string): Promise<void> => {
+    await apiClient.delete(`/manufacturing/quality/inspections/${id}`);
+  },
+
+  // --- MAINTENANCE ---
   getMaintenanceRequests: async (): Promise<MaintenanceRequest[]> => {
     const res = await apiClient.get<MaintenanceRequest[]>('/manufacturing/maintenance/requests');
     return res.data;
@@ -334,6 +493,21 @@ export const manufacturingService = {
     return res.data;
   },
 
+  updateMaintenanceRequest: async (id: string, data: Partial<MaintenanceRequest>): Promise<MaintenanceRequest> => {
+    const res = await apiClient.put<MaintenanceRequest>(`/manufacturing/maintenance/requests/${id}`, data);
+    return res.data;
+  },
+
+  deleteMaintenanceRequest: async (id: string): Promise<void> => {
+    await apiClient.delete(`/manufacturing/maintenance/requests/${id}`);
+  },
+
+  logMaintenanceWork: async (data: Partial<MaintenanceLog>): Promise<MaintenanceLog> => {
+    const res = await apiClient.post<MaintenanceLog>('/manufacturing/maintenance/logs', data);
+    return res.data;
+  },
+
+  // --- MRP RUNS ---
   getMRPRuns: async (): Promise<MRPRun[]> => {
     const res = await apiClient.get<MRPRun[]>('/manufacturing/mrp/runs');
     return res.data;

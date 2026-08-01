@@ -33,11 +33,10 @@ export function InventoryWarehouseDetails() {
     const fetchDetails = async () => {
       try {
         const [warRes, binRes] = await Promise.all([
-          apiClient.get('/api/v1/inventory/warehouses'),
+          apiClient.get(`/api/v1/inventory/warehouses/${id}`),
           apiClient.get(`/api/v1/inventory/warehouses/bins?warehouse_id=${id}`),
         ]);
-        const found = (warRes.data.data || []).find((w: Warehouse) => w.id === id);
-        setWarehouse(found || null);
+        setWarehouse(warRes.data.data || null);
         setBins(binRes.data.data || []);
       } catch (err) {
         console.error("Failed to load warehouse details", err);
@@ -45,7 +44,7 @@ export function InventoryWarehouseDetails() {
         setLoading(false);
       }
     };
-    fetchDetails();
+    if (id) fetchDetails();
   }, [id]);
 
   if (loading) {

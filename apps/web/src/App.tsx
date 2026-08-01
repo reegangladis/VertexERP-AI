@@ -15,6 +15,7 @@ import { ThemeProvider } from '@/store/ThemeContext';
 import { UIProvider } from '@/store/UIContext';
 import { NotificationProvider } from '@/store/NotificationContext';
 import { SettingsProvider } from '@/store/SettingsContext';
+import { AuthProvider } from '@/store/AuthContext';
 
 import { AppLayout } from '@/layouts/AppLayout';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
@@ -29,10 +30,25 @@ import { Unauthorized } from '@/routes/Unauthorized';
 import { Maintenance } from '@/routes/Maintenance';
 
 // Identity & Settings Page Views
-import { Login, Register, ForgotPassword, ResetPassword, VerifyEmail, SessionExpired } from '@/pages/AuthPages';
+import { Login, Register, ForgotPassword, ResetPassword, VerifyEmail, SessionExpired, Unauthorized as AuthUnauthorized } from '@/pages/AuthPages';
 import { UserManagement, RoleManagement, PermissionManagement } from '@/pages/IdentityManagement';
 import { UserSettings } from '@/pages/UserSettings';
 import { TenantSettings } from '@/pages/TenantSettings';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { SessionsPage } from '@/pages/admin/SessionsPage';
+import { LoginHistoryPage } from '@/pages/admin/LoginHistoryPage';
+import { AuditLogsPage } from '@/pages/admin/AuditLogsPage';
+import { useAuth } from '@/store/AuthContext';
+import { Navigate } from 'react-router-dom';
+
+function RootRedirect() {
+  const { isAuthenticated, isLoading, getDefaultDashboardRoute } = useAuth();
+  if (isLoading) return null;
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" replace />;
+  }
+  return <Navigate to={getDefaultDashboardRoute()} replace />;
+}
 
 // Organization Management Page Views
 import { OrgDashboard } from '@/pages/org/Dashboard';
@@ -42,6 +58,7 @@ import { OrgDepartments } from '@/pages/org/Departments';
 import { OrgTeams } from '@/pages/org/Teams';
 import { OrgDesignations } from '@/pages/org/Designations';
 import { OrgLocations } from '@/pages/org/Locations';
+import { OrgBusinessUnits } from '@/pages/org/BusinessUnits';
 import { OrgReportingStructure } from '@/pages/org/ReportingStructure';
 import { OrgBusinessCalendar } from '@/pages/org/BusinessCalendar';
 import { OrgSettings } from '@/pages/org/Settings';
@@ -248,225 +265,238 @@ function App() {
             <ThemeProvider>
               <ErrorBoundary>
                 <BrowserRouter>
+                  <AuthProvider>
                   <Routes>
                     {/* AppLayout manages Global Toast notifications */}
                     <Route element={<AppLayout />}>
+
+                      {/* Top-Level Public Auth & Fallback Routes */}
+                      <Route path="/" element={<RootRedirect />} />
                       
-                      {/* DashboardLayout coordinates Navbar and Sidebar navigations */}
-                      <Route element={<DashboardLayout />}>
-                        <Route path="/" element={<LandingPage />} />
-                        <Route path="dashboard" element={<ExecutiveDashboard />} />
-                        <Route path="unauthorized" element={<Unauthorized />} />
-                        <Route path="maintenance" element={<Maintenance />} />
-                        <Route path="500" element={<ServerError />} />
-                        
-                        {/* Organization Management */}
-                        <Route path="org/dashboard" element={<OrgDashboard />} />
-                        <Route path="org/profile" element={<OrgProfile />} />
-                        <Route path="org/branches" element={<OrgBranches />} />
-                        <Route path="org/departments" element={<OrgDepartments />} />
-                        <Route path="org/teams" element={<OrgTeams />} />
-                        <Route path="org/designations" element={<OrgDesignations />} />
-                        <Route path="org/locations" element={<OrgLocations />} />
-                        <Route path="org/reporting" element={<OrgReportingStructure />} />
-                        <Route path="org/calendar" element={<OrgBusinessCalendar />} />
-                        <Route path="org/settings" element={<OrgSettings />} />
-
-                        {/* HR Intelligence Platform */}
-                        <Route path="hr/dashboard" element={<HRDashboard />} />
-                        <Route path="hr/employees" element={<HREmployeeList />} />
-                        <Route path="hr/employees/:id" element={<HREmployeeDetails />} />
-                        <Route path="hr/attendance" element={<HRAttendance />} />
-                        <Route path="hr/leaves" element={<HRLeaveManagement />} />
-                        <Route path="hr/recruitment" element={<HRRecruitment />} />
-                        <Route path="hr/performance" element={<HRPerformance />} />
-                        <Route path="hr/training" element={<HRTraining />} />
-                        <Route path="hr/documents" element={<HRDocuments />} />
-                        <Route path="hr/payroll" element={<HRPayroll />} />
-
-                        {/* CRM Intelligence Platform */}
-                        <Route path="crm/dashboard" element={<CRMDashboard />} />
-                        <Route path="crm/customers" element={<CRMCustomers />} />
-                        <Route path="crm/customers/:id" element={<CRMCustomerDetails />} />
-                        <Route path="crm/leads" element={<CRMLeads />} />
-                        <Route path="crm/pipeline" element={<CRMPipeline />} />
-                        <Route path="crm/deals" element={<CRMDeals />} />
-                        <Route path="crm/activities" element={<CRMActivities />} />
-                        <Route path="crm/support-tickets" element={<CRMSupportTickets />} />
-                        <Route path="crm/campaigns" element={<CRMCampaigns />} />
-
-                        {/* Inventory & Warehouse Platform */}
-                        <Route path="inventory/dashboard" element={<InventoryDashboard />} />
-                        <Route path="inventory/products" element={<InventoryProducts />} />
-                        <Route path="inventory/categories" element={<InventoryCategories />} />
-                        <Route path="inventory/warehouses" element={<InventoryWarehouses />} />
-                        <Route path="inventory/warehouses/:id" element={<InventoryWarehouseDetails />} />
-                        <Route path="inventory/suppliers" element={<InventorySuppliers />} />
-                        <Route path="inventory/purchase-orders" element={<InventoryPurchaseOrders />} />
-                        <Route path="inventory/transfers" element={<InventoryStockTransfers />} />
-                        <Route path="inventory/counts" element={<InventoryCounts />} />
-
-                        {/* Finance & Accounting Intelligence Platform */}
-                        <Route path="finance/dashboard" element={<FinanceDashboard />} />
-                        <Route path="finance/accounts" element={<ChartOfAccountsPage />} />
-                        <Route path="finance/journals" element={<JournalEntriesPage />} />
-                        <Route path="finance/invoices" element={<InvoicesPage />} />
-                        <Route path="finance/bills" element={<BillsPage />} />
-                        <Route path="finance/expenses" element={<ExpensesPage />} />
-                        <Route path="finance/budgets" element={<BudgetsPage />} />
-                        <Route path="finance/taxes" element={<TaxesPage />} />
-                        <Route path="finance/assets" element={<FixedAssetsPage />} />
-                        <Route path="finance/banking" element={<BankAccountsPage />} />
-                        <Route path="finance/reports" element={<FinancialReportsPage />} />
-
-                        {/* Manufacturing & Production Intelligence Platform */}
-                        <Route path="manufacturing/dashboard" element={<ManufacturingDashboard />} />
-                        <Route path="manufacturing/boms" element={<BillOfMaterialsPage />} />
-                        <Route path="manufacturing/routings" element={<RoutingsPage />} />
-                        <Route path="manufacturing/work-centers" element={<WorkCentersPage />} />
-                        <Route path="manufacturing/machines" element={<MachinesPage />} />
-                        <Route path="manufacturing/production-orders" element={<ProductionOrdersPage />} />
-                        <Route path="manufacturing/shop-floor" element={<ShopFloorPage />} />
-                        <Route path="manufacturing/quality" element={<QualityControlPage />} />
-                        <Route path="manufacturing/maintenance" element={<MaintenancePage />} />
-                        <Route path="manufacturing/mrp" element={<MRPPage />} />
-
-                        {/* Business Intelligence & Analytics Platform */}
-                        <Route path="analytics/executive" element={<ExecutiveDashboard />} />
-                        <Route path="analytics/hr" element={<HRAnalyticsPage />} />
-                        <Route path="analytics/crm" element={<CRMAnalyticsPage />} />
-                        <Route path="analytics/inventory" element={<InventoryAnalyticsPage />} />
-                        <Route path="analytics/finance" element={<FinanceAnalyticsPage />} />
-                        <Route path="analytics/manufacturing" element={<ManufacturingAnalyticsPage />} />
-                        <Route path="analytics/reports" element={<CustomReportsPage />} />
-                        <Route path="analytics/builder" element={<DashboardBuilderPage />} />
-
-                        {/* Enterprise Data Engineering Platform */}
-                        <Route path="data-engineering/dashboard" element={<DataEngineeringDashboard />} />
-                        <Route path="data-engineering/pipelines" element={<PipelineMonitor />} />
-                        <Route path="data-engineering/datasets" element={<DatasetExplorer />} />
-                        <Route path="data-engineering/feature-store" element={<FeatureStorePage />} />
-                        <Route path="data-engineering/metadata" element={<MetadataCatalogPage />} />
-                        <Route path="data-engineering/quality" element={<DataQualityDashboard />} />
-                        <Route path="data-engineering/lineage" element={<LineageViewer />} />
-
-                        {/* Enterprise Machine Learning Platform */}
-                        <Route path="ml/dashboard" element={<MLDashboard />} />
-                        <Route path="ml/registry" element={<ModelRegistry />} />
-                        <Route path="ml/training" element={<TrainingJobs />} />
-                        <Route path="ml/experiments" element={<ExperimentsPage />} />
-                        <Route path="ml/predictions" element={<PredictionsPage />} />
-                        <Route path="ml/evaluation" element={<EvaluationMetricsPage />} />
-
-                        {/* Enterprise ML Studio & Model Management Platform (Phase 12) */}
-                        <Route path="ml-studio/dashboard" element={<MLStudioDashboard />} />
-                        <Route path="ml-studio/datasets" element={<StudioDatasetExplorer />} />
-                        <Route path="ml-studio/notebooks" element={<NotebookRegistry />} />
-                        <Route path="ml-studio/experiments" element={<ExperimentTracker />} />
-                        <Route path="ml-studio/training" element={<TrainingJobsManager />} />
-                        <Route path="ml-studio/registry" element={<ModelRegistryStudio />} />
-                        <Route path="ml-studio/comparison" element={<ModelComparisonPage />} />
-                        <Route path="ml-studio/evaluation" element={<EvaluationReportsPage />} />
-                        <Route path="ml-studio/explainability" element={<ExplainabilityDashboard />} />
-
-                        {/* Enterprise RAG & Knowledge Intelligence Platform (Phase 13) */}
-                        <Route path="rag/dashboard" element={<KnowledgeDashboard />} />
-                        <Route path="rag/documents" element={<DocumentLibrary />} />
-                        <Route path="rag/collections" element={<CollectionsPage />} />
-                        <Route path="rag/upload" element={<UploadCenter />} />
-                        <Route path="rag/search" element={<KnowledgeSearch />} />
-                        <Route path="rag/chat" element={<AIChat />} />
-                        <Route path="rag/history" element={<ConversationHistoryPage />} />
-
-                        {/* Enterprise AI Copilot Platform (Phase 14) */}
-                        <Route path="copilot/chat" element={<AICopilot />} />
-                        <Route path="copilot/history" element={<ConversationHistory />} />
-                        <Route path="copilot/prompts" element={<PromptManager />} />
-                        <Route path="copilot/tools" element={<ToolRegistry />} />
-                        <Route path="copilot/dashboard" element={<AIDashboard />} />
-                        <Route path="copilot/settings" element={<CopilotSettings />} />
-
-
-                        {/* Enterprise MLOps Platform (Phase 15) */}
-                        <Route path="mlops/dashboard" element={<MLOpsDashboard />} />
-                        <Route path="mlops/deployments" element={<DeploymentCenter />} />
-                        <Route path="mlops/pipelines" element={<PipelineManager />} />
-                        <Route path="mlops/monitoring" element={<MonitoringDashboard />} />
-                        <Route path="mlops/approvals" element={<ApprovalQueue />} />
-                        <Route path="mlops/retraining" element={<RetrainingCenter />} />
-
-                        {/* Enterprise Monitoring & Observability Platform (Phase 16) */}
-                        <Route path="observability/dashboard" element={<ObservabilityDashboard />} />
-                        <Route path="observability/health" element={<SystemHealth />} />
-                        <Route path="observability/logs" element={<LogExplorer />} />
-                        <Route path="observability/metrics" element={<MetricsExplorer />} />
-                        <Route path="observability/traces" element={<TraceViewer />} />
-                        <Route path="observability/alerts" element={<AlertCenter />} />
-                        <Route path="observability/business" element={<ObservabilityBusinessDashboard />} />
-                        <Route path="observability/ai" element={<AIMonitoringDashboard />} />
-
-                        {/* Enterprise Workflow Automation Platform (Phase 17) */}
-                        <Route path="workflows/dashboard" element={<WorkflowDashboard />} />
-                        <Route path="workflows/designer" element={<WorkflowDesigner />} />
-                        <Route path="workflows/designer/:id" element={<WorkflowDesigner />} />
-                        <Route path="workflows/rules" element={<RuleBuilder />} />
-                        <Route path="workflows/approvals" element={<ApprovalCenter />} />
-                        <Route path="workflows/scheduler" element={<SchedulerPage />} />
-                        <Route path="workflows/executions" element={<ExecutionMonitor />} />
-                        <Route path="workflows/templates" element={<WorkflowTemplates />} />
-
-                        {/* Enterprise Integration Platform (Phase 18) */}
-                        <Route path="integrations/dashboard" element={<IntegrationDashboard />} />
-                        <Route path="integrations/connectors" element={<ConnectorMarketplace />} />
-                        <Route path="integrations/gateway" element={<ApiGatewayPage />} />
-                        <Route path="integrations/webhooks" element={<WebhookCenter />} />
-                        <Route path="integrations/events" element={<EventMonitor />} />
-                        <Route path="integrations/queues" element={<QueueDashboard />} />
-                        <Route path="integrations/analytics" element={<ApiAnalyticsPage />} />
-
-                        {/* Production Readiness, Performance & Security Hardening (Phase 19) */}
-                        <Route path="production/security" element={<SecurityDashboard />} />
-                        <Route path="production/performance" element={<PerformanceDashboard />} />
-                        <Route path="production/compliance" element={<ComplianceCenter />} />
-                        <Route path="production/backups" element={<BackupCenter />} />
-                        <Route path="production/recovery" element={<RecoveryCenter />} />
-                        <Route path="production/readiness" element={<SystemReadinessDashboard />} />
-
-                        {/* Enterprise Cloud Deployment & Global Release (Phase 20) */}
-                        <Route path="cloud/releases" element={<ReleaseDashboard />} />
-                        <Route path="cloud/deployments" element={<DeploymentDashboard />} />
-                        <Route path="cloud/operations" element={<CloudOperations />} />
-                        <Route path="cloud/finops" element={<FinOpsDashboard />} />
-                        <Route path="cloud/incidents" element={<IncidentCenter />} />
-                        <Route path="cloud/status" element={<SystemStatus />} />
-
-
-
-
-                        {/* Security & Identity Dashboards */}
-                        <Route path="admin/users" element={<UserManagement />} />
-                        <Route path="admin/roles" element={<RoleManagement />} />
-                        <Route path="admin/permissions" element={<PermissionManagement />} />
-                        <Route path="admin/settings" element={<TenantSettings />} />
-                        
-                        {/* Account Settings */}
-                        <Route path="settings/profile" element={<UserSettings />} />
-                        
-                        <Route path="*" element={<NotFound />} />
-                      </Route>
-
-                      {/* AuthLayout wraps public recovery and credential pages */}
-                      <Route path="auth" element={<AuthLayout />}>
+                      {/* Public Auth Routes */}
+                      <Route element={<AuthLayout />}>
                         <Route path="login" element={<Login />} />
                         <Route path="register" element={<Register />} />
                         <Route path="forgot-password" element={<ForgotPassword />} />
                         <Route path="reset-password" element={<ResetPassword />} />
                         <Route path="verify-email" element={<VerifyEmail />} />
                         <Route path="session-expired" element={<SessionExpired />} />
+                        <Route path="unauthorized" element={<AuthUnauthorized />} />
+
+                        <Route path="auth/login" element={<Login />} />
+                        <Route path="auth/register" element={<Register />} />
+                        <Route path="auth/forgot-password" element={<ForgotPassword />} />
+                        <Route path="auth/reset-password" element={<ResetPassword />} />
+                        <Route path="auth/verify-email" element={<VerifyEmail />} />
+                        <Route path="auth/session-expired" element={<SessionExpired />} />
+                        <Route path="auth/unauthorized" element={<AuthUnauthorized />} />
                       </Route>
-                      
+
+                      {/* Protected Workspace & Dashboard Routes */}
+                      <Route element={<ProtectedRoute />}>
+                        <Route element={<DashboardLayout />}>
+                          <Route path="dashboard" element={<ExecutiveDashboard />} />
+                          <Route path="maintenance" element={<Maintenance />} />
+                          <Route path="500" element={<ServerError />} />
+                          
+                          {/* Organization Management */}
+                          <Route path="org/dashboard" element={<OrgDashboard />} />
+                          <Route path="org/profile" element={<OrgProfile />} />
+                          <Route path="org/branches" element={<OrgBranches />} />
+                          <Route path="org/departments" element={<OrgDepartments />} />
+                          <Route path="org/teams" element={<OrgTeams />} />
+                          <Route path="org/designations" element={<OrgDesignations />} />
+                          <Route path="org/locations" element={<OrgLocations />} />
+                          <Route path="org/business-units" element={<OrgBusinessUnits />} />
+                          <Route path="org/reporting" element={<OrgReportingStructure />} />
+                          <Route path="org/calendar" element={<OrgBusinessCalendar />} />
+                          <Route path="org/settings" element={<OrgSettings />} />
+
+                          {/* HR Intelligence Platform */}
+                          <Route path="hr/dashboard" element={<HRDashboard />} />
+                          <Route path="hr/employees" element={<HREmployeeList />} />
+                          <Route path="hr/employees/:id" element={<HREmployeeDetails />} />
+                          <Route path="hr/attendance" element={<HRAttendance />} />
+                          <Route path="hr/leaves" element={<HRLeaveManagement />} />
+                          <Route path="hr/recruitment" element={<HRRecruitment />} />
+                          <Route path="hr/performance" element={<HRPerformance />} />
+                          <Route path="hr/training" element={<HRTraining />} />
+                          <Route path="hr/documents" element={<HRDocuments />} />
+                          <Route path="hr/payroll" element={<HRPayroll />} />
+
+                          {/* CRM Intelligence Platform */}
+                          <Route path="crm/dashboard" element={<CRMDashboard />} />
+                          <Route path="crm/customers" element={<CRMCustomers />} />
+                          <Route path="crm/customers/:id" element={<CRMCustomerDetails />} />
+                          <Route path="crm/leads" element={<CRMLeads />} />
+                          <Route path="crm/pipeline" element={<CRMPipeline />} />
+                          <Route path="crm/deals" element={<CRMDeals />} />
+                          <Route path="crm/activities" element={<CRMActivities />} />
+                          <Route path="crm/support-tickets" element={<CRMSupportTickets />} />
+                          <Route path="crm/campaigns" element={<CRMCampaigns />} />
+
+                          {/* Inventory & Warehouse Platform */}
+                          <Route path="inventory/dashboard" element={<InventoryDashboard />} />
+                          <Route path="inventory/products" element={<InventoryProducts />} />
+                          <Route path="inventory/categories" element={<InventoryCategories />} />
+                          <Route path="inventory/warehouses" element={<InventoryWarehouses />} />
+                          <Route path="inventory/warehouses/:id" element={<InventoryWarehouseDetails />} />
+                          <Route path="inventory/suppliers" element={<InventorySuppliers />} />
+                          <Route path="inventory/purchase-orders" element={<InventoryPurchaseOrders />} />
+                          <Route path="inventory/transfers" element={<InventoryStockTransfers />} />
+                          <Route path="inventory/counts" element={<InventoryCounts />} />
+
+                          {/* Finance & Accounting Intelligence Platform */}
+                          <Route path="finance/dashboard" element={<FinanceDashboard />} />
+                          <Route path="finance/accounts" element={<ChartOfAccountsPage />} />
+                          <Route path="finance/journals" element={<JournalEntriesPage />} />
+                          <Route path="finance/invoices" element={<InvoicesPage />} />
+                          <Route path="finance/bills" element={<BillsPage />} />
+                          <Route path="finance/expenses" element={<ExpensesPage />} />
+                          <Route path="finance/budgets" element={<BudgetsPage />} />
+                          <Route path="finance/taxes" element={<TaxesPage />} />
+                          <Route path="finance/assets" element={<FixedAssetsPage />} />
+                          <Route path="finance/banking" element={<BankAccountsPage />} />
+                          <Route path="finance/reports" element={<FinancialReportsPage />} />
+
+                          {/* Manufacturing & Production Intelligence Platform */}
+                          <Route path="manufacturing/dashboard" element={<ManufacturingDashboard />} />
+                          <Route path="manufacturing/boms" element={<BillOfMaterialsPage />} />
+                          <Route path="manufacturing/routings" element={<RoutingsPage />} />
+                          <Route path="manufacturing/work-centers" element={<WorkCentersPage />} />
+                          <Route path="manufacturing/machines" element={<MachinesPage />} />
+                          <Route path="manufacturing/production-orders" element={<ProductionOrdersPage />} />
+                          <Route path="manufacturing/shop-floor" element={<ShopFloorPage />} />
+                          <Route path="manufacturing/quality" element={<QualityControlPage />} />
+                          <Route path="manufacturing/maintenance" element={<MaintenancePage />} />
+                          <Route path="manufacturing/mrp" element={<MRPPage />} />
+
+                          {/* Business Intelligence & Analytics Platform */}
+                          <Route path="analytics/executive" element={<ExecutiveDashboard />} />
+                          <Route path="analytics/hr" element={<HRAnalyticsPage />} />
+                          <Route path="analytics/crm" element={<CRMAnalyticsPage />} />
+                          <Route path="analytics/inventory" element={<InventoryAnalyticsPage />} />
+                          <Route path="analytics/finance" element={<FinanceAnalyticsPage />} />
+                          <Route path="analytics/manufacturing" element={<ManufacturingAnalyticsPage />} />
+                          <Route path="analytics/reports" element={<CustomReportsPage />} />
+                          <Route path="analytics/builder" element={<DashboardBuilderPage />} />
+
+                          {/* Enterprise Data Engineering Platform */}
+                          <Route path="data-engineering/dashboard" element={<DataEngineeringDashboard />} />
+                          <Route path="data-engineering/pipelines" element={<PipelineMonitor />} />
+                          <Route path="data-engineering/datasets" element={<DatasetExplorer />} />
+                          <Route path="data-engineering/feature-store" element={<FeatureStorePage />} />
+                          <Route path="data-engineering/metadata" element={<MetadataCatalogPage />} />
+                          <Route path="data-engineering/quality" element={<DataQualityDashboard />} />
+                          <Route path="data-engineering/lineage" element={<LineageViewer />} />
+
+                          {/* Enterprise Machine Learning Platform */}
+                          <Route path="ml/dashboard" element={<MLDashboard />} />
+                          <Route path="ml/registry" element={<ModelRegistry />} />
+                          <Route path="ml/training" element={<TrainingJobs />} />
+                          <Route path="ml/experiments" element={<ExperimentsPage />} />
+                          <Route path="ml/predictions" element={<PredictionsPage />} />
+                          <Route path="ml/evaluation" element={<EvaluationMetricsPage />} />
+
+                          {/* Enterprise ML Studio & Model Management Platform (Phase 12) */}
+                          <Route path="ml-studio/dashboard" element={<MLStudioDashboard />} />
+                          <Route path="ml-studio/datasets" element={<StudioDatasetExplorer />} />
+                          <Route path="ml-studio/notebooks" element={<NotebookRegistry />} />
+                          <Route path="ml-studio/experiments" element={<ExperimentTracker />} />
+                          <Route path="ml-studio/training" element={<TrainingJobsManager />} />
+                          <Route path="ml-studio/registry" element={<ModelRegistryStudio />} />
+                          <Route path="ml-studio/comparison" element={<ModelComparisonPage />} />
+                          <Route path="ml-studio/evaluation" element={<EvaluationReportsPage />} />
+                          <Route path="ml-studio/explainability" element={<ExplainabilityDashboard />} />
+
+                          {/* Enterprise RAG & Knowledge Intelligence Platform (Phase 13) */}
+                          <Route path="rag/dashboard" element={<KnowledgeDashboard />} />
+                          <Route path="rag/documents" element={<DocumentLibrary />} />
+                          <Route path="rag/collections" element={<CollectionsPage />} />
+                          <Route path="rag/upload" element={<UploadCenter />} />
+                          <Route path="rag/search" element={<KnowledgeSearch />} />
+                          <Route path="rag/chat" element={<AIChat />} />
+                          <Route path="rag/history" element={<ConversationHistoryPage />} />
+
+                          {/* Enterprise AI Copilot Platform (Phase 14) */}
+                          <Route path="copilot/chat" element={<AICopilot />} />
+                          <Route path="copilot/history" element={<ConversationHistory />} />
+                          <Route path="copilot/prompts" element={<PromptManager />} />
+                          <Route path="copilot/tools" element={<ToolRegistry />} />
+                          <Route path="copilot/dashboard" element={<AIDashboard />} />
+                          <Route path="copilot/settings" element={<CopilotSettings />} />
+
+                          {/* Enterprise MLOps Platform (Phase 15) */}
+                          <Route path="mlops/dashboard" element={<MLOpsDashboard />} />
+                          <Route path="mlops/deployments" element={<DeploymentCenter />} />
+                          <Route path="mlops/pipelines" element={<PipelineManager />} />
+                          <Route path="mlops/monitoring" element={<MonitoringDashboard />} />
+                          <Route path="mlops/approvals" element={<ApprovalQueue />} />
+                          <Route path="mlops/retraining" element={<RetrainingCenter />} />
+
+                          {/* Enterprise Monitoring & Observability Platform (Phase 16) */}
+                          <Route path="observability/dashboard" element={<ObservabilityDashboard />} />
+                          <Route path="observability/health" element={<SystemHealth />} />
+                          <Route path="observability/logs" element={<LogExplorer />} />
+                          <Route path="observability/metrics" element={<MetricsExplorer />} />
+                          <Route path="observability/traces" element={<TraceViewer />} />
+                          <Route path="observability/alerts" element={<AlertCenter />} />
+                          <Route path="observability/business" element={<ObservabilityBusinessDashboard />} />
+                          <Route path="observability/ai" element={<AIMonitoringDashboard />} />
+
+                          {/* Enterprise Workflow Automation Platform (Phase 17) */}
+                          <Route path="workflows/dashboard" element={<WorkflowDashboard />} />
+                          <Route path="workflows/designer" element={<WorkflowDesigner />} />
+                          <Route path="workflows/designer/:id" element={<WorkflowDesigner />} />
+                          <Route path="workflows/rules" element={<RuleBuilder />} />
+                          <Route path="workflows/approvals" element={<ApprovalCenter />} />
+                          <Route path="workflows/scheduler" element={<SchedulerPage />} />
+                          <Route path="workflows/executions" element={<ExecutionMonitor />} />
+                          <Route path="workflows/templates" element={<WorkflowTemplates />} />
+
+                          {/* Enterprise Integration Platform (Phase 18) */}
+                          <Route path="integrations/dashboard" element={<IntegrationDashboard />} />
+                          <Route path="integrations/connectors" element={<ConnectorMarketplace />} />
+                          <Route path="integrations/gateway" element={<ApiGatewayPage />} />
+                          <Route path="integrations/webhooks" element={<WebhookCenter />} />
+                          <Route path="integrations/events" element={<EventMonitor />} />
+                          <Route path="integrations/queues" element={<QueueDashboard />} />
+                          <Route path="integrations/analytics" element={<ApiAnalyticsPage />} />
+
+                          {/* Production Readiness, Performance & Security Hardening (Phase 19) */}
+                          <Route path="production/security" element={<SecurityDashboard />} />
+                          <Route path="production/performance" element={<PerformanceDashboard />} />
+                          <Route path="production/compliance" element={<ComplianceCenter />} />
+                          <Route path="production/backups" element={<BackupCenter />} />
+                          <Route path="production/recovery" element={<RecoveryCenter />} />
+                          <Route path="production/readiness" element={<SystemReadinessDashboard />} />
+
+                          {/* Enterprise Cloud Deployment & Global Release (Phase 20) */}
+                          <Route path="cloud/releases" element={<ReleaseDashboard />} />
+                          <Route path="cloud/deployments" element={<DeploymentDashboard />} />
+                          <Route path="cloud/operations" element={<CloudOperations />} />
+                          <Route path="cloud/finops" element={<FinOpsDashboard />} />
+                          <Route path="cloud/incidents" element={<IncidentCenter />} />
+                          <Route path="cloud/status" element={<SystemStatus />} />
+
+                          {/* Security & Identity Dashboards */}
+                          <Route path="admin/users" element={<UserManagement />} />
+                          <Route path="admin/roles" element={<RoleManagement />} />
+                          <Route path="admin/permissions" element={<PermissionManagement />} />
+                          <Route path="admin/settings" element={<TenantSettings />} />
+                          <Route path="admin/sessions" element={<SessionsPage />} />
+                          <Route path="admin/login-history" element={<LoginHistoryPage />} />
+                          <Route path="admin/audit-logs" element={<AuditLogsPage />} />
+                          
+                          {/* Account Settings */}
+                          <Route path="settings/profile" element={<UserSettings />} />
+                          
+                          <Route path="*" element={<NotFound />} />
+                        </Route>
+                      </Route>
                     </Route>
                   </Routes>
+                  </AuthProvider>
                 </BrowserRouter>
               </ErrorBoundary>
             </ThemeProvider>

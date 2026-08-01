@@ -69,6 +69,26 @@ async def create_customer(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/{id}", response_model=APIResponse[CustomerResponse])
+async def get_customer(
+    id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    service: CustomerService = Depends(get_customer_service)
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+
+    customer = await service.repository.get(id)
+    if not customer or customer.organization_id != current_user.organization_id or customer.is_deleted:
+        raise HTTPException(status_code=404, detail="Customer profile not found")
+
+    return standard_json_response(
+        status_code=status.HTTP_200_OK,
+        success=True,
+        message="Customer profile retrieved",
+        data=customer
+    )
+
 @router.put("/{id}", response_model=APIResponse[CustomerResponse])
 async def update_customer(
     id: uuid.UUID,

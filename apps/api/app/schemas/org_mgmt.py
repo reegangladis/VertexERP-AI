@@ -181,6 +181,34 @@ class LocationResponse(LocationBase):
         from_attributes = True
 
 
+# 5b. Business Unit Schemas
+class BusinessUnitBase(BaseModel):
+    name: str
+    slug: str
+    code: Optional[str] = None
+    description: Optional[str] = None
+    manager_id: Optional[uuid.UUID] = None
+    status: Optional[str] = "active"
+
+class BusinessUnitCreate(BusinessUnitBase):
+    pass
+
+class BusinessUnitUpdate(BaseModel):
+    name: Optional[str] = None
+    slug: Optional[str] = None
+    code: Optional[str] = None
+    description: Optional[str] = None
+    manager_id: Optional[uuid.UUID] = None
+    status: Optional[str] = None
+
+class BusinessUnitResponse(BusinessUnitBase):
+    id: uuid.UUID
+    organization_id: uuid.UUID
+
+    class Config:
+        from_attributes = True
+
+
 # 6. Business Calendar Schemas
 class BusinessCalendarBase(BaseModel):
     year: int

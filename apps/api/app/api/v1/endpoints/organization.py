@@ -257,6 +257,7 @@ async def seed_enterprise_data(
     from app.models.department import Department
     from app.models.designation import Designation
     from app.models.location import Location
+    from app.models.business_unit import BusinessUnit
     from app.models.calendar import BusinessCalendar, WorkingDay, Holiday
     from app.models.team import Team
     from app.core.security import hash_password
@@ -267,6 +268,11 @@ async def seed_enterprise_data(
     warehouse = Location(organization_id=org_id, name="Central Logistics Hub", type="warehouse", country="USA", city="Austin", address_line1="500 Logistics Way")
     remote_hub = Location(organization_id=org_id, name="Silicon Valley Hub", type="remote", country="USA", city="San Francisco", address_line1="10 Market St")
     db.add_all([hq, warehouse, remote_hub])
+
+    # 1b. Seed Business Units
+    bu_enterprise = BusinessUnit(organization_id=org_id, name="Enterprise Solutions", slug="enterprise-solutions", code="BU-ENT", description="Enterprise AI & ERP software division")
+    bu_consumer = BusinessUnit(organization_id=org_id, name="Consumer Cloud", slug="consumer-cloud", code="BU-CNS", description="Consumer cloud software division")
+    db.add_all([bu_enterprise, bu_consumer])
     
     # 2. Seed Branches
     head_branch = Branch(organization_id=org_id, name="Headquarters", slug="hq", code="HQ-NY", city="New York", country="USA", timezone="EST")
@@ -595,6 +601,7 @@ async def seed_enterprise_data(
         message="Enterprise seed data injected successfully",
         data={
             "locations": 3,
+            "business_units": 2,
             "branches": 3,
             "departments": 4,
             "teams": 2,

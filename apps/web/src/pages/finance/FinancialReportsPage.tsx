@@ -7,7 +7,7 @@ import { financeService } from '@/services/financeService';
 
 export function FinancialReportsPage() {
   const { addNotification } = useNotification();
-  const [activeTab, setActiveTab] = useState<'tb' | 'bs' | 'pl' | 'cf' | 'ar_aging' | 'ap_aging'>('pl');
+  const [activeTab, setActiveTab] = useState<'tb' | 'bs' | 'pl' | 'cf' | 'ar_aging' | 'ap_aging' | 'tax' | 'expense' | 'revenue' | 'budget'>('pl');
   const [reportData, setReportData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -31,6 +31,18 @@ export function FinancialReportsPage() {
         setReportData(data);
       } else if (activeTab === 'ap_aging') {
         const data = await financeService.getAgingReport('PAYABLE');
+        setReportData(data);
+      } else if (activeTab === 'tax') {
+        const data = await financeService.getTaxReport();
+        setReportData(data);
+      } else if (activeTab === 'expense') {
+        const data = await financeService.getExpenseReport();
+        setReportData(data);
+      } else if (activeTab === 'revenue') {
+        const data = await financeService.getRevenueReport();
+        setReportData(data);
+      } else if (activeTab === 'budget') {
+        const data = await financeService.getBudgetReport();
         setReportData(data);
       }
     } catch (err) {
@@ -58,22 +70,34 @@ export function FinancialReportsPage() {
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
         <Button variant={activeTab === 'pl' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('pl')}>
-          Profit & Loss Statement
+          Profit & Loss
         </Button>
         <Button variant={activeTab === 'bs' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('bs')}>
           Balance Sheet
         </Button>
         <Button variant={activeTab === 'cf' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('cf')}>
-          Cash Flow Statement
+          Cash Flow
         </Button>
         <Button variant={activeTab === 'tb' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('tb')}>
           Trial Balance
         </Button>
         <Button variant={activeTab === 'ar_aging' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('ar_aging')}>
-          AR Aging Report
+          AR Aging
         </Button>
         <Button variant={activeTab === 'ap_aging' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('ap_aging')}>
-          AP Aging Report
+          AP Aging
+        </Button>
+        <Button variant={activeTab === 'tax' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('tax')}>
+          Tax Summary
+        </Button>
+        <Button variant={activeTab === 'expense' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('expense')}>
+          Expense Analysis
+        </Button>
+        <Button variant={activeTab === 'revenue' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('revenue')}>
+          Revenue Analysis
+        </Button>
+        <Button variant={activeTab === 'budget' ? 'primary' : 'outline'} size="sm" onClick={() => setActiveTab('budget')}>
+          Budget Variance
         </Button>
       </div>
 
@@ -89,6 +113,10 @@ export function FinancialReportsPage() {
                 {activeTab === 'tb' && 'Trial Balance Report'}
                 {activeTab === 'ar_aging' && 'Accounts Receivable Aging Analysis'}
                 {activeTab === 'ap_aging' && 'Accounts Payable Aging Analysis'}
+                {activeTab === 'tax' && 'Tax Liability & Compliance Report'}
+                {activeTab === 'expense' && 'Departmental Expense Breakdown'}
+                {activeTab === 'revenue' && 'Revenue & Sales Breakdown'}
+                {activeTab === 'budget' && 'Budget vs Actual Variance Report'}
               </CardTitle>
               <CardDescription>As of {new Date().toLocaleDateString()}</CardDescription>
             </div>
@@ -139,6 +167,23 @@ export function FinancialReportsPage() {
                 </div>
               </div>
             </div>
+          ) : activeTab === 'tax' && reportData ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4 font-mono text-sm">
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                  <span className="text-xs text-gray-500 font-sans block">Output Tax (Collected)</span>
+                  <span className="text-lg font-bold text-emerald-600">${reportData.total_tax_collected?.toLocaleString()}</span>
+                </div>
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                  <span className="text-xs text-gray-500 font-sans block">Input Tax (Paid)</span>
+                  <span className="text-lg font-bold text-blue-600">${reportData.total_tax_paid?.toLocaleString()}</span>
+                </div>
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                  <span className="text-xs text-gray-500 font-sans block">Net Tax Payable</span>
+                  <span className="text-lg font-bold text-purple-600">${reportData.net_tax_payable?.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
           ) : activeTab === 'tb' && reportData ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
@@ -177,3 +222,4 @@ export function FinancialReportsPage() {
     </div>
   );
 }
+

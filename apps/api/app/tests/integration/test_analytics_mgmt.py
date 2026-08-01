@@ -2,11 +2,32 @@ import pytest
 import uuid
 from unittest.mock import MagicMock, AsyncMock
 from httpx import AsyncClient
+from app.main import app
+from app.core.dependencies import get_current_user, get_db_session
 
 def make_mock_result():
     res = MagicMock()
     res.scalars.return_value.all.return_value = []
+    res.scalar.return_value = 0
     return res
+
+@pytest.fixture(autouse=True)
+def setup_auth_and_db_overrides(mock_db_session: MagicMock):
+    current_u = MagicMock()
+    current_u.organization_id = uuid.uuid4()
+    current_u.id = uuid.uuid4()
+
+    async def override_get_current_user():
+        return current_u
+
+    async def override_get_db_session():
+        yield mock_db_session
+
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_db_session] = override_get_db_session
+    yield
+    app.dependency_overrides.pop(get_current_user, None)
+    app.dependency_overrides.pop(get_db_session, None)
 
 @pytest.mark.asyncio
 async def test_executive_dashboard_endpoint(client: AsyncClient, mock_db_session: MagicMock):
@@ -22,6 +43,7 @@ async def test_executive_dashboard_endpoint(client: AsyncClient, mock_db_session
 
 @pytest.mark.asyncio
 async def test_hr_analytics_endpoint(client: AsyncClient, mock_db_session: MagicMock):
+    mock_db_session.execute = AsyncMock(side_effect=lambda *args, **kwargs: make_mock_result())
     response = await client.get("/api/v1/analytics/hr")
     assert response.status_code == 200
     data = response.json()
@@ -31,6 +53,7 @@ async def test_hr_analytics_endpoint(client: AsyncClient, mock_db_session: Magic
 
 @pytest.mark.asyncio
 async def test_crm_analytics_endpoint(client: AsyncClient, mock_db_session: MagicMock):
+    mock_db_session.execute = AsyncMock(side_effect=lambda *args, **kwargs: make_mock_result())
     response = await client.get("/api/v1/analytics/crm")
     assert response.status_code == 200
     data = response.json()
@@ -40,6 +63,7 @@ async def test_crm_analytics_endpoint(client: AsyncClient, mock_db_session: Magi
 
 @pytest.mark.asyncio
 async def test_inventory_analytics_endpoint(client: AsyncClient, mock_db_session: MagicMock):
+    mock_db_session.execute = AsyncMock(side_effect=lambda *args, **kwargs: make_mock_result())
     response = await client.get("/api/v1/analytics/inventory")
     assert response.status_code == 200
     data = response.json()
@@ -49,6 +73,7 @@ async def test_inventory_analytics_endpoint(client: AsyncClient, mock_db_session
 
 @pytest.mark.asyncio
 async def test_finance_analytics_endpoint(client: AsyncClient, mock_db_session: MagicMock):
+    mock_db_session.execute = AsyncMock(side_effect=lambda *args, **kwargs: make_mock_result())
     response = await client.get("/api/v1/analytics/finance")
     assert response.status_code == 200
     data = response.json()
@@ -58,6 +83,7 @@ async def test_finance_analytics_endpoint(client: AsyncClient, mock_db_session: 
 
 @pytest.mark.asyncio
 async def test_manufacturing_analytics_endpoint(client: AsyncClient, mock_db_session: MagicMock):
+    mock_db_session.execute = AsyncMock(side_effect=lambda *args, **kwargs: make_mock_result())
     response = await client.get("/api/v1/analytics/manufacturing")
     assert response.status_code == 200
     data = response.json()
@@ -67,6 +93,7 @@ async def test_manufacturing_analytics_endpoint(client: AsyncClient, mock_db_ses
 
 @pytest.mark.asyncio
 async def test_report_execution_and_export_endpoint(client: AsyncClient, mock_db_session: MagicMock):
+    mock_db_session.execute = AsyncMock(side_effect=lambda *args, **kwargs: make_mock_result())
     exec_payload = {
         "domain": "FINANCE",
         "page": 1,
@@ -101,3 +128,4 @@ async def test_analytics_search_endpoint(client: AsyncClient, mock_db_session: M
     assert "dashboards" in data
     assert "reports" in data
     assert "kpis" in data
+

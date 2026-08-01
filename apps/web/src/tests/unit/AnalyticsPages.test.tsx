@@ -68,7 +68,7 @@ test('renders InventoryAnalyticsPage without toLocaleString render errors', asyn
     </BrowserRouter>
   );
 
-  expect(await screen.findByText(/Inventory & Logistics Analytics/i)).toBeInTheDocument();
+  expect(await screen.findByText(/Inventory & Warehouse/i)).toBeInTheDocument();
 });
 
 test('renders CRMAnalyticsPage without render errors', async () => {
@@ -78,7 +78,7 @@ test('renders CRMAnalyticsPage without render errors', async () => {
     </BrowserRouter>
   );
 
-  expect(await screen.findByText(/CRM & Sales Intelligence/i)).toBeInTheDocument();
+  expect(await screen.findByText(/CRM & Sales Pipeline/i)).toBeInTheDocument();
 });
 
 test('renders HRAnalyticsPage without render errors', async () => {
@@ -88,7 +88,7 @@ test('renders HRAnalyticsPage without render errors', async () => {
     </BrowserRouter>
   );
 
-  expect(await screen.findByText(/HR & Workforce Intelligence/i)).toBeInTheDocument();
+  expect(await screen.findByText(/Human Resources & Workforce/i)).toBeInTheDocument();
 });
 
 test('renders FinanceAnalyticsPage without render errors', async () => {
@@ -98,7 +98,7 @@ test('renders FinanceAnalyticsPage without render errors', async () => {
     </BrowserRouter>
   );
 
-  expect(await screen.findByText(/Finance & Accounting Intelligence/i)).toBeInTheDocument();
+  expect(await screen.findByText(/Financial Intelligence/i)).toBeInTheDocument();
 });
 
 test('renders ManufacturingAnalyticsPage without render errors', async () => {

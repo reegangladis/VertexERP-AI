@@ -19,14 +19,31 @@ class OrganizationService(BaseService[Organization, OrganizationRepository]):
     async def get_by_slug(self, slug: str) -> Organization | None:
         return await self.repository.get_by_slug(slug)
 
-    async def create_organization(self, org_name: str, slug: str, email: str | None = None) -> Organization:
+    async def create_organization(
+        self,
+        org_name: str,
+        slug: str,
+        email: str | None = None,
+        industry: str | None = None,
+        company_size: str | None = None,
+        country: str | None = None,
+    ) -> Organization:
         # Create Organization
-        org = await self.repository.create({
+        org_data: dict = {
             "name": org_name,
             "slug": slug,
-            "email": email,
-            "status": "active"
-        })
+            "status": "active",
+        }
+        if email:
+            org_data["email"] = email
+        if industry:
+            org_data["industry"] = industry
+        if company_size:
+            org_data["company_size"] = company_size
+        if country:
+            org_data["country"] = country
+
+        org = await self.repository.create(org_data)
 
         # Create Tenant Settings default
         await self.tenant_repo.create({

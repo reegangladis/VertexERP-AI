@@ -69,3 +69,35 @@ async def test_create_branch_validation(client: AsyncClient, mock_db_session: Ma
             del app.dependency_overrides[get_current_user]
         if get_db_session in app.dependency_overrides:
             del app.dependency_overrides[get_db_session]
+
+@pytest.mark.asyncio
+async def test_list_business_units(client: AsyncClient, mock_db_session: MagicMock):
+    current_u = MagicMock()
+    current_u.organization_id = uuid.uuid4()
+    current_u.id = uuid.uuid4()
+    
+    async def override_get_current_user():
+        return current_u
+        
+    async def override_get_db_session():
+        yield mock_db_session
+        
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_db_session] = override_get_db_session
+    
+    try:
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_db_session.execute.return_value = mock_result
+        
+        response = await client.get("/api/v1/business-units")
+        assert response.status_code == status.HTTP_200_OK
+        payload = response.json()
+        assert payload["success"] is True
+        assert isinstance(payload["data"], list)
+    finally:
+        if get_current_user in app.dependency_overrides:
+            del app.dependency_overrides[get_current_user]
+        if get_db_session in app.dependency_overrides:
+            del app.dependency_overrides[get_db_session]
+

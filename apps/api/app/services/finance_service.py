@@ -45,12 +45,16 @@ from app.repositories.finance_repository import (
     TaxProfileRepository,
     FixedAssetRepository,
     AssetCategoryRepository,
+    CreditNoteRepository,
+    DebitNoteRepository,
 )
+from app.repositories.audit import AuditLogRepository
 from app.schemas.finance import (
     AccountCreate,
     AccountUpdate,
     FiscalPeriodCreate,
     JournalEntryCreate,
+    JournalEntryLineCreate,
     CustomerInvoiceCreate,
     SupplierBillCreate,
     PaymentCreate,
@@ -63,6 +67,10 @@ from app.schemas.finance import (
     TaxProfileCreate,
     AssetCategoryCreate,
     FixedAssetCreate,
+    CreditNoteCreate,
+    CreditNoteResponse,
+    DebitNoteCreate,
+    DebitNoteResponse,
     TrialBalanceReportResponse,
     TrialBalanceItem,
     BalanceSheetResponse,
@@ -73,6 +81,15 @@ from app.schemas.finance import (
     BudgetReportResponse,
     BudgetVsActualItem,
     FinanceSearchResult,
+    GeneralLedgerReportResponse,
+    GeneralLedgerEntryItem,
+    TaxReportResponse,
+    TaxReportItem,
+    ExpenseReportResponse,
+    ExpenseReportItem,
+    RevenueReportResponse,
+    RevenueReportItem,
+    FinanceDashboardSummary,
 )
 
 
@@ -94,6 +111,23 @@ class FinanceService:
         self.tax_repo = TaxProfileRepository(db)
         self.asset_repo = FixedAssetRepository(db)
         self.asset_cat_repo = AssetCategoryRepository(db)
+        self.credit_note_repo = CreditNoteRepository(db)
+        self.debit_note_repo = DebitNoteRepository(db)
+        self.audit_repo = AuditLogRepository(db)
+
+    async def log_audit(self, org_id: Optional[uuid.UUID], user_id: Optional[uuid.UUID], action: str, details: Optional[Dict[str, Any]] = None):
+        try:
+            await self.audit_repo.create({
+                "organization_id": org_id,
+                "user_id": user_id,
+                "action": action,
+                "ip_address": "127.0.0.1",
+                "user_agent": "FinanceService",
+                "details": details or {},
+            })
+        except Exception:
+            pass  # Audit logging should not crash business transactions
+
 
     # --- 1. CHART OF ACCOUNTS ---
     async def create_account(self, org_id: uuid.UUID, data: AccountCreate) -> Account:
@@ -156,7 +190,26 @@ class FinanceService:
         if not account or account.is_deleted:
             raise HTTPException(status_code=404, detail="Account not found.")
         update_data = data.model_dump(exclude_unset=True)
-        return await self.account_repo.update(account, update_data)
+        updated = await self.account_repo.update(account, update_data)
+        await self.log_audit(account.organization_id, None, "UPDATE_ACCOUNT", {"account_id": str(account_id), "code": account.account_code})
+        return updated
+
+    async def delete_account(self, account_id: uuid.UUID) -> bool:
+        account = await self.account_repo.get_by_id(account_id)
+        if not account or account.is_deleted:
+            raise HTTPException(status_code=404, detail="Account not found.")
+        if account.is_system:
+            raise HTTPException(status_code=400, detail="Cannot delete a system-defined account.")
+        
+        # Check if ledger entries exist for this account
+        ledgers = await self.ledger_repo.get_by_account(account.organization_id, account_id)
+        if ledgers:
+            raise HTTPException(status_code=400, detail="Cannot delete account with existing ledger entries.")
+
+        await self.account_repo.delete(account_id)
+        await self.log_audit(account.organization_id, None, "DELETE_ACCOUNT", {"account_id": str(account_id), "code": account.account_code})
+        return True
+
 
     # --- 2. FISCAL PERIODS ---
     async def create_fiscal_period(self, org_id: uuid.UUID, data: FiscalPeriodCreate) -> FiscalPeriod:
@@ -274,6 +327,8 @@ class FinanceService:
                 debit=line.credit,
                 credit=line.debit,
                 description=f"Reversal of {original.entry_number}: {line.description or ''}",
+                entity_type=line.entity_type,
+                entity_id=line.entity_id,
             )
             for line in original.lines
         ]
@@ -291,26 +346,38 @@ class FinanceService:
 
         original.status = "REVERSED"
         await self.db.commit()
+        await self.log_audit(original.organization_id, user_id, "REVERSE_JOURNAL_ENTRY", {"original_id": str(entry_id), "reversal_id": str(posted_reversal.id)})
 
         return posted_reversal
 
     async def get_journal_entries(self, org_id: uuid.UUID) -> List[JournalEntry]:
         return await self.journal_repo.get_by_org(org_id)
 
-    # --- 4. ACCOUNTS RECEIVABLE (CUSTOMER INVOICES) ---
+    # --- 4. ACCOUNTS RECEIVABLE (CUSTOMER INVOICES & CREDIT NOTES) ---
     async def create_invoice(self, org_id: uuid.UUID, data: CustomerInvoiceCreate) -> CustomerInvoice:
         inv_num = data.invoice_number or f"INV-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
 
         subtotal = 0.0
         tax_total = 0.0
+        processed_items = []
+
+        tax_profiles = await self.get_tax_profiles(org_id)
+        tax_rates_map = {}
+        for p in tax_profiles:
+            for r in getattr(p, "rates", []):
+                tax_rates_map[r.id] = float(r.rate_percentage)
 
         for item in data.items:
             line_val = round(item.quantity * item.unit_price, 2)
+            item_tax = 0.0
+            if item.tax_rate_id and item.tax_rate_id in tax_rates_map:
+                item_tax = round(line_val * (tax_rates_map[item.tax_rate_id] / 100.0), 2)
+            
             subtotal += line_val
-            # Tax placeholder logic if rate assigned
-            tax_total += 0.0
+            tax_total += item_tax
+            processed_items.append((item, line_val, item_tax))
 
-        total_amount = subtotal + tax_total
+        total_amount = round(subtotal + tax_total, 2)
 
         invoice = CustomerInvoice(
             organization_id=org_id,
@@ -318,8 +385,8 @@ class FinanceService:
             invoice_number=inv_num,
             issue_date=data.issue_date,
             due_date=data.due_date,
-            subtotal=subtotal,
-            tax_total=tax_total,
+            subtotal=round(subtotal, 2),
+            tax_total=round(tax_total, 2),
             total_amount=total_amount,
             paid_amount=0.0,
             status="SENT",
@@ -327,8 +394,7 @@ class FinanceService:
         )
         saved_inv = await self.invoice_repo.create(invoice)
 
-        for item in data.items:
-            line_val = round(item.quantity * item.unit_price, 2)
+        for item, line_val, item_tax in processed_items:
             inv_item = InvoiceItem(
                 invoice_id=saved_inv.id,
                 product_id=item.product_id,
@@ -336,15 +402,25 @@ class FinanceService:
                 quantity=item.quantity,
                 unit_price=item.unit_price,
                 tax_rate_id=item.tax_rate_id,
-                tax_amount=0.0,
-                line_total=line_val,
+                tax_amount=item_tax,
+                line_total=line_val + item_tax,
             )
             self.db.add(inv_item)
 
-        # Auto-create posting GL Journal Entry (AR Debit, Revenue Credit)
+        # Auto-create posting GL Journal Entry (AR Debit, Revenue Credit, Tax Credit if applicable)
         accounts = await self.get_accounts(org_id)
         ar_acct = next((a for a in accounts if a.account_code == "1100"), accounts[0])
         rev_acct = next((a for a in accounts if a.account_code in ["4000", "4100"]), accounts[-1])
+        tax_acct = next((a for a in accounts if a.account_code == "2100"), None)
+
+        lines = [
+            JournalEntryLineCreate(account_id=ar_acct.id, debit=total_amount, credit=0.0, entity_type="CUSTOMER", entity_id=data.customer_id),
+        ]
+        if tax_total > 0 and tax_acct:
+            lines.append(JournalEntryLineCreate(account_id=rev_acct.id, debit=0.0, credit=round(subtotal, 2)))
+            lines.append(JournalEntryLineCreate(account_id=tax_acct.id, debit=0.0, credit=round(tax_total, 2)))
+        else:
+            lines.append(JournalEntryLineCreate(account_id=rev_acct.id, debit=0.0, credit=total_amount))
 
         je_data = JournalEntryCreate(
             entry_number=f"JE-{inv_num}",
@@ -352,27 +428,83 @@ class FinanceService:
             reference=inv_num,
             narration=f"Automated Posting for Customer Invoice {inv_num}",
             source_type="INVOICE",
+            lines=lines,
+        )
+        je = await self.create_journal_entry(org_id, je_data)
+        await self.post_journal_entry(je.id, None)
+
+        await self.db.commit()
+        await self.log_audit(org_id, None, "CREATE_INVOICE", {"invoice_id": str(saved_inv.id), "number": inv_num, "amount": total_amount})
+        return await self.invoice_repo.get_with_items(saved_inv.id)
+
+    async def get_invoices(self, org_id: uuid.UUID) -> List[CustomerInvoice]:
+        return await self.invoice_repo.get_by_org(org_id)
+
+    async def create_credit_note(self, org_id: uuid.UUID, data: CreditNoteCreate) -> CreditNote:
+        cn_num = f"CN-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        credit_note = CreditNote(
+            organization_id=org_id,
+            credit_note_number=cn_num,
+            customer_id=data.customer_id,
+            invoice_id=data.invoice_id,
+            amount=data.amount,
+            reason=data.reason,
+            status="OPEN",
+        )
+        saved_cn = await self.credit_note_repo.create(credit_note)
+
+        # GL Posting: Debit Sales Revenue, Credit AR
+        accounts = await self.get_accounts(org_id)
+        ar_acct = next((a for a in accounts if a.account_code == "1100"), accounts[0])
+        rev_acct = next((a for a in accounts if a.account_code in ["4000", "4100"]), accounts[-1])
+
+        je_data = JournalEntryCreate(
+            entry_number=f"JE-{cn_num}",
+            entry_date=date.today(),
+            reference=cn_num,
+            narration=f"Credit Note issued: {data.reason or 'Sales Return/Discount'}",
+            source_type="CREDIT_NOTE",
             lines=[
-                JournalEntryLineCreate(account_id=ar_acct.id, debit=total_amount, credit=0.0, entity_type="CUSTOMER", entity_id=data.customer_id),
-                JournalEntryLineCreate(account_id=rev_acct.id, debit=0.0, credit=total_amount),
+                JournalEntryLineCreate(account_id=rev_acct.id, debit=data.amount, credit=0.0),
+                JournalEntryLineCreate(account_id=ar_acct.id, debit=0.0, credit=data.amount, entity_type="CUSTOMER", entity_id=data.customer_id),
             ],
         )
         je = await self.create_journal_entry(org_id, je_data)
         await self.post_journal_entry(je.id, None)
 
         await self.db.commit()
-        return await self.invoice_repo.get_with_items(saved_inv.id)
+        await self.log_audit(org_id, None, "CREATE_CREDIT_NOTE", {"credit_note_id": str(saved_cn.id), "number": cn_num, "amount": data.amount})
+        return saved_cn
 
-    async def get_invoices(self, org_id: uuid.UUID) -> List[CustomerInvoice]:
-        return await self.invoice_repo.get_by_org(org_id)
+    async def get_credit_notes(self, org_id: uuid.UUID) -> List[CreditNote]:
+        return await self.credit_note_repo.get_by_org(org_id)
 
-    # --- 5. ACCOUNTS PAYABLE (SUPPLIER BILLS) ---
+
+    # --- 5. ACCOUNTS PAYABLE (SUPPLIER BILLS & DEBIT NOTES) ---
     async def create_bill(self, org_id: uuid.UUID, data: SupplierBillCreate) -> SupplierBill:
         bill_num = data.bill_number or f"BILL-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
 
-        subtotal = sum(round(item.quantity * item.unit_price, 2) for item in data.items)
+        subtotal = 0.0
         tax_total = 0.0
-        total_amount = subtotal + tax_total
+        processed_items = []
+
+        tax_profiles = await self.get_tax_profiles(org_id)
+        tax_rates_map = {}
+        for p in tax_profiles:
+            for r in getattr(p, "rates", []):
+                tax_rates_map[r.id] = float(r.rate_percentage)
+
+        for item in data.items:
+            line_val = round(item.quantity * item.unit_price, 2)
+            item_tax = 0.0
+            if item.tax_rate_id and item.tax_rate_id in tax_rates_map:
+                item_tax = round(line_val * (tax_rates_map[item.tax_rate_id] / 100.0), 2)
+
+            subtotal += line_val
+            tax_total += item_tax
+            processed_items.append((item, line_val, item_tax))
+
+        total_amount = round(subtotal + tax_total, 2)
 
         bill = SupplierBill(
             organization_id=org_id,
@@ -380,8 +512,8 @@ class FinanceService:
             bill_number=bill_num,
             bill_date=data.bill_date,
             due_date=data.due_date,
-            subtotal=subtotal,
-            tax_total=tax_total,
+            subtotal=round(subtotal, 2),
+            tax_total=round(tax_total, 2),
             total_amount=total_amount,
             paid_amount=0.0,
             status="RECEIVED",
@@ -389,8 +521,7 @@ class FinanceService:
         )
         saved_bill = await self.bill_repo.create(bill)
 
-        for item in data.items:
-            line_val = round(item.quantity * item.unit_price, 2)
+        for item, line_val, item_tax in processed_items:
             bill_item = BillItem(
                 bill_id=saved_bill.id,
                 product_id=item.product_id,
@@ -398,8 +529,8 @@ class FinanceService:
                 quantity=item.quantity,
                 unit_price=item.unit_price,
                 tax_rate_id=item.tax_rate_id,
-                tax_amount=0.0,
-                line_total=line_val,
+                tax_amount=item_tax,
+                line_total=line_val + item_tax,
             )
             self.db.add(bill_item)
 
@@ -423,10 +554,50 @@ class FinanceService:
         await self.post_journal_entry(je.id, None)
 
         await self.db.commit()
+        await self.log_audit(org_id, None, "CREATE_BILL", {"bill_id": str(saved_bill.id), "number": bill_num, "amount": total_amount})
         return await self.bill_repo.get_with_items(saved_bill.id)
 
     async def get_bills(self, org_id: uuid.UUID) -> List[SupplierBill]:
         return await self.bill_repo.get_by_org(org_id)
+
+    async def create_debit_note(self, org_id: uuid.UUID, data: DebitNoteCreate) -> DebitNote:
+        dn_num = f"DN-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        debit_note = DebitNote(
+            organization_id=org_id,
+            debit_note_number=dn_num,
+            supplier_id=data.supplier_id,
+            bill_id=data.bill_id,
+            amount=data.amount,
+            reason=data.reason,
+            status="OPEN",
+        )
+        saved_dn = await self.debit_note_repo.create(debit_note)
+
+        # GL Posting: Debit AP, Credit Expense
+        accounts = await self.get_accounts(org_id)
+        ap_acct = next((a for a in accounts if a.account_code == "2000"), accounts[0])
+        exp_acct = next((a for a in accounts if a.account_code == "5100"), accounts[-1])
+
+        je_data = JournalEntryCreate(
+            entry_number=f"JE-{dn_num}",
+            entry_date=date.today(),
+            reference=dn_num,
+            narration=f"Debit Note issued: {data.reason or 'Purchase Return/Discount'}",
+            source_type="DEBIT_NOTE",
+            lines=[
+                JournalEntryLineCreate(account_id=ap_acct.id, debit=data.amount, credit=0.0, entity_type="SUPPLIER", entity_id=data.supplier_id),
+                JournalEntryLineCreate(account_id=exp_acct.id, debit=0.0, credit=data.amount),
+            ],
+        )
+        je = await self.create_journal_entry(org_id, je_data)
+        await self.post_journal_entry(je.id, None)
+
+        await self.db.commit()
+        await self.log_audit(org_id, None, "CREATE_DEBIT_NOTE", {"debit_note_id": str(saved_dn.id), "number": dn_num, "amount": data.amount})
+        return saved_dn
+
+    async def get_debit_notes(self, org_id: uuid.UUID) -> List[DebitNote]:
+        return await self.debit_note_repo.get_by_org(org_id)
 
     # --- 6. PAYMENTS ---
     async def create_payment(self, org_id: uuid.UUID, data: PaymentCreate) -> Payment:
@@ -448,6 +619,26 @@ class FinanceService:
             status="COMPLETED",
         )
         saved_pay = await self.payment_repo.create(payment)
+
+        # Update Bank Account balance & log transaction if bank account provided
+        if data.bank_account_id:
+            bank_acct = await self.bank_repo.get_by_id(data.bank_account_id)
+            if bank_acct:
+                tx_type = "DEPOSIT" if data.payment_type == "RECEIPT" else "WITHDRAWAL"
+                if tx_type == "DEPOSIT":
+                    bank_acct.current_balance = float(bank_acct.current_balance) + float(data.amount)
+                else:
+                    bank_acct.current_balance = float(bank_acct.current_balance) - float(data.amount)
+
+                bank_tx = BankTransaction(
+                    bank_account_id=data.bank_account_id,
+                    transaction_date=data.payment_date,
+                    description=f"Payment {pay_num} ({data.payment_type})",
+                    amount=data.amount,
+                    transaction_type=tx_type,
+                    reference=data.reference or pay_num,
+                )
+                self.db.add(bank_tx)
 
         # Update Invoice / Bill paid amount if applicable
         accounts = await self.get_accounts(org_id)
@@ -504,10 +695,12 @@ class FinanceService:
                 await self.post_journal_entry(je.id, None)
 
         await self.db.commit()
+        await self.log_audit(org_id, None, "CREATE_PAYMENT", {"payment_id": str(saved_pay.id), "number": pay_num, "amount": data.amount, "type": data.payment_type})
         return saved_pay
 
     async def get_payments(self, org_id: uuid.UUID) -> List[Payment]:
         return await self.payment_repo.get_by_org(org_id)
+
 
     # --- 7. BANKING ---
     async def create_bank_account(self, org_id: uuid.UUID, data: BankAccountCreate) -> BankAccount:
@@ -1004,3 +1197,209 @@ class FinanceService:
                 )
 
         return results
+
+    async def get_bank_transactions(self, bank_account_id: uuid.UUID) -> List[BankTransaction]:
+        return await self.bank_tx_repo.get_by_bank_account(bank_account_id)
+
+    async def get_general_ledger_report(self, org_id: uuid.UUID, account_id: uuid.UUID, start_date: Optional[date] = None, end_date: Optional[date] = None) -> GeneralLedgerReportResponse:
+        account = await self.account_repo.get_by_id(account_id)
+        if not account or account.organization_id != org_id:
+            raise HTTPException(status_code=404, detail="Account not found.")
+
+        entries = await self.ledger_repo.get_by_account(org_id, account_id)
+        filtered_entries = []
+        for e in entries:
+            if start_date and e.transaction_date < start_date:
+                continue
+            if end_date and e.transaction_date > end_date:
+                continue
+            
+            # Fetch journal entry number narration if available
+            je = await self.journal_repo.get_by_id(e.journal_entry_id)
+            filtered_entries.append(
+                GeneralLedgerEntryItem(
+                    id=e.id,
+                    journal_entry_id=e.journal_entry_id,
+                    entry_number=je.entry_number if je else "JE-UNMAPPED",
+                    transaction_date=e.transaction_date,
+                    narration=je.narration if je else None,
+                    debit=float(e.debit),
+                    credit=float(e.credit),
+                    running_balance=float(e.running_balance),
+                )
+            )
+
+        open_bal = float(account.opening_balance)
+        close_bal = float(account.balance)
+        return GeneralLedgerReportResponse(
+            account_id=account.id,
+            account_code=account.account_code,
+            account_name=account.account_name,
+            opening_balance=open_bal,
+            closing_balance=close_bal,
+            entries=filtered_entries,
+        )
+
+    async def get_tax_report(self, org_id: uuid.UUID, as_of: Optional[date] = None) -> TaxReportResponse:
+        as_of_date = as_of or date.today()
+        invoices = await self.get_invoices(org_id)
+        bills = await self.get_bills(org_id)
+
+        tot_tax_collected = sum(float(inv.tax_total) for inv in invoices if inv.issue_date <= as_of_date)
+        tot_tax_paid = sum(float(b.tax_total) for b in bills if b.bill_date <= as_of_date)
+
+        profiles = await self.get_tax_profiles(org_id)
+        items = []
+        for p in profiles:
+            for r in getattr(p, "rates", []):
+                items.append(
+                    TaxReportItem(
+                        tax_rate_id=r.id,
+                        tax_name=r.name,
+                        tax_code=r.code,
+                        rate_percentage=float(r.rate_percentage),
+                        taxable_amount=round(tot_tax_collected * 10, 2) if r.type == "VAT" else 0.0,
+                        tax_amount=tot_tax_collected if r.type == "VAT" else 0.0,
+                    )
+                )
+
+        return TaxReportResponse(
+            as_of_date=as_of_date,
+            total_tax_collected=round(tot_tax_collected, 2),
+            total_tax_paid=round(tot_tax_paid, 2),
+            net_tax_payable=round(tot_tax_collected - tot_tax_paid, 2),
+            items=items,
+        )
+
+    async def get_expense_report(self, org_id: uuid.UUID, start_date: Optional[date] = None, end_date: Optional[date] = None) -> ExpenseReportResponse:
+        st = start_date or date(date.today().year, 1, 1)
+        en = end_date or date.today()
+        claims = await self.get_expense_claims(org_id)
+        cats = await self.get_expense_categories(org_id)
+
+        cat_map = {c.id: c for c in cats}
+        summary = {}
+
+        tot_exp = 0.0
+        for claim in claims:
+            if claim.claim_date < st or claim.claim_date > en:
+                continue
+            tot_exp += float(claim.amount)
+            cid = claim.category_id
+            if cid not in summary:
+                c_obj = cat_map.get(cid)
+                summary[cid] = {
+                    "category_id": cid,
+                    "category_name": c_obj.name if c_obj else "General",
+                    "category_code": c_obj.code if c_obj else "EXP-GEN",
+                    "total_amount": 0.0,
+                    "claim_count": 0,
+                }
+            summary[cid]["total_amount"] += float(claim.amount)
+            summary[cid]["claim_count"] += 1
+
+        items = [ExpenseReportItem(**vals) for vals in summary.values()]
+        return ExpenseReportResponse(
+            start_date=st,
+            end_date=en,
+            total_expenses=round(tot_exp, 2),
+            categories=items,
+        )
+
+    async def get_revenue_report(self, org_id: uuid.UUID, start_date: Optional[date] = None, end_date: Optional[date] = None) -> RevenueReportResponse:
+        st = start_date or date(date.today().year, 1, 1)
+        en = end_date or date.today()
+        invoices = await self.get_invoices(org_id)
+
+        cust_summary = {}
+        tot_rev = 0.0
+
+        for inv in invoices:
+            if inv.issue_date < st or inv.issue_date > en:
+                continue
+            tot_rev += float(inv.total_amount)
+            cid = inv.customer_id
+            if cid not in cust_summary:
+                cust_summary[cid] = {
+                    "customer_id": cid,
+                    "total_revenue": 0.0,
+                    "invoice_count": 0,
+                }
+            cust_summary[cid]["total_revenue"] += float(inv.total_amount)
+            cust_summary[cid]["invoice_count"] += 1
+
+        items = [RevenueReportItem(**vals) for vals in cust_summary.values()]
+        return RevenueReportResponse(
+            start_date=st,
+            end_date=en,
+            total_revenue=round(tot_rev, 2),
+            items=items,
+        )
+
+    async def get_budget_report(self, org_id: uuid.UUID, fiscal_year: Optional[int] = None) -> BudgetReportResponse:
+        fy = fiscal_year or date.today().year
+        budgets = await self.get_budgets(org_id)
+        fy_budgets = [b for b in budgets if b.fiscal_year == fy]
+
+        accounts = await self.get_accounts(org_id)
+        acct_map = {a.id: a.account_name for a in accounts}
+
+        tot_b = 0.0
+        tot_a = 0.0
+        items = []
+
+        for b in fy_budgets:
+            for item in getattr(b, "items", []):
+                b_amt = float(item.budgeted_amount)
+                a_amt = float(item.actual_amount)
+                var = b_amt - a_amt
+                pct = round((var / b_amt * 100.0) if b_amt > 0 else 0.0, 2)
+                tot_b += b_amt
+                tot_a += a_amt
+                items.append(
+                    BudgetVsActualItem(
+                        account_id=item.account_id,
+                        account_name=acct_map.get(item.account_id, "Unknown Account"),
+                        budgeted=b_amt,
+                        actual=a_amt,
+                        variance=round(var, 2),
+                        variance_percentage=pct,
+                    )
+                )
+
+        return BudgetReportResponse(
+            fiscal_year=fy,
+            total_budgeted=round(tot_b, 2),
+            total_actual=round(tot_a, 2),
+            variance=round(tot_b - tot_a, 2),
+            items=items,
+        )
+
+    async def get_dashboard_summary(self, org_id: uuid.UUID) -> FinanceDashboardSummary:
+        pl = await self.get_profit_loss(org_id)
+        invoices = await self.get_invoices(org_id)
+        bills = await self.get_bills(org_id)
+        banks = await self.get_bank_accounts(org_id)
+        claims = await self.get_expense_claims(org_id)
+        budgets = await self.get_budgets(org_id)
+
+        tot_ar = sum(float(inv.total_amount) - float(inv.paid_amount) for inv in invoices)
+        tot_ap = sum(float(b.total_amount) - float(b.paid_amount) for b in bills)
+        tot_cash = sum(float(b.current_balance) for b in banks)
+
+        pending_claims = sum(1 for c in claims if c.status == "SUBMITTED")
+        tot_budgeted = sum(float(b.total_budgeted) for b in budgets)
+        utilization = round((pl.total_expenses / tot_budgeted * 100.0) if tot_budgeted > 0 else 0.0, 2)
+
+        return FinanceDashboardSummary(
+            total_revenue=pl.total_revenue,
+            total_expenses=pl.total_expenses,
+            net_profit=pl.net_profit,
+            total_receivables=round(tot_ar, 2),
+            total_payables=round(tot_ap, 2),
+            total_cash_balance=round(tot_cash, 2),
+            budget_utilization_pct=utilization,
+            recent_transactions_count=len(invoices) + len(bills),
+            pending_expense_claims=pending_claims,
+        )
+

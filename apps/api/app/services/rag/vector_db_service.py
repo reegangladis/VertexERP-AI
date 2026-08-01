@@ -1,6 +1,7 @@
 import uuid
 from typing import Any
 
+
 class VectorDBAdapter:
     async def insert(self, vector_id: str, vector: list[float], metadata: dict[str, Any]) -> None:
         raise NotImplementedError()
@@ -14,7 +15,7 @@ class VectorDBAdapter:
 
 class InMemoryFAISSAdapter(VectorDBAdapter):
     """
-    An in-memory fallback index simulating FAISS vector searches.
+    An in-memory fallback index simulating FAISS vector searches with metadata filtering.
     """
     def __init__(self):
         self.vectors: dict[str, list[float]] = {}
@@ -27,47 +28,51 @@ class InMemoryFAISSAdapter(VectorDBAdapter):
     async def search(self, vector: list[float], top_k: int = 5, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         if not self.vectors:
             return []
-        
+
         results = []
-        
+
         for vid, v in self.vectors.items():
             meta = self.metadata.get(vid, {})
-            
+
             # Apply filters (Tenant Isolation & RBAC checks)
             if filters:
                 match = True
                 for fk, fv in filters.items():
+                    if fv is None:
+                        continue
                     if fk == "collection_ids":
-                        # Convert both to string lists for secure type-independent matching
                         str_fv = [str(x) for x in fv]
-                        if str(meta.get("collection_id")) not in str_fv:
+                        doc_col = meta.get("collection_id")
+                        if doc_col and str(doc_col) not in str_fv:
                             match = False
                     elif fk == "organization_id":
                         if str(meta.get("organization_id")) != str(fv):
                             match = False
                     elif fk == "categories":
-                        str_fv = [str(x) for x in fv]
-                        if str(meta.get("category")) not in str_fv:
+                        str_fv = [str(x).lower() for x in fv]
+                        if str(meta.get("category", "")).lower() not in str_fv:
                             match = False
                     elif fk == "document_types":
-                        str_fv = [str(x) for x in fv]
-                        if str(meta.get("document_type")) not in str_fv:
+                        str_fv = [str(x).lower() for x in fv]
+                        if str(meta.get("document_type", "")).lower() not in str_fv:
                             match = False
                     elif fk == "tags":
-                        str_fv = [str(x) for x in fv]
-                        if not set(str_fv).intersection(set(meta.get("tags") or [])):
+                        str_fv = [str(x).lower() for x in fv]
+                        meta_tags = [str(t).lower() for t in (meta.get("tags") or [])]
+                        if not set(str_fv).intersection(set(meta_tags)):
                             match = False
                 if not match:
                     continue
 
             # Pure-Python dot product calculation
-            dot_product = sum(x * y for x, y in zip(vector, v))
+            min_dim = min(len(vector), len(v))
+            dot_product = sum(vector[i] * v[i] for i in range(min_dim))
             results.append({
                 "vector_id": vid,
                 "score": float(dot_product),
                 "metadata": meta
             })
-            
+
         # Sort by high similarity score
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
@@ -80,7 +85,6 @@ class InMemoryFAISSAdapter(VectorDBAdapter):
 class RAGVectorDBService:
     def __init__(self, provider: str = "faiss"):
         self.provider = provider
-        # Registry mapping for pluggable vector stores
         self._adapters: dict[str, VectorDBAdapter] = {
             "faiss": InMemoryFAISSAdapter(),
             "chroma": InMemoryFAISSAdapter(),

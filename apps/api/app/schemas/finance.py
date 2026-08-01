@@ -551,7 +551,7 @@ class BudgetReportResponse(FinanceBaseModel):
     items: List[BudgetVsActualItem]
 
 
-# --- 13. SEARCH & IMPORT/EXPORT ---
+# --- 13. SEARCH & IMPORT/EXPORT & ADDITIONAL REPORTS ---
 class FinanceSearchResult(FinanceBaseModel):
     entity_type: str
     id: uuid.UUID
@@ -560,3 +560,81 @@ class FinanceSearchResult(FinanceBaseModel):
     status: Optional[str] = None
     amount: Optional[float] = None
     created_at: datetime
+
+
+class GeneralLedgerEntryItem(FinanceBaseModel):
+    id: uuid.UUID
+    journal_entry_id: uuid.UUID
+    entry_number: str
+    transaction_date: date
+    narration: Optional[str] = None
+    debit: float
+    credit: float
+    running_balance: float
+
+
+class GeneralLedgerReportResponse(FinanceBaseModel):
+    account_id: uuid.UUID
+    account_code: str
+    account_name: str
+    opening_balance: float
+    closing_balance: float
+    entries: List[GeneralLedgerEntryItem]
+
+
+class TaxReportItem(FinanceBaseModel):
+    tax_rate_id: Optional[uuid.UUID] = None
+    tax_name: str
+    tax_code: str
+    rate_percentage: float
+    taxable_amount: float
+    tax_amount: float
+
+
+class TaxReportResponse(FinanceBaseModel):
+    as_of_date: date
+    total_tax_collected: float  # Output tax (Sales/AR)
+    total_tax_paid: float       # Input tax (Purchases/AP)
+    net_tax_payable: float
+    items: List[TaxReportItem]
+
+
+class ExpenseReportItem(FinanceBaseModel):
+    category_id: uuid.UUID
+    category_name: str
+    category_code: str
+    total_amount: float
+    claim_count: int
+
+
+class ExpenseReportResponse(FinanceBaseModel):
+    start_date: date
+    end_date: date
+    total_expenses: float
+    categories: List[ExpenseReportItem]
+
+
+class RevenueReportItem(FinanceBaseModel):
+    customer_id: uuid.UUID
+    total_revenue: float
+    invoice_count: int
+
+
+class RevenueReportResponse(FinanceBaseModel):
+    start_date: date
+    end_date: date
+    total_revenue: float
+    items: List[RevenueReportItem]
+
+
+class FinanceDashboardSummary(FinanceBaseModel):
+    total_revenue: float
+    total_expenses: float
+    net_profit: float
+    total_receivables: float
+    total_payables: float
+    total_cash_balance: float
+    budget_utilization_pct: float
+    recent_transactions_count: int
+    pending_expense_claims: int
+

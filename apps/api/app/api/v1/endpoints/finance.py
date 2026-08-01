@@ -2,11 +2,11 @@ import uuid
 import io
 import csv
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import StreamingResponse
 from datetime import date
 
-from app.core.dependencies import get_db_session, get_current_user
+from app.core.dependencies import get_db_session, get_current_user, PermissionChecker
 from app.models.user import User
 from app.services.finance_service import FinanceService
 from app.schemas.finance import (
@@ -41,12 +41,22 @@ from app.schemas.finance import (
     AssetCategoryResponse,
     FixedAssetCreate,
     FixedAssetResponse,
+    CreditNoteCreate,
+    CreditNoteResponse,
+    DebitNoteCreate,
+    DebitNoteResponse,
     TrialBalanceReportResponse,
     BalanceSheetResponse,
     ProfitLossResponse,
     CashFlowResponse,
     AgingReportResponse,
     FinanceSearchResult,
+    GeneralLedgerReportResponse,
+    TaxReportResponse,
+    ExpenseReportResponse,
+    RevenueReportResponse,
+    BudgetReportResponse,
+    FinanceDashboardSummary,
 )
 from app.schemas.response import APIResponse
 from app.utils.response import standard_json_response
@@ -57,11 +67,23 @@ async def get_finance_service(db=Depends(get_db_session)) -> FinanceService:
     return FinanceService(db)
 
 
+# --- DASHBOARD SUMMARY ---
+@router.get("/dashboard/summary", response_model=APIResponse[FinanceDashboardSummary])
+async def get_finance_dashboard_summary(
+    current_user: User = Depends(get_current_user),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    summary = await service.get_dashboard_summary(current_user.organization_id)
+    return standard_json_response(data=summary)
+
+
 # --- 1. CHART OF ACCOUNTS ---
 @router.post("/accounts", response_model=APIResponse[AccountResponse])
 async def create_account(
     data: AccountCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -83,18 +105,27 @@ async def list_accounts(
 async def update_account(
     account_id: uuid.UUID,
     data: AccountUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     res = await service.update_account(account_id, data)
     return standard_json_response(data=res, message="Account updated successfully.")
+
+@router.delete("/accounts/{account_id}")
+async def delete_account(
+    account_id: uuid.UUID,
+    current_user: User = Depends(PermissionChecker("finance.admin")),
+    service: FinanceService = Depends(get_finance_service),
+):
+    await service.delete_account(account_id)
+    return standard_json_response(data=True, message="Account deleted successfully.")
 
 
 # --- 2. FISCAL PERIODS ---
 @router.post("/fiscal-periods", response_model=APIResponse[FiscalPeriodResponse])
 async def create_fiscal_period(
     data: FiscalPeriodCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.admin")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -115,7 +146,7 @@ async def list_fiscal_periods(
 @router.post("/fiscal-periods/{period_id}/close", response_model=APIResponse[FiscalPeriodResponse])
 async def close_fiscal_period(
     period_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.admin")),
     service: FinanceService = Depends(get_finance_service),
 ):
     res = await service.close_fiscal_period(period_id)
@@ -126,7 +157,7 @@ async def close_fiscal_period(
 @router.post("/journal-entries", response_model=APIResponse[JournalEntryResponse])
 async def create_journal_entry(
     data: JournalEntryCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -147,7 +178,7 @@ async def list_journal_entries(
 @router.post("/journal-entries/{entry_id}/post", response_model=APIResponse[JournalEntryResponse])
 async def post_journal_entry(
     entry_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.post")),
     service: FinanceService = Depends(get_finance_service),
 ):
     res = await service.post_journal_entry(entry_id, current_user.id)
@@ -156,18 +187,18 @@ async def post_journal_entry(
 @router.post("/journal-entries/{entry_id}/reverse", response_model=APIResponse[JournalEntryResponse])
 async def reverse_journal_entry(
     entry_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.post")),
     service: FinanceService = Depends(get_finance_service),
 ):
     res = await service.reverse_journal_entry(entry_id, current_user.id)
     return standard_json_response(data=res, message="Journal entry reversed successfully.")
 
 
-# --- 4. INVOICES (AR) ---
+# --- 4. INVOICES & CREDIT NOTES (AR) ---
 @router.post("/invoices", response_model=APIResponse[CustomerInvoiceResponse])
 async def create_invoice(
     data: CustomerInvoiceCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -185,12 +216,33 @@ async def list_invoices(
     invoices = await service.get_invoices(current_user.organization_id)
     return standard_json_response(data=invoices)
 
+@router.post("/credit-notes", response_model=APIResponse[CreditNoteResponse])
+async def create_credit_note(
+    data: CreditNoteCreate,
+    current_user: User = Depends(PermissionChecker("finance.manage")),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    res = await service.create_credit_note(current_user.organization_id, data)
+    return standard_json_response(data=res, message="Credit note issued.")
 
-# --- 5. BILLS (AP) ---
+@router.get("/credit-notes", response_model=APIResponse[List[CreditNoteResponse]])
+async def list_credit_notes(
+    current_user: User = Depends(get_current_user),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    notes = await service.get_credit_notes(current_user.organization_id)
+    return standard_json_response(data=notes)
+
+
+# --- 5. BILLS & DEBIT NOTES (AP) ---
 @router.post("/bills", response_model=APIResponse[SupplierBillResponse])
 async def create_bill(
     data: SupplierBillCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -208,12 +260,33 @@ async def list_bills(
     bills = await service.get_bills(current_user.organization_id)
     return standard_json_response(data=bills)
 
+@router.post("/debit-notes", response_model=APIResponse[DebitNoteResponse])
+async def create_debit_note(
+    data: DebitNoteCreate,
+    current_user: User = Depends(PermissionChecker("finance.manage")),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    res = await service.create_debit_note(current_user.organization_id, data)
+    return standard_json_response(data=res, message="Debit note recorded.")
+
+@router.get("/debit-notes", response_model=APIResponse[List[DebitNoteResponse]])
+async def list_debit_notes(
+    current_user: User = Depends(get_current_user),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    notes = await service.get_debit_notes(current_user.organization_id)
+    return standard_json_response(data=notes)
+
 
 # --- 6. PAYMENTS ---
 @router.post("/payments", response_model=APIResponse[PaymentResponse])
 async def create_payment(
     data: PaymentCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -236,7 +309,7 @@ async def list_payments(
 @router.post("/bank-accounts", response_model=APIResponse[BankAccountResponse])
 async def create_bank_account(
     data: BankAccountCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -257,16 +330,25 @@ async def list_bank_accounts(
 @router.post("/bank-transactions", response_model=APIResponse[BankTransactionResponse])
 async def create_bank_transaction(
     data: BankTransactionCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     res = await service.create_bank_transaction(data)
     return standard_json_response(data=res, message="Bank transaction recorded.")
 
+@router.get("/bank-accounts/{bank_account_id}/transactions", response_model=APIResponse[List[BankTransactionResponse]])
+async def list_bank_transactions(
+    bank_account_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    service: FinanceService = Depends(get_finance_service),
+):
+    txs = await service.get_bank_transactions(bank_account_id)
+    return standard_json_response(data=txs)
+
 @router.post("/reconciliations", response_model=APIResponse[ReconciliationResponse])
 async def reconcile_bank_account(
     data: ReconciliationCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     res = await service.reconcile_bank_account(data)
@@ -277,7 +359,7 @@ async def reconcile_bank_account(
 @router.post("/expense-categories", response_model=APIResponse[ExpenseCategoryResponse])
 async def create_expense_category(
     data: ExpenseCategoryCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -319,7 +401,7 @@ async def list_expense_claims(
 @router.post("/expense-claims/{claim_id}/approve", response_model=APIResponse[ExpenseClaimResponse])
 async def approve_expense_claim(
     claim_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.post")),
     service: FinanceService = Depends(get_finance_service),
 ):
     res = await service.approve_expense_claim(claim_id, current_user.id)
@@ -328,7 +410,7 @@ async def approve_expense_claim(
 @router.post("/expense-claims/{claim_id}/reimburse", response_model=APIResponse[ExpenseClaimResponse])
 async def reimburse_expense_claim(
     claim_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.post")),
     service: FinanceService = Depends(get_finance_service),
 ):
     res = await service.reimburse_expense_claim(claim_id)
@@ -339,7 +421,7 @@ async def reimburse_expense_claim(
 @router.post("/budgets", response_model=APIResponse[BudgetResponse])
 async def create_budget(
     data: BudgetCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -362,7 +444,7 @@ async def list_budgets(
 @router.post("/tax-profiles", response_model=APIResponse[TaxProfileResponse])
 async def create_tax_profile(
     data: TaxProfileCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.admin")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -385,7 +467,7 @@ async def list_tax_profiles(
 @router.post("/asset-categories", response_model=APIResponse[AssetCategoryResponse])
 async def create_asset_category(
     data: AssetCategoryCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -406,7 +488,7 @@ async def list_asset_categories(
 @router.post("/fixed-assets", response_model=APIResponse[FixedAssetResponse])
 async def create_fixed_asset(
     data: FixedAssetCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.manage")),
     service: FinanceService = Depends(get_finance_service),
 ):
     if not current_user.organization_id:
@@ -428,7 +510,7 @@ async def list_fixed_assets(
 async def dispose_fixed_asset(
     asset_id: uuid.UUID,
     disposal_amount: float = Query(0.0),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(PermissionChecker("finance.admin")),
     service: FinanceService = Depends(get_finance_service),
 ):
     res = await service.dispose_fixed_asset(asset_id, disposal_amount)
@@ -491,6 +573,65 @@ async def get_aging_report(
     if not current_user.organization_id:
         raise HTTPException(status_code=400, detail="User not bound to organization")
     res = await service.get_aging_report(current_user.organization_id, report_type)
+    return standard_json_response(data=res)
+
+@router.get("/reports/general-ledger", response_model=APIResponse[GeneralLedgerReportResponse])
+async def get_general_ledger_report(
+    account_id: uuid.UUID,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    res = await service.get_general_ledger_report(current_user.organization_id, account_id, start_date, end_date)
+    return standard_json_response(data=res)
+
+@router.get("/reports/tax", response_model=APIResponse[TaxReportResponse])
+async def get_tax_report(
+    as_of: Optional[date] = None,
+    current_user: User = Depends(get_current_user),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    res = await service.get_tax_report(current_user.organization_id, as_of)
+    return standard_json_response(data=res)
+
+@router.get("/reports/expense", response_model=APIResponse[ExpenseReportResponse])
+async def get_expense_report(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    res = await service.get_expense_report(current_user.organization_id, start_date, end_date)
+    return standard_json_response(data=res)
+
+@router.get("/reports/revenue", response_model=APIResponse[RevenueReportResponse])
+async def get_revenue_report(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    res = await service.get_revenue_report(current_user.organization_id, start_date, end_date)
+    return standard_json_response(data=res)
+
+@router.get("/reports/budget", response_model=APIResponse[BudgetReportResponse])
+async def get_budget_report(
+    fiscal_year: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+    service: FinanceService = Depends(get_finance_service),
+):
+    if not current_user.organization_id:
+        raise HTTPException(status_code=400, detail="User not bound to organization")
+    res = await service.get_budget_report(current_user.organization_id, fiscal_year)
     return standard_json_response(data=res)
 
 

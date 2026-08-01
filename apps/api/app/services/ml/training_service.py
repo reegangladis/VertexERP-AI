@@ -1,7 +1,7 @@
 import time
 import uuid
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -59,7 +59,7 @@ class TrainingService:
             raise ValueError("Training job not found")
 
         job.status = "RUNNING"
-        job.started_at = datetime.utcnow()
+        job.started_at = datetime.now(timezone.utc)
 
         start_time = time.time()
         adapter = MLModelAdapter(
@@ -112,7 +112,7 @@ class TrainingService:
             )
 
         job.status = "COMPLETED"
-        job.completed_at = datetime.utcnow()
+        job.completed_at = datetime.now(timezone.utc)
         await self.db.commit()
         return job
 

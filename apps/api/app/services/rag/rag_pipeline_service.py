@@ -41,7 +41,7 @@ class RAGPipelineService:
         # Step 2: Context Assembly
         context_blocks = []
         citations = []
-        
+
         for i, chunk in enumerate(retrieved_chunks):
             ref_id = f"[{i + 1}]"
             context_blocks.append(
@@ -69,7 +69,7 @@ class RAGPipelineService:
         history_str = ""
         if chat_history:
             history_str = "\nConversation History:\n"
-            for msg in chat_history[-6:]: # Keep last 6 messages
+            for msg in chat_history[-6:]:
                 role = msg.get("role", "user")
                 content = msg.get("content", "")
                 history_str += f"{role.capitalize()}: {content}\n"
@@ -83,10 +83,8 @@ class RAGPipelineService:
         )
 
         # Step 4: LLM Abstraction Layer Response Generation
-        # (Generates deterministic answers fallback for testing/local setups if no keys provided)
         response_text = self._mock_llm_response(query, retrieved_chunks, provider, model_name)
 
-        # Estimate mock tokens
         prompt_tokens = int(len(full_prompt) / 4)
         completion_tokens = int(len(response_text) / 4)
 
@@ -99,18 +97,15 @@ class RAGPipelineService:
         }
 
     def _mock_llm_response(self, query: str, chunks: list[dict], provider: str, model_name: str) -> str:
-        """
-        Mock response builder generating logical answers citing the retrieved document segments.
-        """
         if not chunks:
             return "I couldn't find any relevant document snippets in the VertexERP AI database to answer your question."
 
         best_chunk = chunks[0]
         title = best_chunk["document_title"]
         snippet = best_chunk["content"]
-        
+
         return (
             f"Based on the enterprise document '{title}' [1], the relevant details suggest: "
-            f"'{snippet[:120]}...'. This explanation was generated using model '{model_name}' "
+            f"'{snippet[:120]}...'. This response was generated using model '{model_name}' "
             f"hosted via provider '{provider}'."
         )

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Edit, Trash2, Search, Upload, Download, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Upload, Download, Loader2, UserCheck, ArrowRightLeft } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/Card';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
@@ -37,6 +37,10 @@ export function CRMLeads() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [convertModalOpen, setConvertModalOpen] = useState(false);
+  const [leadToConvert, setLeadToConvert] = useState<Lead | null>(null);
+  const [converting, setConverting] = useState(false);
+  const [dealAmount, setDealAmount] = useState<number>(5000);
 
   const {
     register,
@@ -110,6 +114,27 @@ export function CRMLeads() {
     }
   };
 
+  const handleConvertLead = async () => {
+    if (!leadToConvert) return;
+    setConverting(true);
+    try {
+      await apiClient.post(`/api/v1/crm/leads/${leadToConvert.id}/convert`, {
+        customer_name: leadToConvert.company || `${leadToConvert.first_name} ${leadToConvert.last_name}`,
+        create_opportunity: true,
+        opportunity_title: `Opportunity - ${leadToConvert.company || leadToConvert.first_name}`,
+        deal_amount: dealAmount,
+      });
+      addNotification(`Lead ${leadToConvert.first_name} converted to Customer and Deal successfully!`, 'success');
+      setConvertModalOpen(false);
+      setLeadToConvert(null);
+      fetchData();
+    } catch (err: any) {
+      addNotification(err.response?.data?.detail || 'Lead conversion failed', 'error');
+    } finally {
+      setConverting(false);
+    }
+  };
+
   const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -132,8 +157,8 @@ export function CRMLeads() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Leads Inbox</h1>
-          <p className="text-sm text-muted-foreground">Manage captured lead directories, review source channels, and audit qualification stages.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Leads Inbox & Conversion</h1>
+          <p className="text-sm text-muted-foreground">Manage captured lead directories, AI lead scoring, and convert qualified leads to accounts.</p>
         </div>
         <div className="flex items-center gap-2">
           <label className="flex items-center gap-2 px-3 py-2 border border-border rounded bg-secondary/35 text-xs font-semibold cursor-pointer select-none hover:bg-secondary">
@@ -232,6 +257,7 @@ export function CRMLeads() {
                         </td>
                         <td className="py-3.5 px-4 text-xs font-semibold uppercase">
                           <span className={`px-2 py-0.5 rounded ${
+                            l.status === 'converted' ? 'bg-purple-500/10 text-purple-500' :
                             l.status === 'qualified' ? 'bg-emerald-500/10 text-emerald-500' :
                             l.status === 'lost' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
                           }`}>
@@ -240,6 +266,19 @@ export function CRMLeads() {
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            {l.status !== 'converted' && (
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => {
+                                  setLeadToConvert(l);
+                                  setConvertModalOpen(true);
+                                }}
+                                className="text-[10px] h-7 px-2 flex items-center gap-1 text-purple-500 hover:text-purple-600"
+                              >
+                                <ArrowRightLeft className="h-3 w-3" /> Convert
+                              </Button>
+                            )}
                             <button
                               onClick={() => handleEdit(l)}
                               className="p-1.5 hover:bg-secondary rounded text-muted-foreground hover:text-foreground"
@@ -264,6 +303,7 @@ export function CRMLeads() {
         </CardContent>
       </Card>
 
+      {/* Add / Edit Modal */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={selectedLead ? 'Edit Lead Profile' : 'Capture Lead'}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -295,6 +335,42 @@ export function CRMLeads() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Lead Conversion Modal */}
+      <Modal isOpen={convertModalOpen} onClose={() => setConvertModalOpen(false)} title="Convert Lead to Account & Deal">
+        {leadToConvert && (
+          <div className="space-y-4 text-xs">
+            <p className="text-muted-foreground">
+              Converting lead <strong className="text-primary">{leadToConvert.first_name} {leadToConvert.last_name}</strong> will create a Customer Account and initial Sales Deal in the pipeline.
+            </p>
+            <div className="space-y-3 p-3 border border-border rounded-xl bg-secondary/15">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground font-mono">Account Name:</span>
+                <span className="font-bold">{leadToConvert.company || `${leadToConvert.first_name} ${leadToConvert.last_name}`}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground font-mono">Primary Contact:</span>
+                <span>{leadToConvert.email}</span>
+              </div>
+            </div>
+
+            <Input
+              label="Estimated Deal Value ($)"
+              type="number"
+              value={dealAmount}
+              onChange={(e) => setDealAmount(parseFloat(e.target.value) || 0)}
+            />
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="secondary" onClick={() => setConvertModalOpen(false)}>Cancel</Button>
+              <Button onClick={handleConvertLead} disabled={converting} variant="primary" className="bg-purple-600 hover:bg-purple-700">
+                {converting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
+                Convert Lead
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
