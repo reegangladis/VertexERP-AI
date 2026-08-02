@@ -7,17 +7,21 @@ services:
     name: vertexerp-backend
     env: python
     region: singapore
-    plan: starter
     rootDir: .
-    buildCommand: pip install -r apps/api/requirements.txt
-    startCommand: cd apps/api && alembic upgrade heads && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install -r apps/api/requirements.txt
+    startCommand: |
+      cd apps/api
+      alembic upgrade head
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ENVIRONMENT
         value: production
       - key: PROJECT_NAME
-        value: "VertexERP AI"
+        value: VertexERP AI
       - key: API_V1_STR
-        value: "/api/v1"
+        value: /api/v1
       - key: BACKEND_CORS_ORIGINS
         value: '["*"]'
       - key: DATABASE_URL
@@ -36,8 +40,6 @@ services:
   - type: web
     name: vertexerp-frontend
     env: static
-    region: singapore
-    plan: starter
     rootDir: .
     buildCommand: cd apps/web && npm install && npm run build
     staticPublishPath: apps/web/dist
@@ -47,18 +49,13 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: vertexerp-backend
-          property: url
+        value: https://vertexerp-backend.onrender.com/api/v1
 
   # ──────────────────────────────────────────
   # Managed Redis Cache
   # ──────────────────────────────────────────
   - type: redis
     name: vertexerp-redis
-    region: singapore
-    plan: starter
     ipAllowList: []
 
 databases:
@@ -68,5 +65,3 @@ databases:
   - name: vertexerp-db
     databaseName: vertexerp_db
     user: vertexuser
-    region: singapore
-    plan: starter
