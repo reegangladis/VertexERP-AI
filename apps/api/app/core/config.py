@@ -44,6 +44,9 @@ class Settings(BaseSettings):
             return [item.strip() for item in v.split(",") if item.strip()]
         return v
 
+    DATABASE_URL: str | None = None
+    REDIS_URL: str | None = None
+
     # PostgreSQL configuration
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_USER: str = "postgres"
@@ -55,6 +58,13 @@ class Settings(BaseSettings):
 
     @property
     def database_url_async(self) -> str:
+        if self.DATABASE_URL:
+            url = self.DATABASE_URL
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif url.startswith("postgresql://"):
+                url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            return url
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
             f"{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -62,6 +72,11 @@ class Settings(BaseSettings):
 
     @property
     def database_url_sync(self) -> str:
+        if self.DATABASE_URL:
+            url = self.DATABASE_URL
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql://", 1)
+            return url
         return (
             f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
             f"{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -75,6 +90,8 @@ class Settings(BaseSettings):
 
     @property
     def redis_url(self) -> str:
+        if self.REDIS_URL:
+            return self.REDIS_URL
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
 
     # Logging configuration
