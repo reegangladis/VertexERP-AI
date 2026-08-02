@@ -1,0 +1,36 @@
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "C4", "RUF"]
+# B008: FastAPI's Depends()-in-default-argument pattern is intentional.
+# E501: line length is enforced by Black instead.
+# E711/E712: SQLAlchemy's `Column == True/False/None` is the idiomatic way to build
+# SQL expressions via operator overloading; Python's `is`/`not` would evaluate the
+# comparison immediately instead of generating a WHERE clause, which is used
+# extensively and correctly throughout this codebase's query filters.
+ignore = ["B008", "E501", "E711", "E712"]
+
+[tool.ruff.lint.per-file-ignores]
+# All models must be imported here (even if unused directly) so that
+# Base.metadata.create_all() and Alembic autogenerate can discover them.
+"app/models/__init__.py" = ["F401"]
+# SQLAlchemy relationship() type hints use quoted forward references
+# (Mapped[list["OtherModel"]]) that resolve lazily via the mapper registry at
+# configure-mapper time, not via Python name resolution -- ruff's static F821
+# check doesn't know this pattern and flags them as undefined names, but they
+# are valid and required by SQLAlchemy 2.0's typed ORM style.
+"app/models/*.py" = ["F821"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["app/tests"]
+python_files = ["test_*.py"]

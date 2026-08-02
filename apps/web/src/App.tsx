@@ -1,0 +1,507 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Phase 17 – Enterprise Workflow Automation Platform
+import { WorkflowDashboard } from '@/pages/workflow/WorkflowDashboard';
+import { WorkflowDesigner } from '@/pages/workflow/WorkflowDesigner';
+import { RuleBuilder } from '@/pages/workflow/RuleBuilder';
+import { ApprovalCenter } from '@/pages/workflow/ApprovalCenter';
+import { SchedulerPage } from '@/pages/workflow/SchedulerPage';
+import { ExecutionMonitor } from '@/pages/workflow/ExecutionMonitor';
+import { WorkflowTemplates } from '@/pages/workflow/WorkflowTemplates';
+
+import { ThemeProvider } from '@/store/ThemeContext';
+import { UIProvider } from '@/store/UIContext';
+import { NotificationProvider } from '@/store/NotificationContext';
+import { SettingsProvider } from '@/store/SettingsContext';
+import { AuthProvider } from '@/store/AuthContext';
+
+import { AppLayout } from '@/layouts/AppLayout';
+import { DashboardLayout } from '@/layouts/DashboardLayout';
+import { AuthLayout } from '@/layouts/AuthLayout';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+
+import { NotFound } from '@/routes/NotFound';
+import { ServerError } from '@/routes/ServerError';
+import { Maintenance } from '@/routes/Maintenance';
+
+// Identity & Settings Page Views
+import { Login, Register, ForgotPassword, ResetPassword, VerifyEmail, SessionExpired, Unauthorized as AuthUnauthorized } from '@/pages/AuthPages';
+import { UserManagement, RoleManagement, PermissionManagement } from '@/pages/IdentityManagement';
+import { UserSettings } from '@/pages/UserSettings';
+import { TenantSettings } from '@/pages/TenantSettings';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { SessionsPage } from '@/pages/admin/SessionsPage';
+import { LoginHistoryPage } from '@/pages/admin/LoginHistoryPage';
+import { AuditLogsPage } from '@/pages/admin/AuditLogsPage';
+import { useAuth } from '@/store/AuthContext';
+import { Navigate } from 'react-router-dom';
+
+function RootRedirect() {
+  const { isAuthenticated, isLoading, getDefaultDashboardRoute } = useAuth();
+  if (isLoading) return null;
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" replace />;
+  }
+  return <Navigate to={getDefaultDashboardRoute()} replace />;
+}
+
+// Organization Management Page Views
+import { OrgDashboard } from '@/pages/org/Dashboard';
+import { OrgProfile } from '@/pages/org/Profile';
+import { OrgBranches } from '@/pages/org/Branches';
+import { OrgDepartments } from '@/pages/org/Departments';
+import { OrgTeams } from '@/pages/org/Teams';
+import { OrgDesignations } from '@/pages/org/Designations';
+import { OrgLocations } from '@/pages/org/Locations';
+import { OrgBusinessUnits } from '@/pages/org/BusinessUnits';
+import { OrgReportingStructure } from '@/pages/org/ReportingStructure';
+import { OrgBusinessCalendar } from '@/pages/org/BusinessCalendar';
+import { OrgSettings } from '@/pages/org/Settings';
+
+// HR Intelligence Platform Page Views
+import { HRDashboard } from '@/pages/hr/Dashboard';
+import { HREmployeeList } from '@/pages/hr/EmployeeList';
+import { HREmployeeDetails } from '@/pages/hr/EmployeeDetails';
+import { HRAttendance } from '@/pages/hr/Attendance';
+import { HRLeaveManagement } from '@/pages/hr/LeaveManagement';
+import { HRRecruitment } from '@/pages/hr/Recruitment';
+import { HRPerformance } from '@/pages/hr/Performance';
+import { HRTraining } from '@/pages/hr/Training';
+import { HRDocuments } from '@/pages/hr/Documents';
+import { HRPayroll } from '@/pages/hr/Payroll';
+
+// CRM Intelligence Platform Page Views
+import { CRMDashboard } from '@/pages/crm/Dashboard';
+import { CRMCustomers } from '@/pages/crm/Customers';
+import { CRMCustomerDetails } from '@/pages/crm/CustomerDetails';
+import { CRMLeads } from '@/pages/crm/Leads';
+import { CRMPipeline } from '@/pages/crm/Pipeline';
+import { CRMDeals } from '@/pages/crm/Deals';
+import { CRMActivities } from '@/pages/crm/Activities';
+import { CRMSupportTickets } from '@/pages/crm/SupportTickets';
+import { CRMCampaigns } from '@/pages/crm/Campaigns';
+
+// Inventory & Warehouse Platform Page Views
+import { InventoryDashboard } from '@/pages/inventory/Dashboard';
+import { InventoryProducts } from '@/pages/inventory/Products';
+import { InventoryCategories } from '@/pages/inventory/Categories';
+import { InventoryWarehouses } from '@/pages/inventory/Warehouses';
+import { InventoryWarehouseDetails } from '@/pages/inventory/WarehouseDetails';
+import { InventorySuppliers } from '@/pages/inventory/Suppliers';
+import { InventoryPurchaseOrders } from '@/pages/inventory/PurchaseOrders';
+import { InventoryStockTransfers } from '@/pages/inventory/StockTransfers';
+import { InventoryCounts } from '@/pages/inventory/InventoryCounts';
+
+// Finance & Accounting Platform Page Views
+import { FinanceDashboard } from '@/pages/finance/FinanceDashboard';
+import { ChartOfAccountsPage } from '@/pages/finance/ChartOfAccountsPage';
+import { JournalEntriesPage } from '@/pages/finance/JournalEntriesPage';
+import { InvoicesPage } from '@/pages/finance/InvoicesPage';
+import { BillsPage } from '@/pages/finance/BillsPage';
+import { ExpensesPage } from '@/pages/finance/ExpensesPage';
+import { BudgetsPage } from '@/pages/finance/BudgetsPage';
+import { TaxesPage } from '@/pages/finance/TaxesPage';
+import { FixedAssetsPage } from '@/pages/finance/FixedAssetsPage';
+import { BankAccountsPage } from '@/pages/finance/BankAccountsPage';
+import { FinancialReportsPage } from '@/pages/finance/FinancialReportsPage';
+
+// Manufacturing & Production Intelligence Platform Page Views
+import {
+  ManufacturingDashboard,
+  BillOfMaterialsPage,
+  RoutingsPage,
+  WorkCentersPage,
+  MachinesPage,
+  ProductionOrdersPage,
+  ShopFloorPage,
+  QualityControlPage,
+  MaintenancePage,
+  MRPPage,
+} from '@/pages/manufacturing';
+
+// Business Intelligence & Analytics Platform Page Views
+import {
+  ExecutiveDashboard,
+  HRAnalyticsPage,
+  CRMAnalyticsPage,
+  InventoryAnalyticsPage,
+  FinanceAnalyticsPage,
+  ManufacturingAnalyticsPage,
+  CustomReportsPage,
+  DashboardBuilderPage,
+} from '@/pages/analytics';
+
+// Enterprise Data Engineering Platform Page Views
+import {
+  DataEngineeringDashboard,
+  PipelineMonitor,
+  DatasetExplorer,
+  FeatureStorePage,
+  MetadataCatalogPage,
+  DataQualityDashboard,
+  LineageViewer,
+} from '@/pages/data-engineering';
+
+// Enterprise Machine Learning Platform Page Views
+import {
+  MLDashboard,
+  ModelRegistry,
+  TrainingJobs,
+  ExperimentsPage,
+  PredictionsPage,
+  EvaluationMetricsPage,
+} from '@/pages/ml';
+
+// Enterprise ML Studio & Model Management Platform (Phase 12)
+import {
+  MLStudioDashboard,
+  DatasetExplorer as StudioDatasetExplorer,
+  NotebookRegistry,
+  ExperimentTracker,
+  TrainingJobsManager,
+  ModelRegistryStudio,
+  ModelComparisonPage,
+  EvaluationReportsPage,
+  ExplainabilityDashboard,
+} from '@/pages/ml-studio';
+
+// Enterprise RAG & Knowledge Intelligence Platform (Phase 13)
+import {
+  KnowledgeDashboard,
+  DocumentLibrary,
+  CollectionsPage,
+  UploadCenter,
+  KnowledgeSearch,
+  AIChat,
+  ConversationHistoryPage,
+} from '@/pages/rag';
+
+// Enterprise AI Copilot Platform (Phase 14)
+import {
+  AICopilot,
+  ConversationHistory,
+  PromptManager,
+  ToolRegistry,
+  AIDashboard,
+  Settings as CopilotSettings,
+} from '@/pages/copilot';
+
+// Enterprise MLOps Platform (Phase 15)
+import {
+  MLOpsDashboard,
+  DeploymentCenter,
+  PipelineManager,
+  MonitoringDashboard,
+  ApprovalQueue,
+  RetrainingCenter,
+} from '@/pages/mlops';
+
+// Enterprise Monitoring & Observability Platform (Phase 16)
+import {
+  MonitoringDashboard as ObservabilityDashboard,
+  SystemHealth,
+  LogExplorer,
+  MetricsExplorer,
+  TraceViewer,
+  AlertCenter,
+  BusinessDashboard as ObservabilityBusinessDashboard,
+  AIMonitoringDashboard,
+} from '@/pages/observability';
+
+// Enterprise Integration Platform Page Views (Phase 18)
+import IntegrationDashboard from '@/pages/integration/IntegrationDashboard';
+import ConnectorMarketplace from '@/pages/integration/ConnectorMarketplace';
+import ApiGatewayPage from '@/pages/integration/ApiGatewayPage';
+import WebhookCenter from '@/pages/integration/WebhookCenter';
+import EventMonitor from '@/pages/integration/EventMonitor';
+import QueueDashboard from '@/pages/integration/QueueDashboard';
+import ApiAnalyticsPage from '@/pages/integration/ApiAnalyticsPage';
+
+// Production Readiness, Performance & Security Hardening (Phase 19)
+import SecurityDashboard from '@/pages/production/SecurityDashboard';
+import PerformanceDashboard from '@/pages/production/PerformanceDashboard';
+import ComplianceCenter from '@/pages/production/ComplianceCenter';
+import BackupCenter from '@/pages/production/BackupCenter';
+import RecoveryCenter from '@/pages/production/RecoveryCenter';
+import SystemReadinessDashboard from '@/pages/production/SystemReadinessDashboard';
+
+// Enterprise Cloud Deployment & Global Release (Phase 20)
+import ReleaseDashboard from '@/pages/cloud/ReleaseDashboard';
+import DeploymentDashboard from '@/pages/cloud/DeploymentDashboard';
+import CloudOperations from '@/pages/cloud/CloudOperations';
+import FinOpsDashboard from '@/pages/cloud/FinOpsDashboard';
+import IncidentCenter from '@/pages/cloud/IncidentCenter';
+import SystemStatus from '@/pages/cloud/SystemStatus';
+
+
+
+
+
+
+
+
+// Setup TanStack Query Client
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SettingsProvider>
+        <NotificationProvider>
+          <UIProvider>
+            <ThemeProvider>
+              <ErrorBoundary>
+                <BrowserRouter>
+                  <AuthProvider>
+                  <Routes>
+                    {/* AppLayout manages Global Toast notifications */}
+                    <Route element={<AppLayout />}>
+
+                      {/* Top-Level Public Auth & Fallback Routes */}
+                      <Route path="/" element={<RootRedirect />} />
+                      
+                      {/* Public Auth Routes */}
+                      <Route element={<AuthLayout />}>
+                        <Route path="login" element={<Login />} />
+                        <Route path="register" element={<Register />} />
+                        <Route path="forgot-password" element={<ForgotPassword />} />
+                        <Route path="reset-password" element={<ResetPassword />} />
+                        <Route path="verify-email" element={<VerifyEmail />} />
+                        <Route path="session-expired" element={<SessionExpired />} />
+                        <Route path="unauthorized" element={<AuthUnauthorized />} />
+
+                        <Route path="auth/login" element={<Login />} />
+                        <Route path="auth/register" element={<Register />} />
+                        <Route path="auth/forgot-password" element={<ForgotPassword />} />
+                        <Route path="auth/reset-password" element={<ResetPassword />} />
+                        <Route path="auth/verify-email" element={<VerifyEmail />} />
+                        <Route path="auth/session-expired" element={<SessionExpired />} />
+                        <Route path="auth/unauthorized" element={<AuthUnauthorized />} />
+                      </Route>
+
+                      {/* Protected Workspace & Dashboard Routes */}
+                      <Route element={<ProtectedRoute />}>
+                        <Route element={<DashboardLayout />}>
+                          <Route path="dashboard" element={<ExecutiveDashboard />} />
+                          <Route path="maintenance" element={<Maintenance />} />
+                          <Route path="500" element={<ServerError />} />
+                          
+                          {/* Organization Management */}
+                          <Route path="org/dashboard" element={<OrgDashboard />} />
+                          <Route path="org/profile" element={<OrgProfile />} />
+                          <Route path="org/branches" element={<OrgBranches />} />
+                          <Route path="org/departments" element={<OrgDepartments />} />
+                          <Route path="org/teams" element={<OrgTeams />} />
+                          <Route path="org/designations" element={<OrgDesignations />} />
+                          <Route path="org/locations" element={<OrgLocations />} />
+                          <Route path="org/business-units" element={<OrgBusinessUnits />} />
+                          <Route path="org/reporting" element={<OrgReportingStructure />} />
+                          <Route path="org/calendar" element={<OrgBusinessCalendar />} />
+                          <Route path="org/settings" element={<OrgSettings />} />
+
+                          {/* HR Intelligence Platform */}
+                          <Route path="hr/dashboard" element={<HRDashboard />} />
+                          <Route path="hr/employees" element={<HREmployeeList />} />
+                          <Route path="hr/employees/:id" element={<HREmployeeDetails />} />
+                          <Route path="hr/attendance" element={<HRAttendance />} />
+                          <Route path="hr/leaves" element={<HRLeaveManagement />} />
+                          <Route path="hr/recruitment" element={<HRRecruitment />} />
+                          <Route path="hr/performance" element={<HRPerformance />} />
+                          <Route path="hr/training" element={<HRTraining />} />
+                          <Route path="hr/documents" element={<HRDocuments />} />
+                          <Route path="hr/payroll" element={<HRPayroll />} />
+
+                          {/* CRM Intelligence Platform */}
+                          <Route path="crm/dashboard" element={<CRMDashboard />} />
+                          <Route path="crm/customers" element={<CRMCustomers />} />
+                          <Route path="crm/customers/:id" element={<CRMCustomerDetails />} />
+                          <Route path="crm/leads" element={<CRMLeads />} />
+                          <Route path="crm/pipeline" element={<CRMPipeline />} />
+                          <Route path="crm/deals" element={<CRMDeals />} />
+                          <Route path="crm/activities" element={<CRMActivities />} />
+                          <Route path="crm/support-tickets" element={<CRMSupportTickets />} />
+                          <Route path="crm/campaigns" element={<CRMCampaigns />} />
+
+                          {/* Inventory & Warehouse Platform */}
+                          <Route path="inventory/dashboard" element={<InventoryDashboard />} />
+                          <Route path="inventory/products" element={<InventoryProducts />} />
+                          <Route path="inventory/categories" element={<InventoryCategories />} />
+                          <Route path="inventory/warehouses" element={<InventoryWarehouses />} />
+                          <Route path="inventory/warehouses/:id" element={<InventoryWarehouseDetails />} />
+                          <Route path="inventory/suppliers" element={<InventorySuppliers />} />
+                          <Route path="inventory/purchase-orders" element={<InventoryPurchaseOrders />} />
+                          <Route path="inventory/transfers" element={<InventoryStockTransfers />} />
+                          <Route path="inventory/counts" element={<InventoryCounts />} />
+
+                          {/* Finance & Accounting Intelligence Platform */}
+                          <Route path="finance/dashboard" element={<FinanceDashboard />} />
+                          <Route path="finance/accounts" element={<ChartOfAccountsPage />} />
+                          <Route path="finance/journals" element={<JournalEntriesPage />} />
+                          <Route path="finance/invoices" element={<InvoicesPage />} />
+                          <Route path="finance/bills" element={<BillsPage />} />
+                          <Route path="finance/expenses" element={<ExpensesPage />} />
+                          <Route path="finance/budgets" element={<BudgetsPage />} />
+                          <Route path="finance/taxes" element={<TaxesPage />} />
+                          <Route path="finance/assets" element={<FixedAssetsPage />} />
+                          <Route path="finance/banking" element={<BankAccountsPage />} />
+                          <Route path="finance/reports" element={<FinancialReportsPage />} />
+
+                          {/* Manufacturing & Production Intelligence Platform */}
+                          <Route path="manufacturing/dashboard" element={<ManufacturingDashboard />} />
+                          <Route path="manufacturing/boms" element={<BillOfMaterialsPage />} />
+                          <Route path="manufacturing/routings" element={<RoutingsPage />} />
+                          <Route path="manufacturing/work-centers" element={<WorkCentersPage />} />
+                          <Route path="manufacturing/machines" element={<MachinesPage />} />
+                          <Route path="manufacturing/production-orders" element={<ProductionOrdersPage />} />
+                          <Route path="manufacturing/shop-floor" element={<ShopFloorPage />} />
+                          <Route path="manufacturing/quality" element={<QualityControlPage />} />
+                          <Route path="manufacturing/maintenance" element={<MaintenancePage />} />
+                          <Route path="manufacturing/mrp" element={<MRPPage />} />
+
+                          {/* Business Intelligence & Analytics Platform */}
+                          <Route path="analytics/executive" element={<ExecutiveDashboard />} />
+                          <Route path="analytics/hr" element={<HRAnalyticsPage />} />
+                          <Route path="analytics/crm" element={<CRMAnalyticsPage />} />
+                          <Route path="analytics/inventory" element={<InventoryAnalyticsPage />} />
+                          <Route path="analytics/finance" element={<FinanceAnalyticsPage />} />
+                          <Route path="analytics/manufacturing" element={<ManufacturingAnalyticsPage />} />
+                          <Route path="analytics/reports" element={<CustomReportsPage />} />
+                          <Route path="analytics/builder" element={<DashboardBuilderPage />} />
+
+                          {/* Enterprise Data Engineering Platform */}
+                          <Route path="data-engineering/dashboard" element={<DataEngineeringDashboard />} />
+                          <Route path="data-engineering/pipelines" element={<PipelineMonitor />} />
+                          <Route path="data-engineering/datasets" element={<DatasetExplorer />} />
+                          <Route path="data-engineering/feature-store" element={<FeatureStorePage />} />
+                          <Route path="data-engineering/metadata" element={<MetadataCatalogPage />} />
+                          <Route path="data-engineering/quality" element={<DataQualityDashboard />} />
+                          <Route path="data-engineering/lineage" element={<LineageViewer />} />
+
+                          {/* Enterprise Machine Learning Platform */}
+                          <Route path="ml/dashboard" element={<MLDashboard />} />
+                          <Route path="ml/registry" element={<ModelRegistry />} />
+                          <Route path="ml/training" element={<TrainingJobs />} />
+                          <Route path="ml/experiments" element={<ExperimentsPage />} />
+                          <Route path="ml/predictions" element={<PredictionsPage />} />
+                          <Route path="ml/evaluation" element={<EvaluationMetricsPage />} />
+
+                          {/* Enterprise ML Studio & Model Management Platform (Phase 12) */}
+                          <Route path="ml-studio/dashboard" element={<MLStudioDashboard />} />
+                          <Route path="ml-studio/datasets" element={<StudioDatasetExplorer />} />
+                          <Route path="ml-studio/notebooks" element={<NotebookRegistry />} />
+                          <Route path="ml-studio/experiments" element={<ExperimentTracker />} />
+                          <Route path="ml-studio/training" element={<TrainingJobsManager />} />
+                          <Route path="ml-studio/registry" element={<ModelRegistryStudio />} />
+                          <Route path="ml-studio/comparison" element={<ModelComparisonPage />} />
+                          <Route path="ml-studio/evaluation" element={<EvaluationReportsPage />} />
+                          <Route path="ml-studio/explainability" element={<ExplainabilityDashboard />} />
+
+                          {/* Enterprise RAG & Knowledge Intelligence Platform (Phase 13) */}
+                          <Route path="rag/dashboard" element={<KnowledgeDashboard />} />
+                          <Route path="rag/documents" element={<DocumentLibrary />} />
+                          <Route path="rag/collections" element={<CollectionsPage />} />
+                          <Route path="rag/upload" element={<UploadCenter />} />
+                          <Route path="rag/search" element={<KnowledgeSearch />} />
+                          <Route path="rag/chat" element={<AIChat />} />
+                          <Route path="rag/history" element={<ConversationHistoryPage />} />
+
+                          {/* Enterprise AI Copilot Platform (Phase 14) */}
+                          <Route path="copilot/chat" element={<AICopilot />} />
+                          <Route path="copilot/history" element={<ConversationHistory />} />
+                          <Route path="copilot/prompts" element={<PromptManager />} />
+                          <Route path="copilot/tools" element={<ToolRegistry />} />
+                          <Route path="copilot/dashboard" element={<AIDashboard />} />
+                          <Route path="copilot/settings" element={<CopilotSettings />} />
+
+                          {/* Enterprise MLOps Platform (Phase 15) */}
+                          <Route path="mlops/dashboard" element={<MLOpsDashboard />} />
+                          <Route path="mlops/deployments" element={<DeploymentCenter />} />
+                          <Route path="mlops/pipelines" element={<PipelineManager />} />
+                          <Route path="mlops/monitoring" element={<MonitoringDashboard />} />
+                          <Route path="mlops/approvals" element={<ApprovalQueue />} />
+                          <Route path="mlops/retraining" element={<RetrainingCenter />} />
+
+                          {/* Enterprise Monitoring & Observability Platform (Phase 16) */}
+                          <Route path="observability/dashboard" element={<ObservabilityDashboard />} />
+                          <Route path="observability/health" element={<SystemHealth />} />
+                          <Route path="observability/logs" element={<LogExplorer />} />
+                          <Route path="observability/metrics" element={<MetricsExplorer />} />
+                          <Route path="observability/traces" element={<TraceViewer />} />
+                          <Route path="observability/alerts" element={<AlertCenter />} />
+                          <Route path="observability/business" element={<ObservabilityBusinessDashboard />} />
+                          <Route path="observability/ai" element={<AIMonitoringDashboard />} />
+
+                          {/* Enterprise Workflow Automation Platform (Phase 17) */}
+                          <Route path="workflows/dashboard" element={<WorkflowDashboard />} />
+                          <Route path="workflows/designer" element={<WorkflowDesigner />} />
+                          <Route path="workflows/designer/:id" element={<WorkflowDesigner />} />
+                          <Route path="workflows/rules" element={<RuleBuilder />} />
+                          <Route path="workflows/approvals" element={<ApprovalCenter />} />
+                          <Route path="workflows/scheduler" element={<SchedulerPage />} />
+                          <Route path="workflows/executions" element={<ExecutionMonitor />} />
+                          <Route path="workflows/templates" element={<WorkflowTemplates />} />
+
+                          {/* Enterprise Integration Platform (Phase 18) */}
+                          <Route path="integrations/dashboard" element={<IntegrationDashboard />} />
+                          <Route path="integrations/connectors" element={<ConnectorMarketplace />} />
+                          <Route path="integrations/gateway" element={<ApiGatewayPage />} />
+                          <Route path="integrations/webhooks" element={<WebhookCenter />} />
+                          <Route path="integrations/events" element={<EventMonitor />} />
+                          <Route path="integrations/queues" element={<QueueDashboard />} />
+                          <Route path="integrations/analytics" element={<ApiAnalyticsPage />} />
+
+                          {/* Production Readiness, Performance & Security Hardening (Phase 19) */}
+                          <Route path="production/security" element={<SecurityDashboard />} />
+                          <Route path="production/performance" element={<PerformanceDashboard />} />
+                          <Route path="production/compliance" element={<ComplianceCenter />} />
+                          <Route path="production/backups" element={<BackupCenter />} />
+                          <Route path="production/recovery" element={<RecoveryCenter />} />
+                          <Route path="production/readiness" element={<SystemReadinessDashboard />} />
+
+                          {/* Enterprise Cloud Deployment & Global Release (Phase 20) */}
+                          <Route path="cloud/releases" element={<ReleaseDashboard />} />
+                          <Route path="cloud/deployments" element={<DeploymentDashboard />} />
+                          <Route path="cloud/operations" element={<CloudOperations />} />
+                          <Route path="cloud/finops" element={<FinOpsDashboard />} />
+                          <Route path="cloud/incidents" element={<IncidentCenter />} />
+                          <Route path="cloud/status" element={<SystemStatus />} />
+
+                          {/* Security & Identity Dashboards */}
+                          <Route path="admin/users" element={<UserManagement />} />
+                          <Route path="admin/roles" element={<RoleManagement />} />
+                          <Route path="admin/permissions" element={<PermissionManagement />} />
+                          <Route path="admin/settings" element={<TenantSettings />} />
+                          <Route path="admin/sessions" element={<SessionsPage />} />
+                          <Route path="admin/login-history" element={<LoginHistoryPage />} />
+                          <Route path="admin/audit-logs" element={<AuditLogsPage />} />
+                          
+                          {/* Account Settings */}
+                          <Route path="settings/profile" element={<UserSettings />} />
+                          
+                          <Route path="*" element={<NotFound />} />
+                        </Route>
+                      </Route>
+                    </Route>
+                  </Routes>
+                  </AuthProvider>
+                </BrowserRouter>
+              </ErrorBoundary>
+            </ThemeProvider>
+          </UIProvider>
+        </NotificationProvider>
+      </SettingsProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;

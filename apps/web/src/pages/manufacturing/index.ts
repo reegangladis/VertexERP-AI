@@ -1,0 +1,10 @@
+export { ManufacturingDashboard } from './ManufacturingDashboard';
+export { BillOfMaterialsPage } from './BillOfMaterialsPage';
+export { RoutingsPage } from './RoutingsPage';
+export { WorkCentersPage } from './WorkCentersPage';
+export { MachinesPage } from './MachinesPage';
+export { ProductionOrdersPage } from './ProductionOrdersPage';
+export { ShopFloorPage } from './ShopFloorPage';
+export { QualityControlPage } from './QualityControlPage';
+export { MaintenancePage } from './MaintenancePage';
+export { MRPPage } from './MRPPage';
