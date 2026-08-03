@@ -1,108 +1,82 @@
 import uuid
-from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.connection import get_db
-from app.schemas.workflow import (
+from app.core.dependencies import get_db_session
+from app.repositories.scheduled_job import ScheduledJobRepository
+from app.schemas.scheduled_job import (
     ScheduledJobCreate,
     ScheduledJobResponse,
     ScheduledJobUpdate,
 )
-from app.services.scheduler_service import SchedulerService
+from app.services.scheduler_service import ScheduledJobService
 
 router = APIRouter()
 
 
-def _get_org_id() -> uuid.UUID | None:
-    return None
+def get_scheduler_service(
+    db: AsyncSession = Depends(get_db_session),
+) -> ScheduledJobService:
+    return ScheduledJobService(ScheduledJobRepository(db))
 
 
-@router.post(
-    "/", response_model=ScheduledJobResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("", response_model=ScheduledJobResponse, status_code=status.HTTP_201_CREATED)
 async def create_scheduled_job(
-    payload: ScheduledJobCreate,
-    db: AsyncSession = Depends(get_db),
+    data: ScheduledJobCreate,
+    service: ScheduledJobService = Depends(get_scheduler_service),
 ):
-    service = SchedulerService(db)
-    return await service.create_job(_get_org_id(), payload)
+    return await service.create(data)
 
 
-@router.get("/", response_model=list[ScheduledJobResponse])
+@router.get("", response_model=list[ScheduledJobResponse])
 async def list_scheduled_jobs(
-    status: str | None = Query(None),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(50, le=200),
-    db: AsyncSession = Depends(get_db),
+    organization_id: uuid.UUID | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    service: ScheduledJobService = Depends(get_scheduler_service),
 ):
-    service = SchedulerService(db)
-    return await service.list_jobs(_get_org_id(), status=status, skip=skip, limit=limit)
+    if organization_id:
+        return await service.get_by_org(organization_id)
+    items, _ = await service.get_multi(skip=skip, limit=limit)
+    return items
 
 
-@router.get("/preview-next-run")
-async def preview_next_run(
-    cron_expression: str = Query(...),
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    service = SchedulerService(db)
-    next_run = service.calculate_next_run(cron_expression)
-    return {"cron_expression": cron_expression, "next_run_at": next_run}
-
-
-@router.get("/{job_id}", response_model=ScheduledJobResponse)
+@router.get("/{id}", response_model=ScheduledJobResponse)
 async def get_scheduled_job(
-    job_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
+    id: uuid.UUID,
+    service: ScheduledJobService = Depends(get_scheduler_service),
 ):
-    service = SchedulerService(db)
-    job = await service.get_job(_get_org_id(), job_id)
+    job = await service.get(id)
     if not job:
-        raise HTTPException(status_code=404, detail="Scheduled job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scheduled job not found"
+        )
     return job
 
 
-@router.patch("/{job_id}", response_model=ScheduledJobResponse)
+@router.put("/{id}", response_model=ScheduledJobResponse)
 async def update_scheduled_job(
-    job_id: uuid.UUID,
-    payload: ScheduledJobUpdate,
-    db: AsyncSession = Depends(get_db),
+    id: uuid.UUID,
+    data: ScheduledJobUpdate,
+    service: ScheduledJobService = Depends(get_scheduler_service),
 ):
-    service = SchedulerService(db)
-    job = await service.update_job(_get_org_id(), job_id, payload)
+    job = await service.update(id, data)
     if not job:
-        raise HTTPException(status_code=404, detail="Scheduled job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scheduled job not found"
+        )
     return job
 
 
-@router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", response_model=ScheduledJobResponse)
 async def delete_scheduled_job(
-    job_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
+    id: uuid.UUID,
+    service: ScheduledJobService = Depends(get_scheduler_service),
 ):
-    service = SchedulerService(db)
-    deleted = await service.delete_job(_get_org_id(), job_id)
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Scheduled job not found")
-
-
-@router.post("/{job_id}/trigger", response_model=dict[str, Any])
-async def trigger_job_now(
-    job_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-):
-    service = SchedulerService(db)
-    result = await service.trigger_now(_get_org_id(), job_id)
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-    return result
-
-
-@router.post("/process-due-jobs", response_model=list[dict[str, Any]])
-async def process_due_jobs(
-    db: AsyncSession = Depends(get_db),
-):
-    """Internal system endpoint to fire all due scheduled jobs."""
-    service = SchedulerService(db)
-    return await service.process_due_jobs()
+    job = await service.delete(id)
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scheduled job not found"
+        )
+    return job

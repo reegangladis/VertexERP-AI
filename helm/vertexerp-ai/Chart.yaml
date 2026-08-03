@@ -1,0 +1,6 @@
+apiVersion: v2
+name: vertexerp-ai
+description: Enterprise AI ERP Platform Helm Chart
+type: application
+version: 16.0.0
+appVersion: "16.0.0"

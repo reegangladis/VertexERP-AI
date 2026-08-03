@@ -1,25 +1,28 @@
-import uuid
+from datetime import datetime
+from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict
 
 
-class PermissionCreate(BaseModel):
-    name: str = Field(..., min_length=2)
+class PermissionBase(BaseModel):
+    code: str
+    module: str = "core"
     description: str | None = None
-    category: str = "default"
+
+
+class PermissionCreate(PermissionBase):
+    pass
 
 
 class PermissionUpdate(BaseModel):
-    name: str | None = None
+    code: str | None = None
+    module: str | None = None
     description: str | None = None
-    category: str | None = None
 
 
-class PermissionResponse(BaseModel):
-    id: uuid.UUID
-    name: str
-    description: str | None = None
-    category: str
+class PermissionResponse(PermissionBase):
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    id: UUID
+    created_at: datetime
+    updated_at: datetime

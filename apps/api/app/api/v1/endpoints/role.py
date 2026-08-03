@@ -3,136 +3,70 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import PermissionChecker, get_db_session
-from app.models.user import User
-from app.schemas.response import APIResponse
-from app.schemas.role import RoleAssignPermissions, RoleCreate, RoleResponse, RoleUpdate
-from app.utils.response import standard_json_response
+from app.core.dependencies import get_db_session
+from app.repositories.permission import PermissionRepository
+from app.repositories.role import RoleRepository
+from app.schemas.role import RoleCreate, RoleResponse, RoleUpdate
+from app.services.role_service import RoleService
 
 router = APIRouter()
 
 
-# Services
-async def get_role_service(db: AsyncSession = Depends(get_db_session)):
-    from app.repositories.permission import PermissionRepository
-    from app.repositories.role import RoleRepository
-    from app.services.role import RoleService
-
+def get_role_service(
+    db: AsyncSession = Depends(get_db_session),
+) -> RoleService:
     return RoleService(RoleRepository(db), PermissionRepository(db))
 
 
-@router.get("", response_model=APIResponse[list[RoleResponse]])
-async def list_roles(
-    current_user: User = Depends(PermissionChecker("roles.read")),
-    role_service=Depends(get_role_service),
-):
-    roles = await role_service.get_roles_by_org(current_user.organization_id)
-    data = [RoleResponse.model_validate(r) for r in roles]
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Roles retrieved successfully",
-        data=data,
-    )
-
-
-@router.post(
-    "", response_model=APIResponse[RoleResponse], status_code=status.HTTP_201_CREATED
-)
+@router.post("", response_model=RoleResponse, status_code=status.HTTP_201_CREATED)
 async def create_role(
-    payload: RoleCreate,
-    current_user: User = Depends(PermissionChecker("roles.manage")),
-    role_service=Depends(get_role_service),
+    data: RoleCreate,
+    service: RoleService = Depends(get_role_service),
 ):
-    role_in = {
-        "name": payload.name,
-        "description": payload.description,
-        "organization_id": current_user.organization_id,
-    }
+    return await service.create_role(data)
 
-    # Check if role name already exists
-    existing = await role_service.get_by_name(payload.name)
-    if existing:
+
+@router.get("", response_model=list[RoleResponse])
+async def list_roles(
+    organization_id: uuid.UUID | None = None,
+    service: RoleService = Depends(get_role_service),
+):
+    if organization_id:
+        return await service.get_by_org(organization_id)
+    items, _ = await service.get_multi()
+    return items
+
+
+@router.get("/{id}", response_model=RoleResponse)
+async def get_role(
+    id: uuid.UUID,
+    service: RoleService = Depends(get_role_service),
+):
+    role = await service.repository.get_with_permissions(id)
+    if not role:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Role name already exists"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Role not found"
         )
-
-    role = await role_service.create(role_in)
-    return standard_json_response(
-        status_code=status.HTTP_201_CREATED,
-        success=True,
-        message="Role created successfully",
-        data=RoleResponse.model_validate(role),
-    )
+    return role
 
 
-@router.put("/{role_id}", response_model=APIResponse[RoleResponse])
+@router.put("/{id}", response_model=RoleResponse)
 async def update_role(
-    role_id: uuid.UUID,
-    payload: RoleUpdate,
-    current_user: User = Depends(PermissionChecker("roles.manage")),
-    role_service=Depends(get_role_service),
+    id: uuid.UUID,
+    data: RoleUpdate,
+    service: RoleService = Depends(get_role_service),
 ):
-    role = await role_service.get(role_id)
-    if not role or (
-        role.organization_id and role.organization_id != current_user.organization_id
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Role not found"
-        )
-
-    updated = await role_service.update(role_id, payload)
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Role updated successfully",
-        data=RoleResponse.model_validate(updated),
-    )
+    return await service.update_role(id, data)
 
 
-@router.delete("/{role_id}")
+@router.delete("/{id}", response_model=RoleResponse)
 async def delete_role(
-    role_id: uuid.UUID,
-    current_user: User = Depends(PermissionChecker("roles.manage")),
-    role_service=Depends(get_role_service),
+    id: uuid.UUID,
+    service: RoleService = Depends(get_role_service),
 ):
-    role = await role_service.get(role_id)
-    if not role or (
-        role.organization_id and role.organization_id != current_user.organization_id
-    ):
+    role = await service.delete(id)
+    if not role:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Role not found"
         )
-
-    await role_service.delete(role_id)
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Role deleted successfully",
-    )
-
-
-@router.post("/{role_id}/permissions", response_model=APIResponse[RoleResponse])
-async def assign_permissions(
-    role_id: uuid.UUID,
-    payload: RoleAssignPermissions,
-    current_user: User = Depends(PermissionChecker("roles.manage")),
-    role_service=Depends(get_role_service),
-):
-    role = await role_service.get(role_id)
-    if not role or (
-        role.organization_id and role.organization_id != current_user.organization_id
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Role not found"
-        )
-
-    updated = await role_service.assign_permissions_to_role(
-        role_id, payload.permissions
-    )
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Permissions assigned to role successfully",
-        data=RoleResponse.model_validate(updated),
-    )
+    return role

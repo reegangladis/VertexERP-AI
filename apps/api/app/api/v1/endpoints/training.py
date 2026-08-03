@@ -1,86 +1,201 @@
 import uuid
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
-
-from app.core.dependencies import get_current_user, get_db_session
-from app.models.training import TrainingRecord
+from app.core.dependencies import PermissionChecker, get_current_user, get_db_session
 from app.models.user import User
-from app.repositories.hr_mgmt import TrainingCourseRepository, TrainingRecordRepository
-from app.schemas.hr_mgmt import (
+from app.schemas.training import (
+    AssessmentAttemptResponse,
+    AssessmentCreate,
+    AssessmentResponse,
+    AssessmentSubmit,
+    CourseModuleCreate,
+    CourseModuleResponse,
+    EmployeeSkillCreate,
+    EmployeeSkillResponse,
+    EmployeeTrainingAssign,
+    EmployeeTrainingProgress,
+    EmployeeTrainingResponse,
+    InstructorCreate,
+    InstructorResponse,
+    LearningPathCreate,
+    LearningPathResponse,
+    SkillMatrixCreate,
+    SkillMatrixResponse,
     TrainingCourseCreate,
     TrainingCourseResponse,
-    TrainingRecordCreate,
-    TrainingRecordResponse,
+    TrainingDashboardSummary,
+    TrainingSessionCreate,
+    TrainingSessionResponse,
 )
-from app.schemas.response import APIResponse
-from app.utils.response import standard_json_response
+from app.services.training import TrainingService
 
 router = APIRouter()
 
 
-# 1. Course Endpoints
-@router.get("/courses", response_model=APIResponse[list[TrainingCourseResponse]])
-async def list_courses(
-    current_user: User = Depends(get_current_user), db=Depends(get_db_session)
-):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User not bound to organization")
-    repo = TrainingCourseRepository(db)
-    courses = await repo.get_by_org(current_user.organization_id)
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Training courses retrieved successfully",
-        data=courses,
-    )
+def get_training_service(db: AsyncSession = Depends(get_db_session)) -> TrainingService:
+    return TrainingService(db)
 
 
-@router.post("/courses", response_model=APIResponse[TrainingCourseResponse])
+# --- Training Courses & Modules ---
+@router.post("/courses", response_model=TrainingCourseResponse, status_code=status.HTTP_201_CREATED)
 async def create_course(
     payload: TrainingCourseCreate,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db_session),
+    current_user: User = Depends(PermissionChecker("course.manage")),
+    service: TrainingService = Depends(get_training_service),
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User not bound to organization")
-    repo = TrainingCourseRepository(db)
-    course = await repo.create(
-        {"organization_id": current_user.organization_id, **payload.dict()}
-    )
-    return standard_json_response(
-        status_code=status.HTTP_201_CREATED,
-        success=True,
-        message="Training course created successfully",
-        data=course,
-    )
+    return await service.create_course(payload)
 
 
-# 2. Progress Tracker Endpoints
-@router.get("/records", response_model=APIResponse[list[TrainingRecordResponse]])
-async def list_records(
-    employee_id: uuid.UUID | None = None, db=Depends(get_db_session)
+@router.get("/courses", response_model=list[TrainingCourseResponse])
+async def list_courses(
+    org_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("training.read")),
+    service: TrainingService = Depends(get_training_service),
 ):
-    stmt = select(TrainingRecord).where(TrainingRecord.is_deleted == False)
-    if employee_id:
-        stmt = stmt.where(TrainingRecord.employee_id == employee_id)
-    res = await db.execute(stmt)
-    records = list(res.scalars().all())
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Training assignments retrieved successfully",
-        data=records,
-    )
+    return await service.list_courses(org_id)
 
 
-@router.post("/records", response_model=APIResponse[TrainingRecordResponse])
-async def assign_course(payload: TrainingRecordCreate, db=Depends(get_db_session)):
-    repo = TrainingRecordRepository(db)
-    record = await repo.create(payload.dict())
-    return standard_json_response(
-        status_code=status.HTTP_201_CREATED,
-        success=True,
-        message="Course assigned to employee",
-        data=record,
-    )
+@router.post("/courses/{id}/modules", response_model=CourseModuleResponse, status_code=status.HTTP_201_CREATED)
+async def create_module(
+    id: uuid.UUID,
+    payload: CourseModuleCreate,
+    current_user: User = Depends(PermissionChecker("course.manage")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.create_module(id, payload)
+
+
+# --- Learning Paths ---
+@router.post("/learning-paths", response_model=LearningPathResponse, status_code=status.HTTP_201_CREATED)
+async def create_learning_path(
+    payload: LearningPathCreate,
+    current_user: User = Depends(PermissionChecker("course.manage")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.create_learning_path(payload)
+
+
+@router.get("/learning-paths", response_model=list[LearningPathResponse])
+async def list_learning_paths(
+    org_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("training.read")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.list_learning_paths(org_id)
+
+
+# --- Training Assignments & Progress ---
+@router.post("/assign", response_model=EmployeeTrainingResponse, status_code=status.HTTP_201_CREATED)
+async def assign_training(
+    payload: EmployeeTrainingAssign,
+    current_user: User = Depends(PermissionChecker("training.assign")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.assign_training(payload)
+
+
+@router.post("/trainings/{id}/progress", response_model=EmployeeTrainingResponse)
+async def update_progress(
+    id: uuid.UUID,
+    payload: EmployeeTrainingProgress,
+    current_user: User = Depends(PermissionChecker("training.read")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.update_progress(id, payload)
+
+
+@router.get("/employee-trainings", response_model=list[EmployeeTrainingResponse])
+async def list_employee_trainings(
+    employee_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("training.read")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.list_employee_trainings(employee_id)
+
+
+# --- Assessments & Attempts ---
+@router.post("/assessments", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
+async def create_assessment(
+    payload: AssessmentCreate,
+    current_user: User = Depends(PermissionChecker("assessment.manage")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.create_assessment(payload)
+
+
+@router.post("/assessments/{id}/submit", response_model=AssessmentAttemptResponse, status_code=status.HTTP_201_CREATED)
+async def submit_assessment(
+    id: uuid.UUID,
+    payload: AssessmentSubmit,
+    current_user: User = Depends(PermissionChecker("training.read")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.submit_assessment(id, payload)
+
+
+# --- Instructors & Sessions ---
+@router.post("/instructors", response_model=InstructorResponse, status_code=status.HTTP_201_CREATED)
+async def create_instructor(
+    payload: InstructorCreate,
+    current_user: User = Depends(PermissionChecker("training.manage")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.create_instructor(payload)
+
+
+@router.post("/sessions", response_model=TrainingSessionResponse, status_code=status.HTTP_201_CREATED)
+async def create_session(
+    payload: TrainingSessionCreate,
+    current_user: User = Depends(PermissionChecker("training.manage")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.create_session(payload)
+
+
+@router.get("/sessions", response_model=list[TrainingSessionResponse])
+async def list_sessions(
+    course_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("training.read")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.list_sessions(course_id)
+
+
+# --- Skills & Skill Matrix ---
+@router.post("/skills", response_model=EmployeeSkillResponse, status_code=status.HTTP_201_CREATED)
+async def add_employee_skill(
+    payload: EmployeeSkillCreate,
+    current_user: User = Depends(PermissionChecker("training.read")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.add_employee_skill(payload)
+
+
+@router.get("/skills", response_model=list[EmployeeSkillResponse])
+async def list_employee_skills(
+    employee_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("training.read")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.list_employee_skills(employee_id)
+
+
+@router.post("/skill-matrix", response_model=SkillMatrixResponse, status_code=status.HTTP_201_CREATED)
+async def create_skill_matrix(
+    payload: SkillMatrixCreate,
+    current_user: User = Depends(PermissionChecker("learning.admin")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.create_skill_matrix(payload)
+
+
+# --- Dashboard Summary ---
+@router.get("/dashboard-summary", response_model=TrainingDashboardSummary)
+async def get_dashboard_summary(
+    org_id: uuid.UUID = Query(...),
+    employee_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("training.read")),
+    service: TrainingService = Depends(get_training_service),
+):
+    return await service.get_dashboard_summary(org_id, employee_id)

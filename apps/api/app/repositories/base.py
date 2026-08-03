@@ -1,3 +1,4 @@
+import uuid
 from typing import Any
 
 from sqlalchemy import asc, desc, func, select
@@ -89,6 +90,8 @@ class BaseRepository[ModelType: Base]:
 
             valid_keys = {c.key for c in self.model.__table__.columns}
             filtered_data = {k: v for k, v in obj_data.items() if k in valid_keys}
+            if ("id" not in filtered_data or filtered_data["id"] is None) and hasattr(self.model, "id"):
+                filtered_data["id"] = uuid.uuid4()
             db_obj = self.model(**filtered_data)
 
         self.db.add(db_obj)
@@ -96,8 +99,12 @@ class BaseRepository[ModelType: Base]:
         await self.db.refresh(db_obj)
         return db_obj
 
-    async def update(self, db_obj: ModelType, obj_in: Any) -> ModelType:
+    async def update(self, db_obj: ModelType | Any, obj_in: Any) -> ModelType:
         """Updates an existing database record with the provided parameters."""
+        if not isinstance(db_obj, self.model):
+            found_obj = await self.get(db_obj)
+            if found_obj:
+                db_obj = found_obj
         db_obj = await self.db.merge(db_obj)
         if hasattr(obj_in, "model_dump"):
             update_data = obj_in.model_dump(exclude_unset=True)

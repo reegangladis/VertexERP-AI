@@ -1,38 +1,33 @@
-import uuid
+from datetime import datetime
+from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict
+
+from app.schemas.permission import PermissionResponse
 
 
-class PermissionSummary(BaseModel):
-    id: uuid.UUID
+class RoleBase(BaseModel):
     name: str
     description: str | None = None
-    category: str
-
-    class Config:
-        from_attributes = True
+    is_system: bool = False
 
 
-class RoleResponse(BaseModel):
-    id: uuid.UUID
-    name: str
-    description: str | None = None
-    organization_id: uuid.UUID | None = None
-    permissions: list[PermissionSummary] = []
-
-    class Config:
-        from_attributes = True
-
-
-class RoleCreate(BaseModel):
-    name: str = Field(..., min_length=2)
-    description: str | None = None
+class RoleCreate(RoleBase):
+    organization_id: UUID | None = None
+    permission_ids: list[UUID] = []
 
 
 class RoleUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
+    permission_ids: list[UUID] | None = None
 
 
-class RoleAssignPermissions(BaseModel):
-    permissions: list[str]
+class RoleResponse(RoleBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    organization_id: UUID | None = None
+    permissions: list[PermissionResponse] = []
+    created_at: datetime
+    updated_at: datetime

@@ -3,7 +3,12 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.organization import Organization, TenantSetting
+from app.models.organization import (
+    Organization,
+    OrganizationMetadata,
+    OrganizationSetting,
+    TenantSetting,
+)
 from app.models.security_setting import SecuritySetting
 from app.repositories.base import BaseRepository
 
@@ -27,6 +32,32 @@ class TenantSettingRepository(BaseRepository[TenantSetting]):
     async def get_by_org_id(self, org_id: uuid.UUID) -> TenantSetting | None:
         stmt = select(TenantSetting).where(
             TenantSetting.organization_id == org_id, TenantSetting.is_deleted == False
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+
+class OrganizationSettingRepository(BaseRepository[OrganizationSetting]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(OrganizationSetting, db)
+
+    async def get_by_org_id(self, org_id: uuid.UUID) -> OrganizationSetting | None:
+        stmt = select(OrganizationSetting).where(
+            OrganizationSetting.organization_id == org_id,
+            OrganizationSetting.is_deleted == False,
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+
+class OrganizationMetadataRepository(BaseRepository[OrganizationMetadata]):
+    def __init__(self, db: AsyncSession):
+        super().__init__(OrganizationMetadata, db)
+
+    async def get_by_org_id(self, org_id: uuid.UUID) -> OrganizationMetadata | None:
+        stmt = select(OrganizationMetadata).where(
+            OrganizationMetadata.organization_id == org_id,
+            OrganizationMetadata.is_deleted == False,
         )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()

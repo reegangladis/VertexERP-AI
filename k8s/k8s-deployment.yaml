@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vertexerp-api-deployment
+  labels:
+    app: vertexerp-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: vertexerp-api
+  template:
+    metadata:
+      labels:
+        app: vertexerp-api
+    spec:
+      containers:
+      - name: api
+        image: vertexerp-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        resources:
+          limits:
+            cpu: "1000m"
+            memory: "1024Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vertexerp-api-service
+spec:
+  type: ClusterIP
+  selector:
+    app: vertexerp-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000

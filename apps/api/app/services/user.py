@@ -1,84 +1,64 @@
-from datetime import UTC, datetime, timedelta
+import uuid
 
-from app.core.security import hash_password, verify_password
+from fastapi import HTTPException, status
+
+from app.core.security import hash_password
 from app.models.user import User
-from app.repositories.user import PasswordHistoryRepository, UserRepository
+from app.repositories.role import RoleRepository
+from app.repositories.user import UserRepository
+from app.schemas.user import UserCreate, UserUpdate
 from app.services.base import BaseService
 
 
 class UserService(BaseService[User, UserRepository]):
-    def __init__(
-        self,
-        repository: UserRepository,
-        password_history_repo: PasswordHistoryRepository,
-    ):
+    def __init__(self, repository: UserRepository, role_repo: RoleRepository):
         super().__init__(repository)
-        self.password_history_repo = password_history_repo
+        self.role_repo = role_repo
 
-    async def get_by_email(self, email: str) -> User | None:
-        return await self.repository.get_by_email(email)
+    async def create_user(self, obj_in: UserCreate) -> User:
+        existing_email = await self.repository.get_by_email(obj_in.email)
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email is already registered",
+            )
+        existing_username = await self.repository.get_by_username(obj_in.username)
+        if existing_username:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username is already taken",
+            )
 
-    async def get_by_username(self, username: str) -> User | None:
-        return await self.repository.get_by_username(username)
+        data = obj_in.model_dump(exclude={"role_ids", "password"})
+        data["password_hash"] = hash_password(obj_in.password)
 
-    async def create_user(self, user_in: dict) -> User:
-        clear_pwd = user_in.pop("password")
-        pwd_hash = hash_password(clear_pwd)
-        user_in["password_hash"] = pwd_hash
+        user = await self.repository.create(data)
+        if obj_in.role_ids:
+            await self.repository.assign_roles(user, obj_in.role_ids)
 
-        user = await self.repository.create(user_in)
+        return await self.repository.get_with_roles(user.id) or user
 
-        # Log to password history
-        await self.password_history_repo.create(
-            {"user_id": user.id, "password_hash": pwd_hash}
-        )
+    async def update_user(self, user_id: uuid.UUID, obj_in: UserUpdate) -> User:
+        user = await self.repository.get(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
 
+        update_data = obj_in.model_dump(exclude_unset=True, exclude={"role_ids"})
+        for k, v in update_data.items():
+            setattr(user, k, v)
+
+        if obj_in.role_ids is not None:
+            await self.repository.assign_roles(user, obj_in.role_ids)
+
+        await self.repository.db.commit()
+        return await self.repository.get_with_roles(user_id) or user
+
+    async def get_user_with_roles(self, user_id: uuid.UUID) -> User:
+        user = await self.repository.get_with_roles(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
         return user
-
-    async def update_password(self, user: User, new_password: str) -> User:
-        pwd_hash = hash_password(new_password)
-
-        # Verify password history constraints (not matching last 3 passwords)
-        history = await self.password_history_repo.get_history_by_user(user.id)
-        for old_pwd in history[:3]:
-            if verify_password(new_password, old_pwd.password_hash):
-                raise ValueError(
-                    "Password matches one of your last 3 passwords. Please choose another."
-                )
-
-        user.password_hash = pwd_hash
-        updated = await self.repository.update(user, {"password_hash": pwd_hash})
-
-        # Log new password history record
-        await self.password_history_repo.create(
-            {"user_id": user.id, "password_hash": pwd_hash}
-        )
-
-        return updated
-
-    async def increment_failed_attempts(
-        self, user: User, threshold: int = 5, duration_minutes: int = 15
-    ) -> User:
-        user.failed_login_attempts += 1
-        update_dict = {"failed_login_attempts": user.failed_login_attempts}
-
-        if user.failed_login_attempts >= threshold:
-            user.locked_until = datetime.now(UTC) + timedelta(minutes=duration_minutes)
-            update_dict["locked_until"] = user.locked_until
-            update_dict["status"] = "locked"
-
-        return await self.repository.update(user, update_dict)
-
-    async def reset_failed_attempts(self, user: User) -> User:
-        update_dict = {"failed_login_attempts": 0, "locked_until": None}
-        if user.status == "locked":
-            update_dict["status"] = "active"
-        return await self.repository.update(user, update_dict)
-
-    async def is_account_locked(self, user: User) -> bool:
-        if user.locked_until:
-            if user.locked_until > datetime.now(UTC):
-                return True
-            # Lock has expired, reset attempts
-            await self.reset_failed_attempts(user)
-        return False

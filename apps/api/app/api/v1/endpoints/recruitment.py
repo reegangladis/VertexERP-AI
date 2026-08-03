@@ -1,183 +1,284 @@
 import uuid
-from datetime import datetime
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
-
-from app.core.dependencies import get_current_user, get_db_session
-from app.models.recruitment import Application, Interview
+from app.core.dependencies import PermissionChecker, get_db_session
 from app.models.user import User
-from app.repositories.hr_mgmt import (
-    ApplicationRepository,
-    CandidateRepository,
-    InterviewRepository,
-    RecruitmentJobRepository,
-)
-from app.schemas.hr_mgmt import (
+from app.schemas.recruitment import (
     ApplicationCreate,
+    ApplicationMoveStage,
     ApplicationResponse,
-    ApplicationUpdate,
     CandidateCreate,
+    CandidateDocumentCreate,
+    CandidateDocumentResponse,
     CandidateResponse,
-    InterviewCreate,
-    InterviewResponse,
+    CandidateUpdate,
+    InterviewFeedbackCreate,
+    InterviewFeedbackResponse,
+    InterviewRoundCreate,
+    InterviewRoundResponse,
+    InterviewRoundUpdate,
+    JobOfferCreate,
+    JobOfferResponse,
+    JobOfferUpdate,
+    OnboardingTaskResponse,
+    OnboardingTaskUpdate,
+    RecruitmentAgencyCreate,
+    RecruitmentAgencyResponse,
+    RecruitmentDashboardSummary,
     RecruitmentJobCreate,
     RecruitmentJobResponse,
+    RecruitmentJobUpdate,
 )
-from app.schemas.response import APIResponse
-from app.utils.response import standard_json_response
+from app.services.recruitment import RecruitmentService
 
 router = APIRouter()
 
 
-# 1. Job Positions Endpoints
-@router.get("/jobs", response_model=APIResponse[list[RecruitmentJobResponse]])
-async def list_jobs(
-    current_user: User = Depends(get_current_user), db=Depends(get_db_session)
-):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User not bound to organization")
-    repo = RecruitmentJobRepository(db)
-    jobs = await repo.get_by_org(current_user.organization_id)
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Job positions retrieved successfully",
-        data=jobs,
-    )
+def get_recruitment_service(db: AsyncSession = Depends(get_db_session)) -> RecruitmentService:
+    return RecruitmentService(db)
 
 
-@router.post("/jobs", response_model=APIResponse[RecruitmentJobResponse])
+# --- Recruitment Jobs ---
+@router.post("/recruitment-jobs", response_model=RecruitmentJobResponse, status_code=status.HTTP_201_CREATED)
 async def create_job(
     payload: RecruitmentJobCreate,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db_session),
+    current_user: User = Depends(PermissionChecker("recruitment.create")),
+    service: RecruitmentService = Depends(get_recruitment_service),
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User not bound to organization")
-    repo = RecruitmentJobRepository(db)
-    job = await repo.create(
-        {"organization_id": current_user.organization_id, **payload.dict()}
-    )
-    return standard_json_response(
-        status_code=status.HTTP_201_CREATED,
-        success=True,
-        message="Job position published successfully",
-        data=job,
-    )
+    return await service.create_job(payload)
 
 
-# 2. Candidate Endpoints
-@router.get("/candidates", response_model=APIResponse[list[CandidateResponse]])
-async def list_candidates(
-    current_user: User = Depends(get_current_user), db=Depends(get_db_session)
+@router.get("/recruitment-jobs", response_model=list[RecruitmentJobResponse])
+async def list_jobs(
+    org_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("recruitment.read")),
+    service: RecruitmentService = Depends(get_recruitment_service),
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User not bound to organization")
-    repo = CandidateRepository(db)
-    candidates = await repo.get_by_org(current_user.organization_id)
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Candidates retrieved successfully",
-        data=candidates,
-    )
+    return await service.list_jobs(org_id)
 
 
-@router.post("/candidates", response_model=APIResponse[CandidateResponse])
+@router.get("/recruitment-jobs/{id}", response_model=RecruitmentJobResponse)
+async def get_job(
+    id: uuid.UUID,
+    current_user: User = Depends(PermissionChecker("recruitment.read")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.get_job(id)
+
+
+@router.patch("/recruitment-jobs/{id}", response_model=RecruitmentJobResponse)
+async def update_job(
+    id: uuid.UUID,
+    payload: RecruitmentJobUpdate,
+    current_user: User = Depends(PermissionChecker("recruitment.update")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.update_job(id, payload)
+
+
+@router.delete("/recruitment-jobs/{id}", response_model=RecruitmentJobResponse)
+async def delete_job(
+    id: uuid.UUID,
+    current_user: User = Depends(PermissionChecker("recruitment.delete")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.delete_job(id)
+
+
+# --- Candidates ---
+@router.post("/candidates", response_model=CandidateResponse, status_code=status.HTTP_201_CREATED)
 async def create_candidate(
     payload: CandidateCreate,
-    current_user: User = Depends(get_current_user),
-    db=Depends(get_db_session),
+    current_user: User = Depends(PermissionChecker("candidate.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User not bound to organization")
-    repo = CandidateRepository(db)
-    candidate = await repo.create(
-        {"organization_id": current_user.organization_id, **payload.dict()}
-    )
-    return standard_json_response(
-        status_code=status.HTTP_201_CREATED,
-        success=True,
-        message="Candidate created successfully",
-        data=candidate,
-    )
+    return await service.create_candidate(payload)
 
 
-# 3. Application Pipeline Endpoints
-@router.get("/applications", response_model=APIResponse[list[ApplicationResponse]])
-async def list_applications(
-    job_id: uuid.UUID | None = None, db=Depends(get_db_session)
+@router.get("/candidates", response_model=list[CandidateResponse])
+async def list_candidates(
+    org_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("recruitment.read")),
+    service: RecruitmentService = Depends(get_recruitment_service),
 ):
-    stmt = select(Application).where(Application.is_deleted == False)
-    if job_id:
-        stmt = stmt.where(Application.job_id == job_id)
-    res = await db.execute(stmt)
-    apps = list(res.scalars().all())
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Applications retrieved successfully",
-        data=apps,
-    )
+    return await service.list_candidates(org_id)
 
 
-@router.post("/applications", response_model=APIResponse[ApplicationResponse])
-async def create_application(payload: ApplicationCreate, db=Depends(get_db_session)):
-    repo = ApplicationRepository(db)
-    app_obj = await repo.create(
-        {**payload.dict(), "date_applied": datetime.now().date()}
-    )
-    return standard_json_response(
-        status_code=status.HTTP_201_CREATED,
-        success=True,
-        message="Application submitted to hiring pipeline",
-        data=app_obj,
-    )
-
-
-@router.put("/applications/{id}", response_model=APIResponse[ApplicationResponse])
-async def update_application(
-    id: uuid.UUID, payload: ApplicationUpdate, db=Depends(get_db_session)
+@router.get("/candidates/{id}", response_model=CandidateResponse)
+async def get_candidate(
+    id: uuid.UUID,
+    current_user: User = Depends(PermissionChecker("recruitment.read")),
+    service: RecruitmentService = Depends(get_recruitment_service),
 ):
-    repo = ApplicationRepository(db)
-    app_obj = await repo.get(id)
-    if not app_obj:
-        raise HTTPException(status_code=404, detail="Application not found")
-    updated = await repo.update(app_obj, payload.dict(exclude_unset=True))
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Hiring stage updated",
-        data=updated,
-    )
+    return await service.get_candidate(id)
 
 
-# 4. Interview Scheduler Endpoints
-@router.get("/interviews", response_model=APIResponse[list[InterviewResponse]])
-async def list_interviews(
-    application_id: uuid.UUID | None = None, db=Depends(get_db_session)
+@router.patch("/candidates/{id}", response_model=CandidateResponse)
+async def update_candidate(
+    id: uuid.UUID,
+    payload: CandidateUpdate,
+    current_user: User = Depends(PermissionChecker("candidate.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
 ):
-    stmt = select(Interview).where(Interview.is_deleted == False)
-    if application_id:
-        stmt = stmt.where(Interview.application_id == application_id)
-    res = await db.execute(stmt)
-    ints = list(res.scalars().all())
-    return standard_json_response(
-        status_code=status.HTTP_200_OK,
-        success=True,
-        message="Interviews retrieved successfully",
-        data=ints,
-    )
+    return await service.update_candidate(id, payload)
 
 
-@router.post("/interviews", response_model=APIResponse[InterviewResponse])
-async def create_interview(payload: InterviewCreate, db=Depends(get_db_session)):
-    repo = InterviewRepository(db)
-    int_obj = await repo.create(payload.dict())
-    return standard_json_response(
-        status_code=status.HTTP_201_CREATED,
-        success=True,
-        message="Interview scheduled successfully",
-        data=int_obj,
-    )
+@router.delete("/candidates/{id}", response_model=CandidateResponse)
+async def delete_candidate(
+    id: uuid.UUID,
+    current_user: User = Depends(PermissionChecker("candidate.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.delete_candidate(id)
+
+
+# --- Job Applications ---
+@router.post("/applications", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED)
+async def apply_for_job(
+    payload: ApplicationCreate,
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.apply_for_job(payload)
+
+
+@router.get("/applications", response_model=list[ApplicationResponse])
+async def list_applications_by_job(
+    job_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("recruitment.read")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.list_applications_by_job(job_id)
+
+
+@router.post("/applications/{id}/move-stage", response_model=ApplicationResponse)
+async def move_pipeline_stage(
+    id: uuid.UUID,
+    payload: ApplicationMoveStage,
+    current_user: User = Depends(PermissionChecker("candidate.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.move_pipeline_stage(id, payload)
+
+
+@router.post("/applications/{id}/withdraw", response_model=ApplicationResponse)
+async def withdraw_application(
+    id: uuid.UUID,
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.withdraw_application(id)
+
+
+# --- Interview Rounds & Feedback ---
+@router.post("/interview-rounds", response_model=InterviewRoundResponse, status_code=status.HTTP_201_CREATED)
+async def schedule_interview(
+    payload: InterviewRoundCreate,
+    current_user: User = Depends(PermissionChecker("interview.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.schedule_interview(payload)
+
+
+@router.post("/interview-feedback", response_model=InterviewFeedbackResponse, status_code=status.HTTP_201_CREATED)
+async def submit_feedback(
+    payload: InterviewFeedbackCreate,
+    current_user: User = Depends(PermissionChecker("interview.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.submit_feedback(payload)
+
+
+# --- Job Offers ---
+@router.post("/job-offers", response_model=JobOfferResponse, status_code=status.HTTP_201_CREATED)
+async def create_offer(
+    payload: JobOfferCreate,
+    current_user: User = Depends(PermissionChecker("offer.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.create_offer(payload)
+
+
+@router.post("/job-offers/{id}/accept", response_model=JobOfferResponse)
+async def accept_offer(
+    id: uuid.UUID,
+    current_user: User = Depends(PermissionChecker("offer.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.accept_offer(id)
+
+
+@router.post("/job-offers/{id}/reject", response_model=JobOfferResponse)
+async def reject_offer(
+    id: uuid.UUID,
+    current_user: User = Depends(PermissionChecker("offer.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.reject_offer(id)
+
+
+# --- Candidate Documents ---
+@router.post("/candidate-documents", response_model=CandidateDocumentResponse, status_code=status.HTTP_201_CREATED)
+async def upload_document(
+    payload: CandidateDocumentCreate,
+    current_user: User = Depends(PermissionChecker("candidate.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.upload_document(payload)
+
+
+@router.post("/candidate-documents/{id}/verify", response_model=CandidateDocumentResponse)
+async def verify_document(
+    id: uuid.UUID,
+    current_user: User = Depends(PermissionChecker("candidate.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.verify_document(id)
+
+
+# --- Onboarding Tasks ---
+@router.get("/onboarding-tasks", response_model=list[OnboardingTaskResponse])
+async def list_onboarding_tasks(
+    offer_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("onboarding.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.list_onboarding_tasks(offer_id)
+
+
+@router.patch("/onboarding-tasks/{id}", response_model=OnboardingTaskResponse)
+async def update_onboarding_task(
+    id: uuid.UUID,
+    payload: OnboardingTaskUpdate,
+    current_user: User = Depends(PermissionChecker("onboarding.manage")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.update_onboarding_task(id, payload)
+
+
+# --- Recruitment Agencies ---
+@router.post("/recruitment-agencies", response_model=RecruitmentAgencyResponse, status_code=status.HTTP_201_CREATED)
+async def create_agency(
+    payload: RecruitmentAgencyCreate,
+    current_user: User = Depends(PermissionChecker("recruitment.create")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.create_agency(payload)
+
+
+@router.get("/recruitment-agencies", response_model=list[RecruitmentAgencyResponse])
+async def list_agencies(
+    org_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("recruitment.read")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.list_agencies(org_id)
+
+
+# --- Dashboard Summary ---
+@router.get("/recruitment-dashboard-summary", response_model=RecruitmentDashboardSummary)
+async def get_dashboard_summary(
+    org_id: uuid.UUID = Query(...),
+    current_user: User = Depends(PermissionChecker("recruitment.read")),
+    service: RecruitmentService = Depends(get_recruitment_service),
+):
+    return await service.get_dashboard_summary(org_id)
