@@ -1,0 +1,158 @@
+# ==============================================================================
+# VertexERP AI V2 - Render Infrastructure Blueprint
+# ==============================================================================
+# Production multi-tier stack defining:
+# 1. PostgreSQL 16 managed database with pgvector
+# 2. Redis-compatible Key-Value broker and cache
+# 3. FastAPI ASGI web service running containerized multi-worker runtime
+# 4. Standalone Background Worker daemon consuming Redis Streams
+# ==============================================================================
+
+databases:
+  - name: vertexerp-postgres
+    plan: standard
+    databaseName: vertexerp_v2
+    user: vertexerp
+    region: oregon
+    postgresMajorVersion: "16"
+    ipAllowList: []
+
+services:
+  # ----------------------------------------------------------------------------
+  # In-Memory Cache & Stream Broker: Render Key Value (Redis-compatible)
+  # ----------------------------------------------------------------------------
+  - type: redis
+    name: vertexerp-redis
+    plan: standard
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: volatile-lru
+
+  # ----------------------------------------------------------------------------
+  # Production FastAPI ASGI Web Service
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: vertexerp-api
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    plan: standard
+    region: oregon
+    healthCheckPath: /health/live
+    numInstances: 1
+    envVars:
+      - key: APP_NAME
+        value: VertexERP-AI-V2
+      - key: APP_ENV
+        value: production
+      - key: APP_VERSION
+        value: 2.0.0
+      - key: DEBUG
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vertexerp-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: vertexerp-redis
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "15"
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: "7"
+      - key: INTEGRATION_SIGNING_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: STORAGE_ENDPOINT_URL
+        sync: false
+      - key: STORAGE_PUBLIC_ENDPOINT_URL
+        sync: false
+      - key: STORAGE_ACCESS_KEY
+        sync: false
+      - key: STORAGE_SECRET_KEY
+        sync: false
+      - key: STORAGE_BUCKET_NAME
+        value: vertexerp-vault
+      - key: AI_DEFAULT_PROVIDER
+        value: openai
+      - key: AI_DEFAULT_MODEL
+        value: gpt-4o
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_JSON_FORMAT
+        value: "true"
+      - key: RATE_LIMIT_AUTH_PER_MINUTE
+        value: "10"
+      - key: RATE_LIMIT_AI_PER_MINUTE
+        value: "30"
+      - key: RATE_LIMIT_DEFAULT_PER_MINUTE
+        value: "120"
+
+  # ----------------------------------------------------------------------------
+  # Production Background Worker Daemon
+  # ----------------------------------------------------------------------------
+  - type: worker
+    name: vertexerp-worker
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    dockerCommand: python -m app.worker
+    plan: standard
+    region: oregon
+    envVars:
+      - key: APP_NAME
+        value: VertexERP-AI-V2
+      - key: APP_ENV
+        value: production
+      - key: APP_VERSION
+        value: 2.0.0
+      - key: DEBUG
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vertexerp-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: vertexerp-redis
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        fromService:
+          type: web
+          name: vertexerp-api
+          envVarKey: JWT_SECRET_KEY
+      - key: INTEGRATION_SIGNING_SECRET
+        fromService:
+          type: web
+          name: vertexerp-api
+          envVarKey: INTEGRATION_SIGNING_SECRET
+      - key: STORAGE_ENDPOINT_URL
+        sync: false
+      - key: STORAGE_PUBLIC_ENDPOINT_URL
+        sync: false
+      - key: STORAGE_ACCESS_KEY
+        sync: false
+      - key: STORAGE_SECRET_KEY
+        sync: false
+      - key: STORAGE_BUCKET_NAME
+        value: vertexerp-vault
+      - key: AI_DEFAULT_PROVIDER
+        value: openai
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_JSON_FORMAT
+        value: "true"

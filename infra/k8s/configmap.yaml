@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vertexerp-config
+  namespace: vertexerp-production
+  labels:
+    app.kubernetes.io/name: vertexerp
+    app.kubernetes.io/component: config
+data:
+  APP_NAME: "VertexERP-AI-V2"
+  APP_ENV: "production"
+  APP_VERSION: "2.0.0"
+  DEBUG: "false"
+  PORT: "8000"
+  HOST: "0.0.0.0"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  ENABLE_TELEMETRY: "true"
+  DATABASE_HOST: "vertexerp-postgres-service"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "vertexerp_production"
+  DATABASE_POOL_SIZE: "20"
+  DATABASE_MAX_OVERFLOW: "30"
+  DATABASE_POOL_TIMEOUT: "30"
+  DATABASE_POOL_RECYCLE: "1800"
+  REDIS_HOST: "vertexerp-redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_MAX_CONNECTIONS: "150"
+  STORAGE_ENDPOINT_URL: "https://s3.us-east-1.amazonaws.com"
+  STORAGE_BUCKET_NAME: "vertexerp-production-documents"
+  STORAGE_REGION: "us-east-1"
+  STORAGE_SECURE: "true"
+  AI_GATEWAY_PROVIDER: "openai"
+  AI_DEFAULT_MODEL: "gpt-4o"
+  AI_EMBEDDING_MODEL: "text-embedding-3-large"
+  RATE_LIMIT_AUTH_PER_MINUTE: "10"
+  RATE_LIMIT_AI_PER_MINUTE: "30"
+  RATE_LIMIT_DEFAULT_PER_MINUTE: "120"
+  ALLOWED_ORIGINS: "https://app.vertexerp.io,https://admin.vertexerp.io"
+  ALLOWED_HOSTS: "app.vertexerp.io,api.vertexerp.io,admin.vertexerp.io"

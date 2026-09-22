@@ -1,0 +1,209 @@
+# Compatibility alias for Windows users. Keep this file identical to docker-compose.yml.
+version: '3.9'
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: vertexerp-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      POSTGRES_DB: ${DATABASE_NAME:-vertexerp_v2}
+    ports:
+    - 5432:5432
+    - 5433:5432
+    volumes:
+    - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U ${DATABASE_USER:-postgres} -d ${DATABASE_NAME:-vertexerp_v2}
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+    - vertexerp-dev-network
+  redis:
+    image: redis:7.2-alpine
+    container_name: vertexerp-redis-dev
+    restart: unless-stopped
+    command:
+    - redis-server
+    - --appendonly
+    - 'yes'
+    ports:
+    - 6379:6379
+    volumes:
+    - redis_dev_data:/data
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+    - vertexerp-dev-network
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: vertexerp-minio-dev
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY:-minioadmin}
+    ports:
+    - 9000:9000
+    - 9001:9001
+    volumes:
+    - minio_dev_data:/data
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:9000/minio/health/live
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+    - vertexerp-dev-network
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vertexerp-migration-dev
+    restart: 'no'
+    command:
+    - alembic
+    - upgrade
+    - head
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: development
+      DEBUG: 'true'
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      DATABASE_NAME: ${DATABASE_NAME:-vertexerp_v2}
+    volumes:
+    - ./alembic:/app/alembic:ro
+    networks:
+    - vertexerp-dev-network
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vertexerp-api-dev
+    restart: unless-stopped
+    command:
+    - uvicorn
+    - app.main:app
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8000'
+    - --reload
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    environment:
+    - APP_ENV=development
+    - DEBUG=true
+    - DATABASE_HOST=postgres
+    - DATABASE_PORT=5432
+    - DATABASE_USER=${DATABASE_USER:-postgres}
+    - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres}
+    - DATABASE_NAME=${DATABASE_NAME:-vertexerp_v2}
+    - REDIS_HOST=redis
+    - REDIS_PORT=6379
+    - STORAGE_ENDPOINT_URL=http://minio:9000
+    - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:-minioadmin}
+    - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:-minioadmin}
+    - STORAGE_PUBLIC_ENDPOINT_URL=http://localhost:9000
+    - STORAGE_BUCKET_NAME=vertexerp-vault
+    volumes:
+    - ./app:/app/app:ro
+    - ./alembic:/app/alembic:ro
+    ports:
+    - 8000:8000
+    networks:
+    - vertexerp-dev-network
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vertexerp-worker-dev
+    restart: unless-stopped
+    command:
+    - python
+    - -m
+    - app.worker
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    environment:
+    - APP_ENV=development
+    - DEBUG=true
+    - DATABASE_HOST=postgres
+    - DATABASE_PORT=5432
+    - DATABASE_USER=${DATABASE_USER:-postgres}
+    - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres}
+    - DATABASE_NAME=${DATABASE_NAME:-vertexerp_v2}
+    - REDIS_HOST=redis
+    - REDIS_PORT=6379
+    - STORAGE_ENDPOINT_URL=http://minio:9000
+    - STORAGE_PUBLIC_ENDPOINT_URL=http://localhost:9000
+    - STORAGE_BUCKET_NAME=vertexerp-vault
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -m
+      - app.worker
+      - --healthcheck
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    volumes:
+    - ./app:/app/app:ro
+    - ./alembic:/app/alembic:ro
+    networks:
+    - vertexerp-dev-network
+  frontend:
+    image: node:20-alpine
+    container_name: vertexerp-frontend-dev
+    working_dir: /workspace
+    command:
+    - sh
+    - -c
+    - npm ci && npm run dev -- --host 0.0.0.0
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      VITE_API_TARGET: http://api:8000
+    volumes:
+    - ./frontend:/workspace
+    - frontend_node_modules:/workspace/node_modules
+    ports:
+    - 3000:3000
+    networks:
+    - vertexerp-dev-network
+networks:
+  vertexerp-dev-network:
+    driver: bridge
+volumes:
+  postgres_dev_data: null
+  redis_dev_data: null
+  minio_dev_data: null
+  frontend_node_modules: null
