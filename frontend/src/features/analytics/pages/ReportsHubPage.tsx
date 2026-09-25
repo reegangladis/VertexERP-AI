@@ -162,13 +162,19 @@ export const ReportsHubPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-white">{executionResult.title}</h2>
+                <h2 className="text-lg font-bold text-white">
+                  {executionResult.report_title || executionResult.title || "Report Result"}
+                </h2>
                 <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
-                  {executionResult.row_count} Rows
+                  {executionResult.result_summary?.row_count ?? executionResult.row_count ?? (executionResult.rows || []).length} Rows
                 </span>
-                <span className="text-slate-500 text-xs">({executionResult.execution_duration_ms} ms)</span>
+                <span className="text-slate-500 text-xs">
+                  ({executionResult.execution_time_ms ?? executionResult.execution_duration_ms ?? 0} ms)
+                </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">Executed at {new Date(executionResult.executed_at).toLocaleTimeString()}</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Executed at {new Date(executionResult.created_at || executionResult.executed_at || Date.now()).toLocaleTimeString()}
+              </p>
             </div>
 
             <button
@@ -183,7 +189,7 @@ export const ReportsHubPage: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-800/80 text-slate-300 font-semibold uppercase text-[10px] border-b border-slate-800">
                 <tr>
-                  {executionResult.columns.map((col) => (
+                  {(executionResult.headers || executionResult.columns || []).map((col) => (
                     <th key={col} className="px-5 py-3">
                       {col}
                     </th>
@@ -191,9 +197,9 @@ export const ReportsHubPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {executionResult.rows.map((row, idx) => (
+                {(executionResult.rows || []).map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-800/40">
-                    {executionResult.columns.map((col) => (
+                    {(executionResult.headers || executionResult.columns || []).map((col) => (
                       <td key={col} className="px-5 py-3 text-slate-300 font-medium">
                         {row[col] !== undefined && row[col] !== null ? String(row[col]) : "—"}
                       </td>

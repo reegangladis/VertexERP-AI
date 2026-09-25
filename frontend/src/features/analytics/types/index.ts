@@ -165,16 +165,23 @@ export interface AnalyticsReport {
 }
 
 export interface ReportExecutionResult {
-  execution_id: string;
+  id?: string;
+  execution_id?: string;
+  report_id?: string;
   report_code: string;
-  title: string;
-  status: "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
-  row_count: number;
-  execution_duration_ms: number;
-  parameters: Record<string, any>;
-  columns: string[];
+  report_title?: string;
+  title?: string;
+  status: "PENDING" | "RUNNING" | "COMPLETED" | "FAILED" | string;
+  row_count?: number;
+  result_summary?: { row_count?: number; [key: string]: any };
+  execution_time_ms?: number;
+  execution_duration_ms?: number;
+  parameters?: Record<string, any>;
+  headers?: string[];
+  columns?: string[];
   rows: Record<string, any>[];
   csv_content?: string | null;
   error_message?: string | null;
-  executed_at: string;
+  created_at?: string;
+  executed_at?: string;
 }

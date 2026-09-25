@@ -25,6 +25,12 @@ router = APIRouter(prefix="/accounts", tags=["Finance - Chart of Accounts"])
 
 
 @router.get(
+    "",
+    response_model=AccountListResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_permission(PermissionCode.FINANCE_ACCOUNTS_READ.value))],
+)
+@router.get(
     "/",
     response_model=AccountListResponse,
     status_code=status.HTTP_200_OK,
@@ -33,7 +39,7 @@ router = APIRouter(prefix="/accounts", tags=["Finance - Chart of Accounts"])
 async def list_accounts(
     account_type: str | None = Query(None),
     page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=100),
+    page_size: int = Query(50, ge=1, le=500),
     tenant_id: uuid.UUID = Depends(get_current_tenant_id),
     org_id: uuid.UUID = Depends(get_current_organization_id),
     db: AsyncSession = Depends(get_db),
@@ -52,6 +58,12 @@ async def list_accounts(
     )
 
 
+@router.post(
+    "",
+    response_model=AccountResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_permission(PermissionCode.FINANCE_ACCOUNTS_WRITE.value))],
+)
 @router.post(
     "/",
     response_model=AccountResponse,

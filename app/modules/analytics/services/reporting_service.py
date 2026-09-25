@@ -101,6 +101,11 @@ class ReportingService:
         if isinstance(end_date, str):
             end_date = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
 
+        if hasattr(start_date, "tzinfo") and start_date.tzinfo is None:
+            start_date = start_date.replace(tzinfo=UTC)
+        if hasattr(end_date, "tzinfo") and end_date.tzinfo is None:
+            end_date = end_date.replace(tzinfo=UTC)
+
         headers: list[str] = []
         rows: list[dict[str, Any]] = []
 
@@ -193,7 +198,7 @@ class ReportingService:
             headers = ["Deal Name", "Stage", "Deal Value ($)", "Probability %", "Created Date"]
             deal_res = await self.session.execute(
                 select(Deal, PipelineStage.name.label("stage_name"))
-                .join(PipelineStage, Deal.stage_id == PipelineStage.id)
+                .outerjoin(PipelineStage, Deal.stage_id == PipelineStage.id)
                 .where(
                     Deal.tenant_id == tenant_id,
                     Deal.organization_id == org_id,
@@ -206,10 +211,10 @@ class ReportingService:
                 rows.append(
                     {
                         "Deal Name": d.title,
-                        "Stage": stage_name,
-                        "Deal Value ($)": f"{d.value:,.2f}",
-                        "Probability %": f"{d.win_probability_pct}%",
-                        "Created Date": d.created_at.strftime("%Y-%m-%d"),
+                        "Stage": stage_name or "Open",
+                        "Deal Value ($)": f"{d.value:,.2f}" if d.value is not None else "0.00",
+                        "Probability %": f"{d.win_probability_pct}%" if d.win_probability_pct is not None else "0%",
+                        "Created Date": d.created_at.strftime("%Y-%m-%d") if d.created_at else "",
                     }
                 )
 
@@ -277,10 +282,10 @@ class ReportingService:
                     {
                         "Order #": mo.order_number,
                         "Product ID": str(mo.product_id),
-                        "Planned Qty": f"{mo.planned_quantity:,.2f}",
-                        "Produced Qty": f"{mo.produced_quantity:,.2f}",
-                        "Scrap Qty": f"{mo.scrap_quantity:,.2f}",
-                        "Status": mo.status,
+                        "Planned Qty": f"{mo.planned_quantity:,.2f}" if mo.planned_quantity is not None else "0.00",
+                        "Produced Qty": f"{mo.produced_quantity:,.2f}" if mo.produced_quantity is not None else "0.00",
+                        "Scrap Qty": f"{mo.scrap_quantity:,.2f}" if mo.scrap_quantity is not None else "0.00",
+                        "Status": str(mo.status),
                         "Due Date": mo.planned_due_date.strftime("%Y-%m-%d")
                         if mo.planned_due_date
                         else "",
@@ -305,8 +310,8 @@ class ReportingService:
                     {
                         "Employee ID": emp.employee_number,
                         "Full Name": f"{emp.first_name} {emp.last_name}",
-                        "Work Email": emp.work_email,
-                        "Status": emp.status,
+                        "Work Email": emp.email,
+                        "Status": emp.employment_status,
                         "Hire Date": emp.hire_date.strftime("%Y-%m-%d") if emp.hire_date else "",
                     }
                 )
