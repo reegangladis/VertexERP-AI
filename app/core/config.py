@@ -19,6 +19,8 @@ class AppSettings(BaseSettings):
     # Application Info
     APP_NAME: str = "VertexERP-AI-V2"
     APP_ENV: Environment = Environment.DEVELOPMENT
+    DEPLOYMENT_MODE: str = "development"
+    WORKER_MODE: str = "auto"
     APP_VERSION: str = "2.0.0"
     DEBUG: bool = False
 
@@ -90,9 +92,9 @@ class AppSettings(BaseSettings):
         if self.DATABASE_URL:
             url = self.DATABASE_URL.strip()
             if url.startswith("postgres://"):
-                return url.replace("postgres://", "postgresql+asyncpg://", 1)
-            if url.startswith("postgresql://"):
-                return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+                url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif url.startswith("postgresql://"):
+                url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
             return url
         return (
             f"postgresql+asyncpg://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
@@ -104,13 +106,13 @@ class AppSettings(BaseSettings):
         """Constructs sync psycopg connection string for Alembic CLI / engine bindings."""
         if self.DATABASE_URL:
             url = self.DATABASE_URL.strip()
+            if url.startswith("postgresql+asyncpg://"):
+                return url.replace("postgresql+asyncpg://", "postgresql://", 1)
             if url.startswith("postgres://"):
-                return url.replace("postgres://", "postgresql+asyncpg://", 1)
-            if url.startswith("postgresql://"):
-                return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+                return url.replace("postgres://", "postgresql://", 1)
             return url
         return (
-            f"postgresql+asyncpg://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
+            f"postgresql://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
             f"@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
         )
 
@@ -137,11 +139,13 @@ class AppSettings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_invariants(self) -> "AppSettings":
-        """Fails closed if insecure defaults are used in production environments."""
-        if self.APP_ENV in (Environment.PRODUCTION, Environment.STAGING):
+        """Fails closed if insecure defaults are used in production or free cloud environments."""
+        is_cloud_env = self.APP_ENV in (Environment.PRODUCTION, Environment.STAGING, Environment.FREE) or self.DEPLOYMENT_MODE.lower() in ("production", "staging", "free")
+
+        if is_cloud_env and self.APP_ENV != Environment.TESTING:
             if "dev_insecure_secret_key" in self.JWT_SECRET_KEY or "REPLACE_WITH" in self.JWT_SECRET_KEY:
                 raise ValueError(
-                    f"Insecure default or placeholder JWT_SECRET_KEY cannot be used in {self.APP_ENV.value.upper()}!"
+                    f"Insecure default or placeholder JWT_SECRET_KEY cannot be used in {self.APP_ENV.value.upper()} / {self.DEPLOYMENT_MODE.upper()} mode!"
                 )
             if "*" in self.ALLOWED_ORIGINS:
                 raise ValueError(
@@ -167,7 +171,7 @@ class AppSettings(BaseSettings):
                 )
             if (
                 "REPLACE_WITH" in self.INTEGRATION_SIGNING_SECRET
-                or self.INTEGRATION_SIGNING_SECRET == "vertexerp_integration_default_secret_key_v2"
+                or (self.INTEGRATION_SIGNING_SECRET == "vertexerp_integration_default_secret_key_v2" and self.APP_ENV == Environment.PRODUCTION)
             ):
                 raise ValueError(
                     f"Default/placeholder INTEGRATION_SIGNING_SECRET cannot be used in "
@@ -205,7 +209,7 @@ class AppSettings(BaseSettings):
                 raise ValueError("Production secrets must be replaced with unique high-entropy values")
             if self.INTEGRATION_SIGNING_SECRET == "vertexerp_integration_default_secret_key_v2":
                 raise ValueError("Default integration signing secret cannot be used in PRODUCTION")
-            if self.AI_DEFAULT_PROVIDER.lower() == "mock":
+            if self.DEPLOYMENT_MODE.lower() == "production" and self.AI_DEFAULT_PROVIDER.lower() == "mock":
                 raise ValueError("Mock AI provider cannot be the default in PRODUCTION")
             provider_keys = {
                 "openai": self.OPENAI_API_KEY,

@@ -10,6 +10,7 @@ class Environment(StrEnum):
     STAGING = "staging"
     PRODUCTION = "production"
     TESTING = "testing"
+    FREE = "free"
 
 
 class LogLevel(StrEnum):

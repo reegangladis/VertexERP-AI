@@ -1,7 +1,6 @@
-"""VertexERP AI V2 - FastAPI Application Factory and ASGI Runtime."""
-
+import asyncio
 from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,21 +22,81 @@ from app.infrastructure.redis.client import close_redis_client, init_redis_clien
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Manages application lifecycle: logging, database pool, and redis startup/shutdown."""
+    """Manages application lifecycle: logging, database pool, redis, and optional embedded worker."""
     # 1. Startup Phase
     setup_logging()
     logger.info(
         "Starting VertexERP AI V2 Application Engine",
         version=settings.APP_VERSION,
         environment=settings.APP_ENV.value,
+        deployment_mode=settings.DEPLOYMENT_MODE,
     )
     await init_db_engine()
     await init_redis_client()
 
+    # 2. Embedded Worker Initialization (Used in Free Deployment Mode)
+    embedded_worker_pool = None
+    scheduler_task = None
+    should_run_embedded_worker = (
+        settings.WORKER_MODE.lower() == "embedded"
+        or (
+            settings.WORKER_MODE.lower() == "auto"
+            and (
+                settings.DEPLOYMENT_MODE.lower() == "free"
+                or settings.APP_ENV.value == "free"
+            )
+        )
+    )
+
+    if should_run_embedded_worker:
+        logger.info("Initializing embedded Background Worker Pool for free/lightweight deployment mode")
+        from app.infrastructure.database.session import async_session_factory
+        from app.modules.jobs.engine.job_queue import job_queue_manager
+        from app.modules.jobs.engine.scheduler import CronScheduler
+        from app.modules.jobs.engine.worker_pool import worker_pool
+
+        worker_pool.configure(
+            session_factory=async_session_factory,
+            concurrency=2,
+        )
+        await worker_pool.start()
+        embedded_worker_pool = worker_pool
+
+        async def _embedded_scheduler_loop() -> None:
+            while True:
+                try:
+                    await asyncio.sleep(60.0)
+                    async with async_session_factory() as session:
+                        async with session.begin():
+                            triggered = await CronScheduler.evaluate_schedules(session)
+                        if triggered:
+                            for job in triggered:
+                                await job_queue_manager.enqueue(
+                                    job.id,
+                                    priority=job.priority,
+                                    scheduled_at=job.scheduled_at,
+                                )
+                            logger.info("Embedded CronScheduler triggered %d recurring jobs", len(triggered))
+                except asyncio.CancelledError:
+                    break
+                except Exception as exc:
+                    logger.warning("Error in embedded CronScheduler loop: %s", exc)
+
+        scheduler_task = asyncio.create_task(_embedded_scheduler_loop())
+
     yield
 
-    # 2. Shutdown Phase
+    # 3. Shutdown Phase
     logger.info("Initiating graceful shutdown sequence")
+    if scheduler_task:
+        scheduler_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await scheduler_task
+
+    if embedded_worker_pool:
+        logger.info("Stopping embedded Background Worker Pool")
+        await embedded_worker_pool.stop()
+
     await close_redis_client()
     await close_db_engine()
     logger.info("VertexERP AI V2 Application Engine stopped")

@@ -277,7 +277,7 @@ def validate_render_and_vercel_configs(root: Path) -> list[tuple[bool, str]]:
     results: list[tuple[bool, str]] = []
     import json
 
-    # 1. Render Blueprint
+    # 1. Render Production Blueprint
     render_file = root / "render.yaml"
     if not render_file.exists():
         results.append((False, "render.yaml: Missing Render Blueprint file"))
@@ -297,7 +297,7 @@ def validate_render_and_vercel_configs(root: Path) -> list[tuple[bool, str]]:
                     results.append(
                         (
                             True,
-                            "render.yaml: Valid Render Blueprint (PostgreSQL, Redis, Web API, Background Worker)",
+                            "render.yaml: Valid Production Blueprint (PostgreSQL, Redis, Web API, Background Worker)",
                         )
                     )
                 else:
@@ -311,6 +311,38 @@ def validate_render_and_vercel_configs(root: Path) -> list[tuple[bool, str]]:
                 results.append((True, "render.yaml: Textual blueprint validation passed"))
             else:
                 results.append((False, "render.yaml: Missing expected service definitions"))
+
+    # 1b. Render Free Blueprint
+    render_free_file = root / "render.free.yaml"
+    if not render_free_file.exists():
+        results.append((False, "render.free.yaml: Missing Render Free Blueprint file"))
+    else:
+        content_free = render_free_file.read_text(encoding="utf-8")
+        if yaml:
+            try:
+                data_free = yaml.safe_load(content_free)
+                dbs_free = data_free.get("databases", [])
+                svcs_free = data_free.get("services", [])
+                has_free_api = any(s.get("name") == "vertexerp-api-free" and s.get("type") == "web" and s.get("plan") == "free" for s in svcs_free)
+
+                if len(dbs_free) == 0 and has_free_api and len(svcs_free) == 1:
+                    results.append(
+                        (
+                            True,
+                            "render.free.yaml: Valid Free Tier Blueprint (Zero-Cost API Web Service on Render Free plan)",
+                        )
+                    )
+                else:
+                    results.append(
+                        (False, "render.free.yaml: Free blueprint must only define the free web API service without paid DBs/workers")
+                    )
+            except Exception as e:
+                results.append((False, f"render.free.yaml: YAML Parse Error: {e}"))
+        else:
+            if "vertexerp-api-free" in content_free and "plan: free" in content_free:
+                results.append((True, "render.free.yaml: Textual free blueprint validation passed"))
+            else:
+                results.append((False, "render.free.yaml: Missing expected free service definitions"))
 
     # 2. Vercel Configuration
     vercel_files = ["vercel.json", "frontend/vercel.json"]

@@ -80,7 +80,10 @@ class AIGateway:
         """Retrieve provider adapter by name or return the configured default."""
         name = (provider_name or getattr(settings, "AI_DEFAULT_PROVIDER", "mock")).lower()
 
-        production = settings.APP_ENV.value == "production"
+        production = (
+            settings.APP_ENV.value == "production"
+            and settings.DEPLOYMENT_MODE.lower() == "production"
+        )
 
         if name not in self._adapters:
             if production:

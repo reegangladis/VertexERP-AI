@@ -94,3 +94,70 @@ def test_staging_real_secrets_with_mock_ai_are_allowed():
         AI_DEFAULT_PROVIDER="mock",
     )
     assert staging_settings.APP_ENV == Environment.STAGING
+
+
+def test_production_mode_mock_ai_fails_validation():
+    """TEST 1: APP_ENV=production, DEPLOYMENT_MODE=production, AI_DEFAULT_PROVIDER=mock MUST FAIL validation."""
+    with pytest.raises(ValidationError, match="Mock AI provider cannot be the default in PRODUCTION"):
+        AppSettings(
+            APP_ENV=Environment.PRODUCTION,
+            DEPLOYMENT_MODE="production",
+            JWT_SECRET_KEY="valid_strong_production_jwt_signing_key_secret_1234567890!",
+            INTEGRATION_SIGNING_SECRET="valid_production_integration_signing_secret_1234567890!",
+            DATABASE_PASSWORD="strong_production_database_password_998877!",
+            STORAGE_SECRET_KEY="strong_production_storage_secret_1234567890!",
+            ALLOWED_ORIGINS=["https://app.vertexerp.io"],
+            AI_DEFAULT_PROVIDER="mock",
+            DEBUG=False,
+        )
+
+
+def test_free_mode_in_production_env_mock_ai_passes_validation():
+    """TEST 2: APP_ENV=production, DEPLOYMENT_MODE=free, AI_DEFAULT_PROVIDER=mock MUST PASS validation."""
+    free_prod_settings = AppSettings(
+        APP_ENV=Environment.PRODUCTION,
+        DEPLOYMENT_MODE="free",
+        JWT_SECRET_KEY="valid_strong_production_jwt_signing_key_secret_1234567890!",
+        INTEGRATION_SIGNING_SECRET="valid_production_integration_signing_secret_1234567890!",
+        DATABASE_PASSWORD="strong_production_database_password_998877!",
+        STORAGE_SECRET_KEY="strong_production_storage_secret_1234567890!",
+        ALLOWED_ORIGINS=["https://app.vertexerp.io"],
+        AI_DEFAULT_PROVIDER="mock",
+        AI_DEFAULT_MODEL="mock-gpt-4o",
+        DEBUG=False,
+    )
+    assert free_prod_settings.APP_ENV == Environment.PRODUCTION
+    assert free_prod_settings.DEPLOYMENT_MODE == "free"
+    assert free_prod_settings.AI_DEFAULT_PROVIDER == "mock"
+
+
+def test_development_mode_mock_ai_passes_validation():
+    """TEST 3: APP_ENV=development, DEPLOYMENT_MODE=development, AI_DEFAULT_PROVIDER=mock MUST PASS."""
+    dev_settings = AppSettings(
+        APP_ENV=Environment.DEVELOPMENT,
+        DEPLOYMENT_MODE="development",
+        AI_DEFAULT_PROVIDER="mock",
+    )
+    assert dev_settings.APP_ENV == Environment.DEVELOPMENT
+    assert dev_settings.DEPLOYMENT_MODE == "development"
+    assert dev_settings.AI_DEFAULT_PROVIDER == "mock"
+
+
+def test_production_real_ai_provider_passes_validation():
+    """Verifies that a real AI provider with configured API key remains supported in production."""
+    prod_ai_settings = AppSettings(
+        APP_ENV=Environment.PRODUCTION,
+        DEPLOYMENT_MODE="production",
+        JWT_SECRET_KEY="valid_strong_production_jwt_signing_key_secret_1234567890!",
+        INTEGRATION_SIGNING_SECRET="valid_production_integration_signing_secret_1234567890!",
+        DATABASE_PASSWORD="strong_production_database_password_998877!",
+        STORAGE_SECRET_KEY="strong_production_storage_secret_1234567890!",
+        ALLOWED_ORIGINS=["https://app.vertexerp.io"],
+        AI_DEFAULT_PROVIDER="openai",
+        OPENAI_API_KEY="sk-valid-production-api-key-test",
+        DEBUG=False,
+    )
+    assert prod_ai_settings.APP_ENV == Environment.PRODUCTION
+    assert prod_ai_settings.DEPLOYMENT_MODE == "production"
+    assert prod_ai_settings.AI_DEFAULT_PROVIDER == "openai"
+
