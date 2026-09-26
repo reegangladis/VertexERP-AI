@@ -16,7 +16,7 @@ COPY pyproject.toml .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip wheel --no-cache-dir --no-deps --wheel-dir /build/wheels . && \
     pip wheel --no-cache-dir --wheel-dir /build/wheels \
-    fastapi uvicorn pydantic pydantic-settings email-validator sqlalchemy asyncpg alembic redis hiredis structlog httpx python-multipart argon2-cffi cryptography pgvector minio
+    fastapi uvicorn pydantic pydantic-settings email-validator sqlalchemy asyncpg greenlet alembic redis hiredis structlog httpx python-multipart argon2-cffi cryptography pgvector minio
 
 # ==============================================================================
 # Stage 2: Hardened Production Runtime
