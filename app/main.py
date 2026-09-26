@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 except asyncio.CancelledError:
                     break
                 except Exception as exc:
-                    logger.warning("Error in embedded CronScheduler loop: %s", exc)
+                    logger.debug("Embedded CronScheduler check skipped (database unavailable: %s)", exc)
 
         scheduler_task = asyncio.create_task(_embedded_scheduler_loop())
 
