@@ -59,6 +59,30 @@ def test_upstash_redis_url_handling():
     assert settings_upstash.redis_url == "rediss://default:upstash_secret_token_123@eu1-fast-tiger-32145.upstash.io:6379"
 
 
+def test_redis_url_empty_and_normalization():
+    """Verifies that empty, whitespace, and missing-scheme REDIS_URL values are handled safely."""
+    # Empty string falls back to host/port
+    settings_empty = AppSettings(
+        REDIS_URL="",
+        JWT_SECRET_KEY="valid_secure_jwt_secret_key_for_testing_purposes_123456!",
+    )
+    assert settings_empty.redis_url.startswith("redis://")
+
+    # Whitespace falls back to host/port
+    settings_ws = AppSettings(
+        REDIS_URL="   ",
+        JWT_SECRET_KEY="valid_secure_jwt_secret_key_for_testing_purposes_123456!",
+    )
+    assert settings_ws.redis_url.startswith("redis://")
+
+    # Host/port without scheme gets redis:// prefix added
+    settings_noscheme = AppSettings(
+        REDIS_URL="upstash-redis-node:6379",
+        JWT_SECRET_KEY="valid_secure_jwt_secret_key_for_testing_purposes_123456!",
+    )
+    assert settings_noscheme.redis_url == "redis://upstash-redis-node:6379"
+
+
 def test_free_mode_insecure_jwt_fails_closed():
     """Verifies that default dev JWT secrets fail closed even in free mode."""
     with pytest.raises(ValidationError, match="Insecure default or placeholder JWT_SECRET_KEY"):

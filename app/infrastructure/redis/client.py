@@ -16,7 +16,7 @@ redis_client: Redis | None = None
 async def init_redis_client() -> None:
     """Initializes the Redis connection pool during application startup."""
     global _redis_pool, redis_client
-    if settings.REDIS_URL:
+    if settings.REDIS_URL and settings.REDIS_URL.strip():
         logger.info(
             "Initializing Redis connection pool from REDIS_URL",
             pool_size=settings.REDIS_POOL_SIZE,

@@ -119,8 +119,11 @@ class AppSettings(BaseSettings):
     @property
     def redis_url(self) -> str:
         """Constructs Redis connection URL, prioritizing REDIS_URL if provided."""
-        if self.REDIS_URL:
-            return self.REDIS_URL.strip()
+        if self.REDIS_URL and self.REDIS_URL.strip():
+            url = self.REDIS_URL.strip()
+            if not url.startswith(("redis://", "rediss://", "unix://")):
+                url = f"redis://{url}"
+            return url
         if self.REDIS_PASSWORD:
             return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
