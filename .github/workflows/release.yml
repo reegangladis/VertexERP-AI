@@ -1,0 +1,30 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-package:
+    name: Build Multi-Tier Containers & Assets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Build Backend Container
+        run: |
+          docker build -t vertexerp/backend:${{ github.ref_name }} -f Dockerfile .
+
+      - name: Build Worker Container
+        run: |
+          docker build -t vertexerp/worker:${{ github.ref_name }} -f Dockerfile .
+
+      - name: Build Frontend Container
+        run: |
+          docker build -t vertexerp/frontend:${{ github.ref_name }} -f frontend/Dockerfile frontend/

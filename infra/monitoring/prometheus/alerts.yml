@@ -1,0 +1,84 @@
+groups:
+  - name: vertexerp_production_alerts
+    rules:
+      # ------------------------------------------------------------------------
+      # 1. HTTP Error Rate & Latency Alerts
+      # ------------------------------------------------------------------------
+      - alert: HighHttpErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) * 100 > 1.0
+        for: 3m
+        labels:
+          severity: critical
+          tier: api
+        annotations:
+          summary: "High HTTP 5xx Error Rate (> 1%) on VertexERP API"
+          description: "HTTP 5xx error rate is currently {{ $value | printf \"%.2f\" }}% over the last 5 minutes."
+
+      - alert: HighHttpLatencyP99
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1.5
+        for: 5m
+        labels:
+          severity: warning
+          tier: api
+        annotations:
+          summary: "Degraded API Performance: P99 Latency > 1.5s"
+          description: "P99 API request latency has reached {{ $value | printf \"%.2f\" }}s."
+
+      # ------------------------------------------------------------------------
+      # 2. Database Connection & Query Health Alerts
+      # ------------------------------------------------------------------------
+      - alert: DatabasePoolNearExhaustion
+        expr: (db_pool_checked_out / db_pool_size) * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+          tier: database
+        annotations:
+          summary: "PostgreSQL Connection Pool Near Exhaustion (> 90%)"
+          description: "Database connection pool utilization is at {{ $value | printf \"%.1f\" }}%."
+
+      - alert: DatabaseQueryErrors
+        expr: sum(rate(db_query_errors_total[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          tier: database
+        annotations:
+          summary: "PostgreSQL Query Errors Detected"
+          description: "Database query errors occurring at rate {{ $value }} errors/sec."
+
+      # ------------------------------------------------------------------------
+      # 3. Background Worker & Queue Alerts
+      # ------------------------------------------------------------------------
+      - alert: WorkerDeadLetterJobsDetected
+        expr: sum(rate(worker_dead_letter_total[5m])) > 0
+        for: 1m
+        labels:
+          severity: warning
+          tier: workers
+        annotations:
+          summary: "Jobs Routing to Dead Letter Queue (DLQ)"
+          description: "Background jobs are failing and exhausting all retries."
+
+      - alert: HighWorkerQueueLag
+        expr: worker_queue_depth > 200
+        for: 5m
+        labels:
+          severity: warning
+          tier: workers
+        annotations:
+          summary: "Background Worker Queue Depth High (> 200)"
+          description: "Pending job queue depth has reached {{ $value }}."
+
+      # ------------------------------------------------------------------------
+      # 4. AI Security & Cost Alerts
+      # ------------------------------------------------------------------------
+      - alert: AIGuardrailViolationSpike
+        expr: sum(rate(ai_guardrail_blocks_total[5m])) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+          tier: security
+        annotations:
+          summary: "Spike in AI Prompt Injection / Security Guardrail Violations"
+          description: "AI security violations detected at {{ $value }} violations/sec."

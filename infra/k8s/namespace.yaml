@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vertexerp-production
+  labels:
+    app.kubernetes.io/name: vertexerp
+    app.kubernetes.io/part-of: vertexerp-ai-v2
+    app.kubernetes.io/environment: production

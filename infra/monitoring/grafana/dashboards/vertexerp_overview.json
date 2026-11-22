@@ -1,0 +1,211 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Executive SLO & Traffic Overview",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "id": 2,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[1m])) by (status)",
+          "legendFormat": "HTTP Status {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP Request Throughput (RPS)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
+      "id": 3,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "P50 Latency",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "P95 Latency",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "P99 Latency",
+          "refId": "C"
+        }
+      ],
+      "title": "HTTP Latency Percentiles (P50, P95, P99)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "sum(http_requests_in_progress)",
+          "legendFormat": "In-Flight Requests",
+          "refId": "A"
+        }
+      ],
+      "title": "Active In-Flight HTTP Requests",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "id": 5,
+      "title": "Database Connection Pool & Query Health",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "id": 6,
+      "targets": [
+        {
+          "expr": "db_pool_checked_out",
+          "legendFormat": "Checked Out",
+          "refId": "A"
+        },
+        {
+          "expr": "db_pool_size",
+          "legendFormat": "Configured Pool Size",
+          "refId": "B"
+        },
+        {
+          "expr": "db_pool_overflow",
+          "legendFormat": "Overflow Connections",
+          "refId": "C"
+        }
+      ],
+      "title": "PostgreSQL Connection Pool Utilization",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "id": 7,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "P95 Query Latency",
+          "refId": "A"
+        }
+      ],
+      "title": "Database Query Execution Duration",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 },
+      "id": 8,
+      "title": "Background Worker & Autonomous Queue Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "id": 9,
+      "targets": [
+        {
+          "expr": "sum(rate(worker_jobs_processed_total[1m])) by (status)",
+          "legendFormat": "Job Status: {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Worker Jobs Throughput (Jobs/sec)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "id": 10,
+      "targets": [
+        {
+          "expr": "worker_queue_depth",
+          "legendFormat": "Queue Depth",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(worker_dead_letter_total[5m]))",
+          "legendFormat": "DLQ Routing Rate",
+          "refId": "B"
+        }
+      ],
+      "title": "Queue Depth & Dead Letter Queue (DLQ) Activity",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
+      "id": 11,
+      "title": "AI Copilot & Guardrail Telemetry",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "id": 12,
+      "targets": [
+        {
+          "expr": "sum(rate(ai_tokens_consumed_total[5m])) by (type)",
+          "legendFormat": "Token Type: {{type}}",
+          "refId": "A"
+        }
+      ],
+      "title": "AI Tokens Consumed (Tokens/sec)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "id": 13,
+      "targets": [
+        {
+          "expr": "sum(rate(ai_guardrail_blocks_total[5m])) by (violation_type)",
+          "legendFormat": "{{violation_type}}",
+          "refId": "A"
+        }
+      ],
+      "title": "AI Security Violations Blocked",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["vertexerp", "production", "observability"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"] },
+  "timezone": "utc",
+  "title": "VertexERP AI V2 - Production Observability Dashboard",
+  "uid": "vertexerp-prod-overview",
+  "version": 1
+}

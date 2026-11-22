@@ -1,0 +1,81 @@
+# ==============================================================================
+# VertexERP AI V2 - Render Free Tier Infrastructure Blueprint ($0/mo Demo Mode)
+# ==============================================================================
+# This blueprint provisions ONLY the FastAPI ASGI Web Service on Render's Free tier.
+# External managed infrastructure is connected via environment variables:
+# 1. Database: Supabase Free PostgreSQL 16 + pgvector (DATABASE_URL)
+# 2. Cache / Stream Broker: Upstash Free Redis (REDIS_URL)
+# 3. Object Storage: Cloudflare R2 / Supabase Storage (S3-compatible)
+# 4. Background Workers: Embedded asynchronous worker pool within Web Service
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # FastAPI ASGI Web Service (Render Free Instance)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: vertexerp-api-free
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health/live
+    numInstances: 1
+    envVars:
+      - key: APP_NAME
+        value: VertexERP-AI-V2
+      - key: APP_ENV
+        value: free
+      - key: DEPLOYMENT_MODE
+        value: free
+      - key: WORKER_MODE
+        value: embedded
+      - key: APP_VERSION
+        value: 2.0.0
+      - key: DEBUG
+        value: "false"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "15"
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: "7"
+      - key: INTEGRATION_SIGNING_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: STORAGE_ENDPOINT_URL
+        sync: false
+      - key: STORAGE_PUBLIC_ENDPOINT_URL
+        sync: false
+      - key: STORAGE_ACCESS_KEY
+        sync: false
+      - key: STORAGE_SECRET_KEY
+        sync: false
+      - key: STORAGE_BUCKET_NAME
+        value: vertexerp-vault
+      - key: AI_DEFAULT_PROVIDER
+        value: mock
+      - key: AI_DEFAULT_MODEL
+        value: mock-gpt-4o
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_JSON_FORMAT
+        value: "true"
+      - key: RATE_LIMIT_AUTH_PER_MINUTE
+        value: "10"
+      - key: RATE_LIMIT_AI_PER_MINUTE
+        value: "30"
+      - key: RATE_LIMIT_DEFAULT_PER_MINUTE
+        value: "120"

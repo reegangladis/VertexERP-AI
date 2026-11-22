@@ -1,0 +1,276 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: vertexerp-production
+  labels:
+    app.kubernetes.io/name: vertexerp
+    app.kubernetes.io/component: security
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vertexerp-api-network-policy
+  namespace: vertexerp-production
+  labels:
+    app.kubernetes.io/name: vertexerp
+    app.kubernetes.io/component: api
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vertexerp
+      app.kubernetes.io/component: api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # 1. Inbound HTTP traffic from Ingress Controller
+    - from:
+        - namespaceSelector: {}
+          podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values: ["ingress-nginx", "nginx-ingress", "ingress"]
+      ports:
+        - protocol: TCP
+          port: 8000
+    # 2. Inbound Metrics scraping from Prometheus / Monitoring namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    # 1. CoreDNS Resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # 2. PostgreSQL Database Connection
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vertexerp
+              app.kubernetes.io/component: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    # 3. Redis In-Memory Cache & Streams
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vertexerp
+              app.kubernetes.io/component: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    # 4. Outbound HTTPS (AWS S3 Object Storage, OpenAI/Anthropic AI Gateways)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vertexerp-worker-network-policy
+  namespace: vertexerp-production
+  labels:
+    app.kubernetes.io/name: vertexerp
+    app.kubernetes.io/component: worker
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vertexerp
+      app.kubernetes.io/component: worker
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: [] # Background worker consumes jobs asynchronously via Redis Streams; no inbound ports
+  egress:
+    # 1. CoreDNS Resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # 2. PostgreSQL Database Connection
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vertexerp
+              app.kubernetes.io/component: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    # 3. Redis In-Memory Broker & Queue
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vertexerp
+              app.kubernetes.io/component: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    # 4. Outbound HTTPS (AWS S3 Storage, AI Providers, External Webhooks)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vertexerp-frontend-network-policy
+  namespace: vertexerp-production
+  labels:
+    app.kubernetes.io/name: vertexerp
+    app.kubernetes.io/component: frontend
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vertexerp
+      app.kubernetes.io/component: frontend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Inbound HTTP traffic from Ingress Controller
+    - from:
+        - namespaceSelector: {}
+          podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values: ["ingress-nginx", "nginx-ingress", "ingress"]
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    # CoreDNS Resolution for Nginx
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vertexerp-migration-network-policy
+  namespace: vertexerp-production
+  labels:
+    app.kubernetes.io/name: vertexerp
+    app.kubernetes.io/component: migration
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vertexerp
+      app.kubernetes.io/component: migration
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: [] # Migration runner is a one-shot job with zero ingress requirements
+  egress:
+    # 1. CoreDNS Resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # 2. PostgreSQL Database Connection
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vertexerp
+              app.kubernetes.io/component: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vertexerp-datastores-network-policy
+  namespace: vertexerp-production
+  labels:
+    app.kubernetes.io/name: vertexerp
+    app.kubernetes.io/component: datastores
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: In
+        values: ["postgres", "redis"]
+  policyTypes:
+    - Ingress
+  ingress:
+    # PostgreSQL port 5432: restricted to API, Worker, and Migration Job
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values: ["api", "worker", "migration"]
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Redis port 6379: restricted to API and Worker
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values: ["api", "worker"]
+      ports:
+        - protocol: TCP
+          port: 6379
