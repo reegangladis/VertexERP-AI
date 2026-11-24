@@ -76,6 +76,11 @@ secrets/
 credentials/
 node_modules/
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
 # Environment files (templates are intentionally tracked)
 .env.*
 !.env.example
