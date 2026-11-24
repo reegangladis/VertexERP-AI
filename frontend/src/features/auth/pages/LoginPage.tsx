@@ -21,34 +21,7 @@ interface DemoPersona {
   label: string;
 }
 
-const LEARNOVA_PERSONAS: DemoPersona[] = [
-  {
-    roleName: "Admin",
-    roleColor: "text-[#5a9cff]",
-    email: "admin@learnova.ai",
-    label: "Platform Admin",
-  },
-  {
-    roleName: "Student",
-    roleColor: "text-[#34d399]",
-    email: "student@learnova.ai",
-    label: "Student Learner",
-  },
-  {
-    roleName: "Instructor",
-    roleColor: "text-[#a855f7]",
-    email: "instructor@learnova.ai",
-    label: "Faculty & Courses",
-  },
-  {
-    roleName: "Super Admin",
-    roleColor: "text-[#fbbf24]",
-    email: "superadmin@learnova.ai",
-    label: "Global Super Admin",
-  },
-];
-
-const ERP_PERSONAS: DemoPersona[] = [
+const VERTEX_PERSONAS: DemoPersona[] = [
   {
     roleName: "Admin",
     roleColor: "text-[#5a9cff]",
@@ -78,8 +51,7 @@ const ERP_PERSONAS: DemoPersona[] = [
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
-  const [presetMode, setPresetMode] = useState<"learnova" | "erp">("learnova");
-  const [email, setEmail] = useState("reegangladis@gmail.com");
+  const [email, setEmail] = useState("admin@vertexerp.com");
   const [password, setPassword] = useState("DemoPassword123!");
   const [showPassword, setShowPassword] = useState(false);
   const [tenantSlug] = useState("apex");
@@ -88,9 +60,7 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
-  const [selectedPersona, setSelectedPersona] = useState<string>("");
-
-  const activePersonas = presetMode === "learnova" ? LEARNOVA_PERSONAS : ERP_PERSONAS;
+  const [selectedPersona, setSelectedPersona] = useState<string>("admin@vertexerp.com");
 
   const selectPersona = (persona: DemoPersona) => {
     setEmail(persona.email);
@@ -179,9 +149,7 @@ export const LoginPage: React.FC = () => {
         <div className="mt-6 mb-6 flex items-start gap-3 rounded-2xl border border-[#222e49] bg-[#141d30] p-4">
           <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-[#818cf8] shadow-[0_0_8px_#818cf8]" />
           <p className="text-xs sm:text-[13px] font-normal leading-relaxed text-slate-300">
-            {presetMode === "learnova"
-              ? "Please log in to access your courses, progress, and assessments."
-              : "Please log in to access your organization workspace, employee portal, and enterprise modules."}
+            Please log in to access your organization workspace, employee portal, and enterprise modules.
           </p>
         </div>
 
@@ -218,7 +186,7 @@ export const LoginPage: React.FC = () => {
                   setEmail(e.target.value);
                   setSelectedPersona("");
                 }}
-                placeholder="reegangladis@gmail.com"
+                placeholder="admin@vertexerp.com"
                 className="w-full bg-transparent py-3 pl-11 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none"
               />
             </div>
@@ -289,7 +257,7 @@ export const LoginPage: React.FC = () => {
               {isLoading ? (
                 <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
               ) : (
-                <span>{presetMode === "learnova" ? "Sign In to Learnova" : "Sign In to VertexERP AI"}</span>
+                <span>Sign In to VertexERP</span>
               )}
             </button>
           </div>
@@ -297,46 +265,13 @@ export const LoginPage: React.FC = () => {
 
         {/* Demo Personas Section */}
         <div className="mt-8">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>DEMO PERSONAS (DEVELOPMENT)</span>
-            </div>
-            {/* Subtle preset selector */}
-            <div className="flex items-center rounded-lg bg-[#090e18] p-0.5 border border-[#1e2a42]">
-              <button
-                type="button"
-                onClick={() => {
-                  setPresetMode("learnova");
-                  setSelectedPersona("");
-                }}
-                className={`rounded px-1.5 py-0.5 text-[10px] font-medium transition-all ${
-                  presetMode === "learnova"
-                    ? "bg-indigo-600/40 text-indigo-300"
-                    : "text-slate-500 hover:text-slate-300"
-                }`}
-              >
-                Learnova
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPresetMode("erp");
-                  setSelectedPersona("");
-                }}
-                className={`rounded px-1.5 py-0.5 text-[10px] font-medium transition-all ${
-                  presetMode === "erp"
-                    ? "bg-indigo-600/40 text-indigo-300"
-                    : "text-slate-500 hover:text-slate-300"
-                }`}
-              >
-                VertexERP
-              </button>
-            </div>
+          <div className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <span>DEMO PERSONAS (DEVELOPMENT)</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {activePersonas.map((p) => {
+            {VERTEX_PERSONAS.map((p) => {
               const isSelected = selectedPersona === p.email;
               return (
                 <button

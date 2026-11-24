@@ -122,12 +122,7 @@ async def seed_enterprise_demo() -> None:
             ("sales@vertexerp.com", "Marcus", "Sterling", "SALES_MANAGER"),
             ("finance@vertexerp.com", "Victoria", "Chase", "FINANCE_MANAGER"),
             ("employee@vertexerp.com", "Alex", "Morgan", "EMPLOYEE"),
-            # Learnova & Reference Screenshot Demo Personas
             ("reegangladis@gmail.com", "Reegan", "Gladis", "SUPER_ADMIN"),
-            ("admin@learnova.ai", "Platform", "Admin", "SUPER_ADMIN"),
-            ("student@learnova.ai", "Enrolled", "Student", "EMPLOYEE"),
-            ("instructor@learnova.ai", "Lead", "Instructor", "SALES_MANAGER"),
-            ("superadmin@learnova.ai", "Chief", "Super Admin", "SUPER_ADMIN"),
         ]
 
         user_map: dict[str, User] = {}
