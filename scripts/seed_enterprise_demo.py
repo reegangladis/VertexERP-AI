@@ -18,7 +18,7 @@ from sqlalchemy import select
 
 from app.core.logging import logger, setup_logging
 from app.core.security import hash_password
-from app.infrastructure.database.session import async_session_factory
+from app.infrastructure.database.session import async_session_factory, close_db_engine
 from app.modules.crm.models import (
     Activity,
     Contact,
@@ -45,6 +45,8 @@ from app.modules.organization.models.tenant import Tenant
 async def seed_enterprise_demo() -> None:
     setup_logging()
     logger.info("Initializing Enterprise Demo Seeder for VertexERP AI...")
+    from app.infrastructure.database.session import init_db_engine
+    await init_db_engine()
 
     async with async_session_factory() as session:
         # 1. Provision Tenant
@@ -105,6 +107,7 @@ async def seed_enterprise_demo() -> None:
                     id=uuid.uuid4(),
                     tenant_id=tenant.id,
                     name=r_name,
+                    code=r_name,
                     description=r_desc,
                     is_system_role=True,
                 )
@@ -119,6 +122,12 @@ async def seed_enterprise_demo() -> None:
             ("sales@vertexerp.com", "Marcus", "Sterling", "SALES_MANAGER"),
             ("finance@vertexerp.com", "Victoria", "Chase", "FINANCE_MANAGER"),
             ("employee@vertexerp.com", "Alex", "Morgan", "EMPLOYEE"),
+            # Learnova & Reference Screenshot Demo Personas
+            ("reegangladis@gmail.com", "Reegan", "Gladis", "SUPER_ADMIN"),
+            ("admin@learnova.ai", "Platform", "Admin", "SUPER_ADMIN"),
+            ("student@learnova.ai", "Enrolled", "Student", "EMPLOYEE"),
+            ("instructor@learnova.ai", "Lead", "Instructor", "SALES_MANAGER"),
+            ("superadmin@learnova.ai", "Chief", "Super Admin", "SUPER_ADMIN"),
         ]
 
         user_map: dict[str, User] = {}
@@ -144,8 +153,10 @@ async def seed_enterprise_demo() -> None:
 
                 cred = UserCredential(
                     id=uuid.uuid4(),
+                    tenant_id=tenant.id,
                     user_id=u.id,
                     password_hash=hashed_pw,
+                    salt="vertexerp_demo_salt",
                 )
                 session.add(cred)
 
@@ -156,6 +167,7 @@ async def seed_enterprise_demo() -> None:
                     user_id=u.id,
                     role_id=target_role.id,
                     tenant_id=tenant.id,
+                    organization_id=org.id,
                 )
                 session.add(ur)
                 await session.flush()
@@ -184,15 +196,15 @@ async def seed_enterprise_demo() -> None:
             dept_map[d_name] = d
 
         desig_names = [
-            ("Lead Systems Architect", "Engineering & Technology"),
-            ("Senior Enterprise Account Executive", "Sales & Commercial"),
-            ("HR Business Partner", "People Operations"),
-            ("Financial Controller", "Finance & Corporate"),
+            "Lead Systems Architect",
+            "Senior Enterprise Account Executive",
+            "HR Business Partner",
+            "Financial Controller",
         ]
         desig_map: dict[str, Designation] = {}
-        for d_title, d_dept in desig_names:
+        for d_title in desig_names:
             ds_res = await session.execute(
-                select(Designation).where(Designation.tenant_id == tenant.id, Designation.title == d_title)
+                select(Designation).where(Designation.tenant_id == tenant.id, Designation.name == d_title)
             )
             ds = ds_res.scalar_one_or_none()
             if not ds:
@@ -200,8 +212,7 @@ async def seed_enterprise_demo() -> None:
                     id=uuid.uuid4(),
                     tenant_id=tenant.id,
                     organization_id=org.id,
-                    department_id=dept_map[d_dept].id,
-                    title=d_title,
+                    name=d_title,
                     code=d_title[:4].upper(),
                     is_active=True,
                 )
@@ -223,22 +234,21 @@ async def seed_enterprise_demo() -> None:
                 name="Standard General Shift (09:00 - 18:00)",
                 start_time="09:00:00",
                 end_time="18:00:00",
-                grace_period_mins=15,
-                half_day_threshold_hours=Decimal("4.0"),
-                full_day_threshold_hours=Decimal("8.0"),
+                grace_period_minutes=15,
+                break_duration_minutes=60,
             )
             session.add(shift)
             await session.flush()
 
         # 7. Provision Employees
         emp_specs = [
-            ("employee@vertexerp.com", "EMP-001", "Engineering & Technology", "Lead Systems Architect"),
-            ("sales@vertexerp.com", "EMP-002", "Sales & Commercial", "Senior Enterprise Account Executive"),
-            ("hr@vertexerp.com", "EMP-003", "People Operations", "HR Business Partner"),
+            ("employee@vertexerp.com", "Alex", "Morgan", "EMP-001", "Engineering & Technology", "Lead Systems Architect"),
+            ("sales@vertexerp.com", "Marcus", "Sterling", "EMP-002", "Sales & Commercial", "Senior Enterprise Account Executive"),
+            ("hr@vertexerp.com", "Eleanor", "Vance", "EMP-003", "People Operations", "HR Business Partner"),
         ]
 
         emp_map: dict[str, Employee] = {}
-        for email, emp_code, d_name, des_name in emp_specs:
+        for email, first, last, emp_code, d_name, des_name in emp_specs:
             target_user = user_map[email]
             e_res = await session.execute(
                 select(Employee).where(Employee.tenant_id == tenant.id, Employee.employee_number == emp_code)
@@ -251,14 +261,13 @@ async def seed_enterprise_demo() -> None:
                     organization_id=org.id,
                     user_id=target_user.id,
                     employee_number=emp_code,
-                    first_name=target_user.first_name,
-                    last_name=target_user.last_name,
+                    first_name=first,
+                    last_name=last,
                     email=email,
                     department_id=dept_map[d_name].id,
                     designation_id=desig_map[des_name].id,
                     hire_date=date(2024, 1, 15),
                     employment_status="ACTIVE",
-                    employment_type="FULL_TIME",
                 )
                 session.add(e)
                 await session.flush()
@@ -329,7 +338,7 @@ async def seed_enterprise_demo() -> None:
             att_res = await session.execute(
                 select(AttendanceRecord).where(
                     AttendanceRecord.employee_id == alex_emp.id,
-                    AttendanceRecord.date == att_date,
+                    AttendanceRecord.work_date == att_date,
                 )
             )
             if not att_res.scalar_one_or_none():
@@ -341,10 +350,11 @@ async def seed_enterprise_demo() -> None:
                     organization_id=org.id,
                     employee_id=alex_emp.id,
                     shift_id=shift.id,
-                    date=att_date,
-                    check_in=in_time,
-                    check_out=out_time,
-                    total_hours=Decimal("9.05"),
+                    work_date=att_date,
+                    check_in_time=in_time,
+                    check_out_time=out_time,
+                    regular_hours=Decimal("8.0"),
+                    overtime_hours=Decimal("1.0"),
                     status="PRESENT",
                 )
                 session.add(rec)
@@ -454,11 +464,12 @@ async def seed_enterprise_demo() -> None:
                     tenant_id=tenant.id,
                     organization_id=org.id,
                     customer_id=target_cust.id,
+                    pipeline_id=uuid.uuid4(),
+                    stage_id=uuid.uuid4(),
                     title=d_title,
                     value=Decimal(str(d_val)),
                     currency="USD",
-                    stage_id=d_stg,
-                    win_probability_pct=d_prob,
+                    win_probability_pct=Decimal(str(d_prob)),
                     status="WON" if d_stg == "CLOSED_WON" else "OPEN",
                 )
                 session.add(dl)
@@ -489,13 +500,14 @@ async def seed_enterprise_demo() -> None:
             q_item = QuotationItem(
                 id=uuid.uuid4(),
                 tenant_id=tenant.id,
+                organization_id=org.id,
                 quotation_id=q.id,
-                line_number=1,
-                item_description="VertexERP AI Enterprise Annual License (100 seats)",
+                sort_order=1,
+                description="VertexERP AI Enterprise Annual License (100 seats)",
                 quantity=Decimal("1.0"),
                 unit_price=Decimal("60000.00"),
-                discount_percentage=Decimal("0.0"),
-                tax_percentage=Decimal("13.33"),
+                discount_pct=Decimal("0.0"),
+                tax_pct=Decimal("13.33"),
                 line_total=Decimal("68000.00"),
             )
             session.add(q_item)
@@ -517,11 +529,14 @@ async def seed_enterprise_demo() -> None:
             so_item = SalesOrderItem(
                 id=uuid.uuid4(),
                 tenant_id=tenant.id,
-                order_id=so.id,
-                line_number=1,
-                item_description="VertexERP AI Enterprise Annual License (100 seats)",
+                organization_id=org.id,
+                sales_order_id=so.id,
+                sort_order=1,
+                description="VertexERP AI Enterprise Annual License (100 seats)",
                 quantity=Decimal("1.0"),
                 unit_price=Decimal("60000.00"),
+                discount_pct=Decimal("0.0"),
+                tax_pct=Decimal("13.33"),
                 line_total=Decimal("68000.00"),
             )
             session.add(so_item)
@@ -540,6 +555,7 @@ async def seed_enterprise_demo() -> None:
         print("  Finance Manager:   finance@vertexerp.com")
         print("  Employee (ESS):    employee@vertexerp.com")
         print("=" * 60 + "\n")
+        await close_db_engine()
 
 
 if __name__ == "__main__":

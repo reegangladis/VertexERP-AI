@@ -44,7 +44,21 @@ async def init_redis_client() -> None:
             socket_timeout=settings.REDIS_SOCKET_TIMEOUT,
             decode_responses=True,
         )
-    redis_client = Redis(connection_pool=_redis_pool)
+    try:
+        redis_client = Redis(connection_pool=_redis_pool)
+        await redis_client.ping()
+    except Exception as exc:
+        if settings.APP_ENV.value in ("development", "testing", "free"):
+            logger.warning(
+                "Local Redis server unreachable; falling back to in-memory FakeRedis for %s mode: %s",
+                settings.APP_ENV.value,
+                exc,
+            )
+            import fakeredis.aioredis
+            redis_client = fakeredis.aioredis.FakeRedis(decode_responses=True)
+        else:
+            raise
+
 
 
 async def close_redis_client() -> None:

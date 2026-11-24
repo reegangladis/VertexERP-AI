@@ -101,12 +101,18 @@ def sync_db_pool_metrics() -> None:
 async def init_db_engine() -> None:
     """Initializes the database connection pool during application startup."""
     logger.info(
-        "Initializing PostgreSQL connection pool",
+        "Initializing database engine",
         host=settings.DATABASE_HOST,
         port=settings.DATABASE_PORT,
         database=settings.DATABASE_NAME,
         pool_size=settings.DATABASE_POOL_SIZE,
     )
+    if "sqlite" in settings.async_database_url:
+        import app.infrastructure.database.models  # noqa: F401
+        from app.infrastructure.database.base import Base
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("SQLite schema auto-initialized for development")
     sync_db_pool_metrics()
 
 

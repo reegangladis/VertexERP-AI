@@ -4,8 +4,35 @@ import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy import Boolean, DateTime, Integer, func, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import INET, JSONB, UUID
+from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
+
+# SQLite Compilation Hooks for PostgreSQL Dialect Types
+@compiles(JSONB, "sqlite")
+def compile_jsonb_sqlite(type_, compiler, **kw):
+    return "JSON"
+
+
+@compiles(UUID, "sqlite")
+def compile_uuid_sqlite(type_, compiler, **kw):
+    return "CHAR(36)"
+
+
+@compiles(INET, "sqlite")
+def compile_inet_sqlite(type_, compiler, **kw):
+    return "VARCHAR(45)"
+
+
+try:
+    from pgvector.sqlalchemy import Vector
+
+    @compiles(Vector, "sqlite")
+    def compile_vector_sqlite(type_, compiler, **kw):
+        return "TEXT"
+except ImportError:
+    pass
+
 
 
 class Base(DeclarativeBase):
