@@ -132,33 +132,32 @@ def test_error_tracker_and_fingerprinting():
 
 
 @pytest.mark.asyncio
-async def test_metrics_endpoint_and_correlation_middleware():
+async def test_metrics_endpoint_and_correlation_middleware(async_client: AsyncClient):
     """Verify HTTP requests inject correlation headers and GET /metrics outputs Prometheus data."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        # 1. Test request without correlation header -> receives generated correlation ID
-        res = await client.get("/health/live")
-        assert res.status_code == 200
-        assert "X-Correlation-ID" in res.headers
-        assert "X-Request-ID" in res.headers
-        assert res.headers["X-Correlation-ID"].startswith("req_")
+    client = async_client
+    # 1. Test request without correlation header -> receives generated correlation ID
+    res = await client.get("/health/live")
+    assert res.status_code == 200
+    assert "X-Correlation-ID" in res.headers
+    assert "X-Request-ID" in res.headers
+    assert res.headers["X-Correlation-ID"].startswith("req_")
 
-        # 2. Test request with provided correlation header -> preserves client ID
-        custom_id = "client_trace_88776655"
-        res2 = await client.get("/health/live", headers={"X-Correlation-ID": custom_id})
-        assert res2.status_code == 200
-        assert res2.headers["X-Correlation-ID"] == custom_id
-        assert res2.headers["X-Request-ID"] == custom_id
+    # 2. Test request with provided correlation header -> preserves client ID
+    custom_id = "client_trace_88776655"
+    res2 = await client.get("/health/live", headers={"X-Correlation-ID": custom_id})
+    assert res2.status_code == 200
+    assert res2.headers["X-Correlation-ID"] == custom_id
+    assert res2.headers["X-Request-ID"] == custom_id
 
-        # 3. Test Prometheus scraper endpoint
-        metrics_res = await client.get("/metrics")
-        assert metrics_res.status_code == 200
-        assert "text/plain" in metrics_res.headers["Content-Type"]
-        assert "http_requests_total" in metrics_res.text
+    # 3. Test Prometheus scraper endpoint
+    metrics_res = await client.get("/metrics")
+    assert metrics_res.status_code == 200
+    assert "text/plain" in metrics_res.headers["Content-Type"]
+    assert "http_requests_total" in metrics_res.text
 
-        # 4. Test JSON metrics endpoint
-        json_metrics_res = await client.get("/metrics/json")
-        assert json_metrics_res.status_code == 200
-        data = json_metrics_res.json()
-        assert "app_version" in data
-        assert "http" in data
+    # 4. Test JSON metrics endpoint
+    json_metrics_res = await client.get("/metrics/json")
+    assert json_metrics_res.status_code == 200
+    data = json_metrics_res.json()
+    assert "app_version" in data
+    assert "http" in data

@@ -6,18 +6,20 @@ import { Button } from "./Button";
 export interface EmptyStateProps {
   icon?: React.ReactNode;
   title: string;
-  description: string;
+  description?: string;
   actionLabel?: string;
   onAction?: () => void;
+  action?: React.ReactNode;
   className?: string;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
   title,
-  description,
+  description = "There are currently no items matching your criteria.",
   actionLabel,
   onAction,
+  action,
   className,
 }) => (
   <div
@@ -30,11 +32,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       {icon || <FolderOpen className="w-6 h-6" />}
     </div>
     <h4 className="text-sm font-semibold text-slate-200">{title}</h4>
-    <p className="text-xs text-slate-400 max-w-sm mt-1 mb-4">{description}</p>
-    {actionLabel && onAction && (
+    {description && <p className="text-xs text-slate-400 max-w-sm mt-1 mb-4">{description}</p>}
+    {action || (actionLabel && onAction && (
       <Button variant="primary" size="sm" onClick={onAction}>
         {actionLabel}
       </Button>
-    )}
+    ))}
   </div>
 );

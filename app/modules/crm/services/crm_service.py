@@ -38,6 +38,8 @@ class CRMService:
         phone: str | None = None,
         title: str | None = None,
         source: str = "WEBSITE",
+        status: str = "NEW",
+        rating: str = "WARM",
         estimated_value: Decimal = Decimal("0.00"),
         owner_id: uuid.UUID | None = None,
     ) -> Lead:
@@ -56,8 +58,8 @@ class CRMService:
             phone=phone.strip() if phone else None,
             title=title.strip() if title else None,
             source=source.upper(),
-            status="NEW",
-            rating="WARM",
+            status=status.upper(),
+            rating=rating.upper(),
             estimated_value=estimated_value,
         )
         return await self.repo.create_lead(lead)

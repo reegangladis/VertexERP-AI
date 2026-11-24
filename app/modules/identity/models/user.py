@@ -55,3 +55,9 @@ class User(Base):
     updated_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+
+    @property
+    def organization_id(self) -> uuid.UUID | None:
+        """Convenience accessor aliasing default_organization_id for workspace filtering."""
+        return self.default_organization_id
+

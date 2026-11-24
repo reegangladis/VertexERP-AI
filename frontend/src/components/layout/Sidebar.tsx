@@ -1,60 +1,220 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import {
-  Building2,
-  GitFork,
-  Users,
-  Award,
-  Layers,
-  DollarSign,
-  MapPin,
-  Calendar,
-  Sun,
   LayoutDashboard,
-  ShieldCheck,
-  UserCheck,
+  Users,
   Clock,
   CalendarOff,
-  Briefcase,
-  TrendingUp,
-  GraduationCap,
-  Boxes,
-  Warehouse,
-  History,
-  ArrowLeftRight,
-  SlidersHorizontal,
-  ArrowDownToLine,
-  ShoppingCart,
-  FileSpreadsheet,
-  Scale,
+  DollarSign,
+  FileText,
+  Inbox,
+  Bell,
+  Building2,
+  GitFork,
+  Award,
+  Sun,
   BookOpen,
   Receipt,
   CreditCard,
-  Landmark,
-  FileText,
-  Factory,
-  Cpu,
+  FileSpreadsheet,
   BarChart3,
-  Activity,
   Sparkles,
   Bot,
   Zap,
+  Target,
+  Briefcase,
+  TrendingUp,
+  ShoppingCart,
+  Boxes,
+  Warehouse,
+  Factory,
+  Cpu,
+  ChevronDown,
+  ChevronRight,
+  UserCheck,
+  FolderOpen,
+  PieChart,
 } from "lucide-react";
 
 interface NavItem {
   label: string;
   to: string;
   icon: React.ReactNode;
-  permission?: string;
+  badge?: string;
 }
 
+// -------------------------------------------------------------
+// Executive Analytics Navigation
+// -------------------------------------------------------------
+const executiveNavItems: NavItem[] = [
+  {
+    label: "Executive Dashboard",
+    to: "/analytics",
+    icon: <PieChart className="w-4 h-4 text-indigo-400" />,
+  },
+  {
+    label: "KPI Catalog",
+    to: "/analytics/kpis",
+    icon: <BarChart3 className="w-4 h-4 text-sky-400" />,
+  },
+  {
+    label: "Enterprise Reports Hub",
+    to: "/analytics/reports",
+    icon: <FileSpreadsheet className="w-4 h-4 text-emerald-400" />,
+  },
+];
+
+// -------------------------------------------------------------
+// Employee Self-Service (ESS) Navigation
+// -------------------------------------------------------------
+const essNavItems: NavItem[] = [
+  {
+    label: "My Dashboard",
+    to: "/ess/dashboard",
+    icon: <LayoutDashboard className="w-4 h-4 text-indigo-400" />,
+  },
+  {
+    label: "My Profile",
+    to: "/ess/profile",
+    icon: <UserCheck className="w-4 h-4 text-sky-400" />,
+  },
+  {
+    label: "My Attendance",
+    to: "/ess/attendance",
+    icon: <Clock className="w-4 h-4 text-emerald-400" />,
+  },
+  {
+    label: "Apply Leave & Quotas",
+    to: "/ess/leave",
+    icon: <CalendarOff className="w-4 h-4 text-amber-400" />,
+  },
+  {
+    label: "My Payslips",
+    to: "/ess/payslips",
+    icon: <DollarSign className="w-4 h-4 text-indigo-400" />,
+  },
+  {
+    label: "Statutory Documents",
+    to: "/ess/documents",
+    icon: <FolderOpen className="w-4 h-4 text-purple-400" />,
+  },
+  {
+    label: "My Requests & Helpdesk",
+    to: "/ess/requests",
+    icon: <Inbox className="w-4 h-4 text-rose-400" />,
+  },
+  {
+    label: "Announcements",
+    to: "/ess/announcements",
+    icon: <Bell className="w-4 h-4 text-amber-400" />,
+  },
+];
+
+// -------------------------------------------------------------
+// CRM & Sales Navigation
+// -------------------------------------------------------------
+const crmNavItems: NavItem[] = [
+  {
+    label: "CRM Dashboard",
+    to: "/crm/home",
+    icon: <LayoutDashboard className="w-4 h-4 text-indigo-400" />,
+  },
+  {
+    label: "Leads Management",
+    to: "/crm/leads",
+    icon: <Target className="w-4 h-4 text-rose-400" />,
+  },
+  {
+    label: "Customer Accounts",
+    to: "/crm/accounts",
+    icon: <Building2 className="w-4 h-4 text-blue-400" />,
+  },
+  {
+    label: "Business Contacts",
+    to: "/crm/contacts",
+    icon: <Users className="w-4 h-4 text-cyan-400" />,
+  },
+  {
+    label: "Opportunities Pipeline",
+    to: "/crm/opportunities",
+    icon: <Briefcase className="w-4 h-4 text-amber-400" />,
+  },
+  {
+    label: "Sales Quotations",
+    to: "/crm/quotations",
+    icon: <FileText className="w-4 h-4 text-purple-400" />,
+  },
+  {
+    label: "Sales Orders",
+    to: "/crm/orders",
+    icon: <ShoppingCart className="w-4 h-4 text-teal-400" />,
+  },
+  {
+    label: "Sales Analytics",
+    to: "/crm/reports",
+    icon: <BarChart3 className="w-4 h-4 text-indigo-400" />,
+  },
+];
+
+// -------------------------------------------------------------
+// Approvals Inbox
+// -------------------------------------------------------------
+const approvalNavItems: NavItem[] = [
+  {
+    label: "Approvals Inbox",
+    to: "/approvals",
+    icon: <Inbox className="w-4 h-4 text-rose-400" />,
+    badge: "PENDING",
+  },
+];
+
+// -------------------------------------------------------------
+// HRMS Management Navigation
+// -------------------------------------------------------------
+const hrNavItems: NavItem[] = [
+  {
+    label: "HR Overview",
+    to: "/hr",
+    icon: <LayoutDashboard className="w-4 h-4 text-amber-400" />,
+  },
+  {
+    label: "Employees Directory",
+    to: "/hr/employees",
+    icon: <Users className="w-4 h-4 text-sky-400" />,
+  },
+  {
+    label: "Shift & Attendance",
+    to: "/hr/attendance",
+    icon: <Clock className="w-4 h-4 text-emerald-400" />,
+  },
+  {
+    label: "Leave Governance",
+    to: "/hr/leaves",
+    icon: <CalendarOff className="w-4 h-4 text-amber-400" />,
+  },
+  {
+    label: "Payroll Engine",
+    to: "/hr/payroll",
+    icon: <DollarSign className="w-4 h-4 text-emerald-400" />,
+  },
+  {
+    label: "Recruitment & ATS",
+    to: "/hr/recruitment",
+    icon: <Briefcase className="w-4 h-4 text-indigo-400" />,
+  },
+];
+
+// -------------------------------------------------------------
+// Vertex AI Center
+// -------------------------------------------------------------
 const aiNavItems: NavItem[] = [
   {
     label: "Vertex Copilot",
     to: "/ai/copilot",
     icon: <Bot className="w-4 h-4 text-indigo-400" />,
+    badge: "AGENT",
   },
   {
     label: "Knowledge Base & RAG",
@@ -62,609 +222,320 @@ const aiNavItems: NavItem[] = [
     icon: <BookOpen className="w-4 h-4 text-emerald-400" />,
   },
   {
-    label: "AI Observability & Costs",
+    label: "Predictive ML Workbench",
+    to: "/ai/predictive",
+    icon: <Target className="w-4 h-4 text-purple-400" />,
+  },
+  {
+    label: "Sales Forecasting",
+    to: "/ai/forecast",
+    icon: <TrendingUp className="w-4 h-4 text-teal-400" />,
+  },
+  {
+    label: "AI Telemetry & Costs",
     to: "/ai/telemetry",
     icon: <Zap className="w-4 h-4 text-amber-400" />,
   },
 ];
 
-const jobsNavItems: NavItem[] = [
-  {
-    label: "Background Jobs & Tasks",
-    to: "/jobs",
-    icon: <Cpu className="w-4 h-4 text-cyan-400" />,
-  },
-];
-
-const analyticsNavItems: NavItem[] = [
-  {
-    label: "Executive Overview",
-    to: "/analytics",
-    icon: <Sparkles className="w-4 h-4 text-brand-400" />,
-  },
-  {
-    label: "Financial Analytics",
-    to: "/analytics/finance",
-    icon: <DollarSign className="w-4 h-4 text-emerald-400" />,
-  },
-  {
-    label: "Sales & CRM Intelligence",
-    to: "/analytics/sales",
-    icon: <ShoppingCart className="w-4 h-4 text-blue-400" />,
-  },
-  {
-    label: "Inventory Health",
-    to: "/analytics/inventory",
-    icon: <Boxes className="w-4 h-4 text-amber-400" />,
-  },
-  {
-    label: "Manufacturing Operations",
-    to: "/analytics/manufacturing",
-    icon: <Factory className="w-4 h-4 text-purple-400" />,
-  },
-  {
-    label: "HR & Workforce",
-    to: "/analytics/hr",
-    icon: <Users className="w-4 h-4 text-rose-400" />,
-  },
-  {
-    label: "KPI Catalog",
-    to: "/analytics/kpis",
-    icon: <Award className="w-4 h-4 text-cyan-400" />,
-  },
-  {
-    label: "Reports & Exports",
-    to: "/analytics/reports",
-    icon: <FileSpreadsheet className="w-4 h-4 text-indigo-400" />,
-  },
-];
-
+// -------------------------------------------------------------
+// Finance & Accounting Navigation
+// -------------------------------------------------------------
 const financeNavItems: NavItem[] = [
   {
     label: "Finance Dashboard",
     to: "/finance",
-    icon: <LayoutDashboard className="w-4 h-4" />,
+    icon: <LayoutDashboard className="w-4 h-4 text-emerald-400" />,
   },
   {
     label: "Chart of Accounts",
     to: "/finance/accounts",
-    icon: <BookOpen className="w-4 h-4" />,
-  },
-  {
-    label: "Fiscal Periods",
-    to: "/finance/periods",
-    icon: <Calendar className="w-4 h-4" />,
-  },
-  {
-    label: "General Journal",
-    to: "/finance/journals",
-    icon: <Scale className="w-4 h-4" />,
+    icon: <BookOpen className="w-4 h-4 text-emerald-400" />,
   },
   {
     label: "Customer Invoices",
     to: "/finance/invoices",
-    icon: <Receipt className="w-4 h-4" />,
+    icon: <Receipt className="w-4 h-4 text-emerald-400" />,
   },
   {
     label: "Vendor Bills",
     to: "/finance/bills",
-    icon: <CreditCard className="w-4 h-4" />,
+    icon: <CreditCard className="w-4 h-4 text-emerald-400" />,
   },
   {
-    label: "Payments & Allocation",
+    label: "Payments & Ledger",
     to: "/finance/payments",
-    icon: <DollarSign className="w-4 h-4" />,
+    icon: <DollarSign className="w-4 h-4 text-emerald-400" />,
   },
   {
-    label: "Bank & Treasury",
-    to: "/finance/banks",
-    icon: <Landmark className="w-4 h-4" />,
-  },
-  {
-    label: "Financial Statements",
+    label: "Financial Reports",
     to: "/finance/reports",
-    icon: <FileSpreadsheet className="w-4 h-4" />,
+    icon: <FileSpreadsheet className="w-4 h-4 text-emerald-400" />,
   },
 ];
 
-const inventoryNavItems: NavItem[] = [
-  {
-    label: "Inventory Dashboard",
-    to: "/inventory",
-    icon: <LayoutDashboard className="w-4 h-4" />,
-  },
-  {
-    label: "Products & SKUs",
-    to: "/inventory/products",
-    icon: <Boxes className="w-4 h-4" />,
-  },
-  {
-    label: "Warehouses & Bins",
-    to: "/inventory/warehouses",
-    icon: <Warehouse className="w-4 h-4" />,
-  },
-  {
-    label: "Stock Balances",
-    to: "/inventory/balances",
-    icon: <Layers className="w-4 h-4" />,
-  },
-  {
-    label: "Movements Ledger",
-    to: "/inventory/ledger",
-    icon: <History className="w-4 h-4" />,
-  },
-  {
-    label: "Stock Transfers",
-    to: "/inventory/transfers",
-    icon: <ArrowLeftRight className="w-4 h-4" />,
-  },
-  {
-    label: "Stock Adjustments",
-    to: "/inventory/adjustments",
-    icon: <SlidersHorizontal className="w-4 h-4" />,
-  },
-  {
-    label: "Goods Receipts (GRN)",
-    to: "/inventory/receipts",
-    icon: <ArrowDownToLine className="w-4 h-4" />,
-  },
-];
-
-const procurementNavItems: NavItem[] = [
-  {
-    label: "Procurement Hub",
-    to: "/procurement",
-    icon: <LayoutDashboard className="w-4 h-4" />,
-  },
-  {
-    label: "Suppliers & Vendors",
-    to: "/procurement/suppliers",
-    icon: <Users className="w-4 h-4" />,
-  },
-  {
-    label: "Purchase Requests (PR)",
-    to: "/procurement/requests",
-    icon: <FileSpreadsheet className="w-4 h-4" />,
-  },
-  {
-    label: "Purchase Orders (PO)",
-    to: "/procurement/orders",
-    icon: <ShoppingCart className="w-4 h-4" />,
-  },
-];
-
-const manufacturingNavItems: NavItem[] = [
-  {
-    label: "Manufacturing Hub",
-    to: "/manufacturing",
-    icon: <Factory className="w-4 h-4" />,
-  },
-  {
-    label: "Bills of Materials (BOM)",
-    to: "/manufacturing/boms",
-    icon: <Layers className="w-4 h-4" />,
-  },
-  {
-    label: "Routings & Operations",
-    to: "/manufacturing/routings",
-    icon: <GitFork className="w-4 h-4" />,
-  },
-  {
-    label: "Work Centers & Machines",
-    to: "/manufacturing/work-centers",
-    icon: <Cpu className="w-4 h-4" />,
-  },
-  {
-    label: "Production Orders",
-    to: "/manufacturing/production-orders",
-    icon: <FileSpreadsheet className="w-4 h-4" />,
-  },
-  {
-    label: "Shop Floor Work Orders",
-    to: "/manufacturing/work-orders",
-    icon: <Briefcase className="w-4 h-4" />,
-  },
-  {
-    label: "Consumption & Scrap Ledger",
-    to: "/manufacturing/consumption",
-    icon: <History className="w-4 h-4" />,
-  },
-  {
-    label: "MRP Engine (Gross/Net)",
-    to: "/manufacturing/mrp",
-    icon: <SlidersHorizontal className="w-4 h-4" />,
-  },
-  {
-    label: "Quality Control (QC)",
-    to: "/manufacturing/quality",
-    icon: <ShieldCheck className="w-4 h-4" />,
-  },
-];
-
-const hrNavItems: NavItem[] = [
-  {
-    label: "HR Dashboard",
-    to: "/hr",
-    icon: <LayoutDashboard className="w-4 h-4" />,
-  },
-  {
-    label: "Employees",
-    to: "/hr/employees",
-    icon: <UserCheck className="w-4 h-4" />,
-  },
-  {
-    label: "Attendance & Shifts",
-    to: "/hr/attendance",
-    icon: <Clock className="w-4 h-4" />,
-  },
-  {
-    label: "Leaves & Quotas",
-    to: "/hr/leaves",
-    icon: <CalendarOff className="w-4 h-4" />,
-  },
-  {
-    label: "Payroll & Payslips",
-    to: "/hr/payroll",
-    icon: <DollarSign className="w-4 h-4" />,
-  },
-  {
-    label: "Recruitment (ATS)",
-    to: "/hr/recruitment",
-    icon: <Briefcase className="w-4 h-4" />,
-  },
-  {
-    label: "Performance & OKRs",
-    to: "/hr/performance",
-    icon: <TrendingUp className="w-4 h-4" />,
-  },
-  {
-    label: "Learning (LMS)",
-    to: "/hr/learning",
-    icon: <GraduationCap className="w-4 h-4" />,
-  },
-];
-
+// -------------------------------------------------------------
+// Organization Structure Navigation
+// -------------------------------------------------------------
 const orgNavItems: NavItem[] = [
   {
-    label: "Overview",
+    label: "Org Structure Overview",
     to: "/organization",
-    icon: <LayoutDashboard className="w-4 h-4" />,
+    icon: <Building2 className="w-4 h-4 text-slate-300" />,
   },
   {
     label: "Branches",
     to: "/organization/branches",
-    icon: <Building2 className="w-4 h-4" />,
-    permission: "organization:branches:read",
+    icon: <Building2 className="w-4 h-4 text-slate-300" />,
   },
   {
     label: "Departments",
     to: "/organization/departments",
-    icon: <GitFork className="w-4 h-4" />,
-    permission: "organization:departments:read",
-  },
-  {
-    label: "Teams",
-    to: "/organization/teams",
-    icon: <Users className="w-4 h-4" />,
-    permission: "organization:teams:read",
+    icon: <GitFork className="w-4 h-4 text-slate-300" />,
   },
   {
     label: "Designations",
     to: "/organization/designations",
-    icon: <Award className="w-4 h-4" />,
-    permission: "organization:designations:read",
+    icon: <Award className="w-4 h-4 text-slate-300" />,
   },
   {
-    label: "Business Units",
-    to: "/organization/business-units",
-    icon: <Layers className="w-4 h-4" />,
-    permission: "organization:business_units:read",
-  },
-  {
-    label: "Cost Centers",
-    to: "/organization/cost-centers",
-    icon: <DollarSign className="w-4 h-4" />,
-    permission: "organization:cost_centers:read",
-  },
-  {
-    label: "Locations",
-    to: "/organization/locations",
-    icon: <MapPin className="w-4 h-4" />,
-    permission: "organization:locations:read",
-  },
-  {
-    label: "Work Calendars",
-    to: "/organization/calendars",
-    icon: <Calendar className="w-4 h-4" />,
-    permission: "organization:calendars:read",
-  },
-  {
-    label: "Holidays",
+    label: "Holidays Calendar",
     to: "/organization/holidays",
-    icon: <Sun className="w-4 h-4" />,
-    permission: "organization:holidays:read",
+    icon: <Sun className="w-4 h-4 text-amber-300" />,
+  },
+];
+
+// -------------------------------------------------------------
+// Supply Chain & Operations (Collapsible)
+// -------------------------------------------------------------
+const opsNavItems: NavItem[] = [
+  {
+    label: "Inventory Balances",
+    to: "/inventory/balances",
+    icon: <Boxes className="w-4 h-4 text-teal-400" />,
+  },
+  {
+    label: "Warehouses",
+    to: "/inventory/warehouses",
+    icon: <Warehouse className="w-4 h-4 text-teal-400" />,
+  },
+  {
+    label: "Suppliers & POs",
+    to: "/procurement/orders",
+    icon: <ShoppingCart className="w-4 h-4 text-teal-400" />,
+  },
+  {
+    label: "Production Orders",
+    to: "/manufacturing/orders",
+    icon: <Factory className="w-4 h-4 text-teal-400" />,
+  },
+  {
+    label: "Background Tasks",
+    to: "/jobs",
+    icon: <Cpu className="w-4 h-4 text-teal-400" />,
   },
 ];
 
 export const Sidebar: React.FC = () => {
-  const { tenantId, fullName } = useAuthStore();
+  const location = useLocation();
+  const { tenantId, fullName, roles } = useAuthStore();
+  const [opsOpen, setOpsOpen] = useState(false);
+
+  const isSuperAdmin = roles.includes("SUPER_ADMIN") || roles.includes("ORG_ADMIN") || roles.length === 0;
+  const isEmployeeOnly = roles.includes("EMPLOYEE") && !isSuperAdmin;
+  const isSalesManager = roles.includes("SALES_MANAGER") && !isSuperAdmin;
+  const isHRManager = roles.includes("HR_MANAGER") && !isSuperAdmin;
+
+  // Determine current active section
+  const isESS = location.pathname.startsWith("/ess") || isEmployeeOnly;
+
+  const renderNavGroup = (title: string, items: NavItem[], badgeText?: string, badgeColor?: string) => (
+    <div className="space-y-1">
+      <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+        <span>{title}</span>
+        {badgeText && (
+          <span className={cn("text-[9px] px-1.5 py-0.5 rounded font-bold border", badgeColor || "bg-indigo-500/20 text-indigo-300 border-indigo-500/30")}>
+            {badgeText}
+          </span>
+        )}
+      </div>
+      <div className="space-y-0.5">
+        {items.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === "/crm/home" || item.to === "/ess/dashboard" || item.to === "/hr" || item.to === "/finance" || item.to === "/analytics"}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150",
+                isActive
+                  ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30 font-semibold"
+                  : "text-slate-300 hover:bg-[#152038] hover:text-white"
+              )
+            }
+          >
+            <div className="flex items-center gap-3">
+              {item.icon}
+              <span>{item.label}</span>
+            </div>
+            {item.badge && (
+              <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-rose-500/30 text-rose-300 border border-rose-500/30">
+                {item.badge}
+              </span>
+            )}
+          </NavLink>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 h-screen sticky top-0">
-      {/* Brand Logo */}
-      <div className="h-16 px-6 border-b border-slate-800 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center font-bold text-white shadow-md shadow-brand-500/20">
-          V
+    <aside className="w-64 bg-[#090e18]/95 border-r border-[#1b253b] backdrop-blur-2xl flex flex-col shrink-0 h-screen sticky top-0 shadow-xl shadow-black/60">
+      {/* Brand Header */}
+      <div className="h-16 px-5 border-b border-[#1b253b] flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center font-extrabold text-white text-base shadow-md shadow-indigo-500/30">
+            V
+          </div>
+          <div>
+            <div className="font-bold text-sm text-white tracking-tight leading-none">VertexERP AI</div>
+            <div className="text-[10px] text-slate-400 font-medium mt-1">
+              {isESS
+                ? "Employee Portal"
+                : isSalesManager
+                ? "Sales & Revenue Ops"
+                : isHRManager
+                ? "People Operations"
+                : "Enterprise Suite"}
+            </div>
+          </div>
         </div>
-        <div>
-          <span className="font-bold text-sm tracking-tight text-white">VertexERP</span>
-          <span className="text-[10px] uppercase tracking-wider font-semibold ml-1.5 px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300">
-            AI V2
-          </span>
-        </div>
+
+        <span
+          className={cn(
+            "text-[9px] px-2 py-0.5 rounded-full font-bold uppercase border",
+            isESS
+              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+              : isSalesManager
+              ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
+              : isHRManager
+              ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+              : "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
+          )}
+        >
+          {isESS
+            ? "ESS"
+            : isSalesManager
+            ? "Sales"
+            : isHRManager
+            ? "HRMS"
+            : "Admin"}
+        </span>
       </div>
 
       {/* Navigation Links */}
-      <div className="flex-1 py-4 px-3 overflow-y-auto space-y-4">
-        {/* AI Platform & Copilot */}
-        <div>
-          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-indigo-400 flex items-center justify-between">
-            <span>AI Platform & Copilot</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold">
-              GENAI
-            </span>
-          </div>
-          <div className="space-y-1 mt-1">
-            {aiNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/ai/copilot"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                  )
-                }
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
+      <div className="flex-1 py-4 px-3 overflow-y-auto space-y-5 custom-scrollbar">
+        {/* CASE 1: Pure Employee View or ESS URL */}
+        {isESS && (
+          <>
+            {renderNavGroup("Employee Self-Service", essNavItems, "greytHR", "bg-emerald-500/20 text-emerald-300 border-emerald-500/30")}
+          </>
+        )}
 
-        {/* Background Processing & Jobs */}
-        <div>
-          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-cyan-400 flex items-center justify-between">
-            <span>Async Processing</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">
-              WORKERS
-            </span>
-          </div>
-          <div className="space-y-1 mt-1">
-            {jobsNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-cyan-600 text-white shadow-sm shadow-cyan-600/30"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                  )
-                }
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
+        {/* CASE 2: Sales Manager Persona */}
+        {!isESS && isSalesManager && (
+          <>
+            {renderNavGroup("Sales & Deals Pipeline", crmNavItems, "CRM", "bg-purple-500/20 text-purple-300 border-purple-500/30")}
+            {renderNavGroup("Governance & Approvals", approvalNavItems, "LIVE", "bg-rose-500/20 text-rose-300 border-rose-500/30")}
+            {renderNavGroup("AI Copilot", aiNavItems.slice(0, 2), "AI", "bg-indigo-500/20 text-indigo-300 border-indigo-500/30")}
+          </>
+        )}
 
-        {/* Analytics & Intelligence */}
-        <div>
-          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-brand-400 flex items-center justify-between">
-            <span>Analytics & Intelligence</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 font-bold">
-              OLAP
-            </span>
-          </div>
-          <div className="space-y-1 mt-1">
-            {analyticsNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/analytics"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-brand-600 text-white shadow-sm shadow-brand-600/30"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                  )
-                }
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
+        {/* CASE 3: HR Manager Persona */}
+        {!isESS && isHRManager && (
+          <>
+            {renderNavGroup("HR Administration", hrNavItems, "HRMS", "bg-amber-500/20 text-amber-300 border-amber-500/30")}
+            {renderNavGroup("Governance & Approvals", approvalNavItems, "LIVE", "bg-rose-500/20 text-rose-300 border-rose-500/30")}
+            {renderNavGroup("Organization Structure", orgNavItems)}
+          </>
+        )}
 
-        {/* Finance & Accounting */}
-        <div>
-          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Finance & Accounting
-          </div>
-          <div className="space-y-1 mt-1">
-            {financeNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/finance"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-brand-600 text-white shadow-sm shadow-brand-600/30"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                  )
-                }
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
+        {/* CASE 4: Full Administrator Persona */}
+        {!isESS && isSuperAdmin && (
+          <>
+            {/* Executive Analytics */}
+            {renderNavGroup("Executive Suite", executiveNavItems, "EXEC", "bg-indigo-500/20 text-indigo-300 border-indigo-500/30")}
 
-        {/* Inventory Management */}
-        <div>
-          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Inventory & Stock
-          </div>
-          <div className="space-y-1 mt-1">
-            {inventoryNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/inventory"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-brand-600 text-white shadow-sm shadow-brand-600/30"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                  )
-                }
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
+            {/* Approvals Inbox */}
+            {renderNavGroup("Governance & Workflows", approvalNavItems, "LIVE", "bg-rose-500/20 text-rose-300 border-rose-500/30")}
 
-        {/* Procurement */}
-        <div>
-          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Procurement & Purchasing
-          </div>
-          <div className="space-y-1 mt-1">
-            {procurementNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/procurement"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-brand-600 text-white shadow-sm shadow-brand-600/30"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                  )
-                }
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
+            {/* CRM & Sales */}
+            {renderNavGroup("CRM & Sales Pipeline", crmNavItems, "SALES", "bg-blue-500/20 text-blue-300 border-blue-500/30")}
 
-        {/* Manufacturing & MRP */}
-        <div>
-          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Manufacturing & MRP
-          </div>
-          <div className="space-y-1 mt-1">
-            {manufacturingNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/manufacturing"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-brand-600 text-white shadow-sm shadow-brand-600/30"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                  )
-                }
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
+            {/* AI Platform & Predictive Center */}
+            {renderNavGroup("Vertex AI Center", aiNavItems, "GENAI", "bg-indigo-500/20 text-indigo-300 border-indigo-500/30")}
 
-        {/* Human Resources */}
-        <div>
-          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Human Resources (HR)
-          </div>
-          <div className="space-y-1 mt-1">
-            {hrNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/hr"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-brand-600 text-white shadow-sm shadow-brand-600/30"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                  )
-                }
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
+            {/* HRMS Management */}
+            {renderNavGroup("HR Administration", hrNavItems, "HRMS", "bg-amber-500/20 text-amber-300 border-amber-500/30")}
 
-        {/* Organization Domain */}
-        <div>
-          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Organization Domain
-          </div>
-          <div className="space-y-1 mt-1">
-            {orgNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/organization"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    isActive
-                      ? "bg-brand-600 text-white shadow-sm shadow-brand-600/30"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                  )
-                }
+            {/* Finance & Payroll */}
+            {renderNavGroup("Finance & Accounting", financeNavItems, "FIN", "bg-emerald-500/20 text-emerald-300 border-emerald-500/30")}
+
+            {/* Organization & Setup */}
+            {renderNavGroup("Organization Structure", orgNavItems)}
+
+            {/* Retained Operations Section (Collapsible) */}
+            <div className="pt-2 border-t border-[#1e2a44]">
+              <button
+                type="button"
+                onClick={() => setOpsOpen(!opsOpen)}
+                className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200"
               >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </div>
+                <span>Operations & SCM</span>
+                {opsOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              </button>
+              {opsOpen && (
+                <div className="space-y-0.5 mt-1">
+                  {opsNavItems.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-colors",
+                          isActive
+                            ? "bg-slate-800 text-white font-semibold"
+                            : "text-slate-400 hover:bg-[#152038] hover:text-white"
+                        )
+                      }
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Tenant / Status Footer */}
-      <div className="p-3 border-t border-slate-800 bg-slate-900/50">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700/40 text-xs">
-          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-          <div className="truncate">
-            <div className="font-medium text-slate-200 truncate">{fullName ? `${fullName}'s Workspace` : "Enterprise Workspace"}</div>
-            <div className="text-[10px] text-slate-400" data-testid="sidebar-tenant-id">Tenant: {tenantId || "authenticated"}</div>
+      {/* Footer User & Tenant Info */}
+      <div className="p-3 border-t border-[#1b253b] bg-[#070b14]/70">
+        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-[#0f1728] border border-[#202d48]">
+          <div className="w-7 h-7 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center font-bold text-xs text-indigo-300">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold text-slate-200 truncate">
+              {fullName ? `${fullName}'s Workspace` : "Vertex Cloud Enterprise"}
+            </div>
+            <div
+              data-testid="sidebar-tenant-id"
+              className="text-[10px] text-slate-400 truncate"
+            >
+              Tenant: {tenantId || "apex-cloud"}
+            </div>
           </div>
         </div>
       </div>

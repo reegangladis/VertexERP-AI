@@ -19,13 +19,20 @@ from app.core.logging import logger
 from app.core.metrics import metrics_registry
 
 # Global async engine and sessionmaker instances
+_engine_kwargs: dict = {
+    "echo": settings.DATABASE_ECHO,
+}
+if "sqlite" not in settings.async_database_url:
+    _engine_kwargs.update(
+        pool_size=settings.DATABASE_POOL_SIZE,
+        max_overflow=settings.DATABASE_MAX_OVERFLOW,
+        pool_timeout=settings.DATABASE_POOL_TIMEOUT,
+        pool_pre_ping=True,
+    )
+
 engine: AsyncEngine = create_async_engine(
     settings.async_database_url,
-    pool_size=settings.DATABASE_POOL_SIZE,
-    max_overflow=settings.DATABASE_MAX_OVERFLOW,
-    pool_timeout=settings.DATABASE_POOL_TIMEOUT,
-    echo=settings.DATABASE_ECHO,
-    pool_pre_ping=True,
+    **_engine_kwargs,
 )
 
 async_session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
@@ -94,12 +101,18 @@ def sync_db_pool_metrics() -> None:
 async def init_db_engine() -> None:
     """Initializes the database connection pool during application startup."""
     logger.info(
-        "Initializing PostgreSQL connection pool",
+        "Initializing database engine",
         host=settings.DATABASE_HOST,
         port=settings.DATABASE_PORT,
         database=settings.DATABASE_NAME,
         pool_size=settings.DATABASE_POOL_SIZE,
     )
+    if "sqlite" in settings.async_database_url:
+        import app.infrastructure.database.models  # noqa: F401
+        from app.infrastructure.database.base import Base
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("SQLite schema auto-initialized for development")
     sync_db_pool_metrics()
 
 

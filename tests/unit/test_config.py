@@ -9,7 +9,7 @@ from app.core.constants import Environment
 
 def test_default_settings_instantiation():
     """Verifies that default settings load with expected defaults."""
-    settings = AppSettings()
+    settings = AppSettings(DATABASE_URL=None)
     assert settings.APP_NAME == "VertexERP-AI-V2"
     assert settings.PORT == 8000
     assert "postgresql+asyncpg" in settings.async_database_url
@@ -73,6 +73,7 @@ def test_staging_placeholder_secrets_fail_closed():
     with pytest.raises(ValidationError, match="DATABASE_PASSWORD"):
         AppSettings(
             APP_ENV=Environment.STAGING,
+            DATABASE_URL=None,
             JWT_SECRET_KEY="valid_staging_jwt_signing_secret_1234567890!",
             INTEGRATION_SIGNING_SECRET="valid_staging_integration_secret_1234567890!",
             DATABASE_PASSWORD="REPLACE_WITH_SECURE_STAGING_DATABASE_PASSWORD",

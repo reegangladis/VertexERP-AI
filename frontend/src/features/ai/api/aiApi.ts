@@ -236,4 +236,30 @@ export const aiApi = {
       body: JSON.stringify(payload),
     });
   },
+
+  // Predictive ML & Intelligence
+  async scoreLead(payload: any): Promise<any> {
+    return apiClient<any>("/ai/predict/lead-score", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async predictAttritionRisk(payload: any): Promise<any> {
+    return apiClient<any>("/ai/predict/attrition-risk", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getSalesForecast(): Promise<any> {
+    return apiClient<any>("/ai/predict/sales-forecast");
+  },
+
+  async matchResume(payload: any): Promise<any> {
+    return apiClient<any>("/ai/predict/resume/match", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
 };

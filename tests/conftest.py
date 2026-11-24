@@ -16,6 +16,7 @@ from sqlalchemy.ext.compiler import compiles
 os.environ["APP_ENV"] = "testing"
 os.environ["DEBUG"] = "true"
 os.environ["JWT_SECRET_KEY"] = "test_super_secret_key_minimum_32_characters_long_for_tests!"
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 
 
 # SQLite Compilation Hooks for PostgreSQL Dialect Types

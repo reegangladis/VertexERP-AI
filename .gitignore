@@ -14,8 +14,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
+!frontend/src/lib/
 parts/
 sdist/
 var/
@@ -74,6 +75,11 @@ Thumbs.db
 secrets/
 credentials/
 node_modules/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
 
 # Environment files (templates are intentionally tracked)
 .env.*
