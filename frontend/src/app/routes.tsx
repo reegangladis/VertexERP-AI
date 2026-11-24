@@ -1,4 +1,6 @@
+import React from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import { useAuthStore } from "@/stores/auth-store";
 import { AppShell } from "@/components/layout/AppShell";
 import { ProtectedRoute } from "@/components/security/ProtectedRoute";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
@@ -107,6 +109,20 @@ import { SalesForecastingPage } from "@/features/ai/pages/SalesForecastingPage";
 // Background Processing & Jobs Pages
 import { BackgroundJobsDashboardPage } from "@/features/jobs";
 
+const RoleHomeRedirect: React.FC = () => {
+  const { roles } = useAuthStore();
+  if (roles.includes("EMPLOYEE") && !roles.includes("SUPER_ADMIN") && !roles.includes("ORG_ADMIN")) {
+    return <Navigate to="/ess/dashboard" replace />;
+  }
+  if (roles.includes("SALES_MANAGER") && !roles.includes("SUPER_ADMIN")) {
+    return <Navigate to="/crm/home" replace />;
+  }
+  if (roles.includes("HR_MANAGER") && !roles.includes("SUPER_ADMIN")) {
+    return <Navigate to="/hr" replace />;
+  }
+  return <Navigate to="/analytics" replace />;
+};
+
 export const router = createBrowserRouter([
   {
     path: "/login",
@@ -121,11 +137,11 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="/crm/home" replace />,
+            element: <RoleHomeRedirect />,
           },
           {
             path: "admin/home",
-            element: <Navigate to="/crm/home" replace />,
+            element: <RoleHomeRedirect />,
           },
 
           // -------------------------------------------------------------

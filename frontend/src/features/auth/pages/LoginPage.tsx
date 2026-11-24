@@ -115,8 +115,10 @@ export const LoginPage: React.FC = () => {
       // Navigate based on persona role
       if (roles.includes("EMPLOYEE") && !roles.includes("SUPER_ADMIN") && !roles.includes("TenantAdmin")) {
         navigate("/ess", { replace: true });
-      } else if (roles.includes("SALES_MANAGER")) {
+      } else if (roles.includes("SALES_MANAGER") && !roles.includes("SUPER_ADMIN")) {
         navigate("/crm", { replace: true });
+      } else if (roles.includes("HR_MANAGER") && !roles.includes("SUPER_ADMIN")) {
+        navigate("/hr", { replace: true });
       } else {
         navigate("/analytics", { replace: true });
       }

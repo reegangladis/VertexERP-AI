@@ -28,13 +28,123 @@ import {
   TimeSeriesData,
 } from "../types";
 
+const DEFAULT_KPIS: MetricCardData[] = [
+  {
+    code: "ARR",
+    name: "Annual Recurring Revenue",
+    category: "FINANCE",
+    unit: "CURRENCY",
+    formatted_value: "$12.8M",
+    current_value: 12800000,
+    delta_percentage: 14.2,
+    status: "ON_TRACK",
+    period_label: "This Month",
+  },
+  {
+    code: "NET_MARGIN",
+    name: "Operating Net Margin",
+    category: "FINANCE",
+    unit: "PERCENTAGE",
+    formatted_value: "28.5%",
+    current_value: 28.5,
+    delta_percentage: 3.4,
+    status: "ON_TRACK",
+    period_label: "This Month",
+  },
+  {
+    code: "PIPELINE",
+    name: "Active Sales Pipeline",
+    category: "SALES",
+    unit: "CURRENCY",
+    formatted_value: "$3.45M",
+    current_value: 3450000,
+    delta_percentage: 18.6,
+    status: "ON_TRACK",
+    period_label: "This Month",
+  },
+  {
+    code: "HEADCOUNT",
+    name: "Total Headcount",
+    category: "HR",
+    unit: "COUNT",
+    formatted_value: "148 Staff",
+    current_value: 148,
+    delta_percentage: 4.2,
+    status: "ON_TRACK",
+    period_label: "This Month",
+  },
+  {
+    code: "OEE",
+    name: "Plant Efficiency (OEE)",
+    category: "MANUFACTURING",
+    unit: "PERCENTAGE",
+    formatted_value: "94.2%",
+    current_value: 94.2,
+    delta_percentage: 2.1,
+    status: "ON_TRACK",
+    period_label: "This Month",
+  },
+  {
+    code: "INV_VAL",
+    name: "Inventory Valuation",
+    category: "INVENTORY",
+    unit: "CURRENCY",
+    formatted_value: "$4.82M",
+    current_value: 4820000,
+    delta_percentage: 0.8,
+    status: "ON_TRACK",
+    period_label: "This Month",
+  },
+];
+
+const DEFAULT_FIN_TREND: TimeSeriesData = {
+  title: "Invoiced Gross Revenue vs Approved Operating Expenses",
+  chart_type: "BAR",
+  interval: "MONTHLY",
+  series: [
+    { timestamp: "2025-10-01", label: "Oct", primary_value: 840000, secondary_value: 520000 },
+    { timestamp: "2025-11-01", label: "Nov", primary_value: 910000, secondary_value: 560000 },
+    { timestamp: "2025-12-01", label: "Dec", primary_value: 1120000, secondary_value: 610000 },
+    { timestamp: "2026-01-01", label: "Jan", primary_value: 1050000, secondary_value: 580000 },
+    { timestamp: "2026-02-01", label: "Feb", primary_value: 1280000, secondary_value: 630000 },
+    { timestamp: "2026-03-01", label: "Mar", primary_value: 1450000, secondary_value: 660000 },
+  ],
+};
+
+const DEFAULT_SALES_DIST: DimensionalDistributionData = {
+  title: "Sales Pipeline Funnel",
+  dimension_name: "Pipeline Stage",
+  chart_type: "FUNNEL",
+  breakdowns: [
+    { dimension_key: "DISCOVERY", dimension_label: "Discovery", total_amount: 620000, count: 5, percentage_share: 18 },
+    { dimension_key: "QUALIFIED", dimension_label: "Qualification", total_amount: 940000, count: 4, percentage_share: 27 },
+    { dimension_key: "PROPOSAL", dimension_label: "Proposal Sent", total_amount: 1150000, count: 3, percentage_share: 33 },
+    { dimension_key: "NEGOTIATION", dimension_label: "Negotiation", total_amount: 740000, count: 2, percentage_share: 22 },
+  ],
+};
+
+const DEFAULT_INV_DIST: DimensionalDistributionData = {
+  title: "Inventory by Warehouse",
+  dimension_name: "Warehouse",
+  chart_type: "BAR",
+  breakdowns: [
+    { dimension_key: "WH_EAST", dimension_label: "East Coast Logistics (JFK)", total_amount: 2410000, count: 12, percentage_share: 50 },
+    { dimension_key: "WH_WEST", dimension_label: "West Coast Fulfillment (OAK)", total_amount: 1590000, count: 8, percentage_share: 33 },
+    { dimension_key: "WH_EMEA", dimension_label: "Rotterdam Depot (EMEA)", total_amount: 820000, count: 4, percentage_share: 17 },
+  ],
+};
+
 export const ExecutiveDashboardPage: React.FC = () => {
   const [period, setPeriod] = useState<DateFilterPeriod>("THIS_MONTH");
-  const [loading, setLoading] = useState(true);
-  const [execSummary, setExecSummary] = useState<DomainExecutiveSummary | null>(null);
-  const [finTrend, setFinTrend] = useState<TimeSeriesData | null>(null);
-  const [salesDist, setSalesDist] = useState<DimensionalDistributionData | null>(null);
-  const [invDist, setInvDist] = useState<DimensionalDistributionData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [execSummary, setExecSummary] = useState<DomainExecutiveSummary | null>({
+    domain: "EXECUTIVE",
+    period_label: "This Month",
+    kpis: DEFAULT_KPIS,
+  });
+  const [finTrend, setFinTrend] = useState<TimeSeriesData | null>(DEFAULT_FIN_TREND);
+  const [salesDist, setSalesDist] = useState<DimensionalDistributionData | null>(DEFAULT_SALES_DIST);
+  const [invDist, setInvDist] = useState<DimensionalDistributionData | null>(DEFAULT_INV_DIST);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
   const fetchData = async () => {
@@ -64,12 +174,12 @@ export const ExecutiveDashboardPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header & Period Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/60 p-6 rounded-2xl border border-slate-800 backdrop-blur-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0d1424]/90 p-6 rounded-2xl border border-[#1b253b] backdrop-blur-2xl shadow-xl shadow-black/40">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight text-white">Executive Command Center</h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-400 border border-brand-500/20">
-              <Sparkles className="w-3.5 h-3.5 text-brand-400" />
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               Realtime OLAP
             </span>
           </div>
@@ -79,14 +189,14 @@ export const ExecutiveDashboardPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-slate-800/80 rounded-xl p-1 border border-slate-700/60">
+          <div className="flex items-center bg-[#090e18] rounded-xl p-1 border border-[#202c44]">
             {(["TODAY", "THIS_WEEK", "THIS_MONTH", "THIS_QUARTER", "THIS_YEAR"] as DateFilterPeriod[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   period === p
-                    ? "bg-brand-600 text-white shadow-md shadow-brand-600/30"
+                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
@@ -98,10 +208,10 @@ export const ExecutiveDashboardPage: React.FC = () => {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 transition"
+            className="p-2.5 rounded-xl bg-[#0e1628] text-slate-300 hover:text-white hover:bg-indigo-600/20 border border-[#202d48] transition shadow-sm"
             title="Refresh Analytics"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-brand-400" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
           </button>
         </div>
       </div>
@@ -112,7 +222,7 @@ export const ExecutiveDashboardPage: React.FC = () => {
           execSummary.kpis.map((kpi, i) => (
             <div
               key={kpi.code || kpi.kpi_code || String(i)}
-              className="bg-slate-900/80 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-4 transition-all duration-200 hover:shadow-lg hover:shadow-brand-500/5 group"
+              className="bg-[#0d1424]/90 border border-[#1b253b] hover:border-indigo-500/50 rounded-2xl p-4 transition-all duration-200 hover:shadow-xl hover:shadow-indigo-600/10 group backdrop-blur-xl"
             >
               <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
                 <span className="font-medium truncate">{kpi.name}</span>
