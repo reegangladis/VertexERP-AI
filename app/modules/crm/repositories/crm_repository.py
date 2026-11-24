@@ -1,11 +1,13 @@
 """CRM domain repository providing persistence operations for CRM entities."""
 
 import uuid
-
-from sqlalchemy import select
+from decimal import Decimal
+from typing import Any
+from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.modules.crm.models.activity import Activity, Note, Task
 from app.modules.crm.models.contact import Contact
 from app.modules.crm.models.customer import Customer
 from app.modules.crm.models.deal import Deal, DealStageHistory
@@ -174,3 +176,162 @@ class CRMRepository:
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def list_customers(
+        self, tenant_id: uuid.UUID, organization_id: uuid.UUID | None = None
+    ) -> list[Customer]:
+        stmt = select(Customer).where(Customer.tenant_id == tenant_id, Customer.is_deleted.is_(False))
+        if organization_id:
+            stmt = stmt.where(Customer.organization_id == organization_id)
+        result = await self.session.execute(stmt.order_by(Customer.created_at.desc()))
+        return list(result.scalars().all())
+
+    async def list_contacts(
+        self, tenant_id: uuid.UUID, customer_id: uuid.UUID | None = None
+    ) -> list[Contact]:
+        stmt = select(Contact).where(Contact.tenant_id == tenant_id, Contact.is_deleted.is_(False))
+        if customer_id:
+            stmt = stmt.where(Contact.customer_id == customer_id)
+        result = await self.session.execute(stmt.order_by(Contact.created_at.desc()))
+        return list(result.scalars().all())
+
+    async def list_deals(
+        self, tenant_id: uuid.UUID, pipeline_id: uuid.UUID | None = None, stage_id: uuid.UUID | None = None
+    ) -> list[Deal]:
+        stmt = select(Deal).where(Deal.tenant_id == tenant_id, Deal.is_deleted.is_(False))
+        if pipeline_id:
+            stmt = stmt.where(Deal.pipeline_id == pipeline_id)
+        if stage_id:
+            stmt = stmt.where(Deal.stage_id == stage_id)
+        result = await self.session.execute(stmt.order_by(Deal.created_at.desc()))
+        return list(result.scalars().all())
+
+    async def list_quotations(
+        self, tenant_id: uuid.UUID, customer_id: uuid.UUID | None = None
+    ) -> list[Quotation]:
+        stmt = select(Quotation).options(selectinload(Quotation.items)).where(
+            Quotation.tenant_id == tenant_id, Quotation.is_deleted.is_(False)
+        )
+        if customer_id:
+            stmt = stmt.where(Quotation.customer_id == customer_id)
+        result = await self.session.execute(stmt.order_by(Quotation.created_at.desc()))
+        return list(result.scalars().all())
+
+    async def list_sales_orders(
+        self, tenant_id: uuid.UUID, customer_id: uuid.UUID | None = None
+    ) -> list[SalesOrder]:
+        stmt = select(SalesOrder).options(selectinload(SalesOrder.items)).where(
+            SalesOrder.tenant_id == tenant_id, SalesOrder.is_deleted.is_(False)
+        )
+        if customer_id:
+            stmt = stmt.where(SalesOrder.customer_id == customer_id)
+        result = await self.session.execute(stmt.order_by(SalesOrder.created_at.desc()))
+        return list(result.scalars().all())
+
+    async def create_activity(self, activity: Activity) -> Activity:
+        self.session.add(activity)
+        await self.session.flush()
+        await self.session.refresh(activity)
+        return activity
+
+    async def list_activities(
+        self, tenant_id: uuid.UUID, entity_type: str | None = None, entity_id: uuid.UUID | None = None
+    ) -> list[Activity]:
+        stmt = select(Activity).where(Activity.tenant_id == tenant_id, Activity.is_deleted.is_(False))
+        if entity_type:
+            stmt = stmt.where(Activity.entity_type == entity_type)
+        if entity_id:
+            stmt = stmt.where(Activity.entity_id == entity_id)
+        result = await self.session.execute(stmt.order_by(Activity.created_at.desc()))
+        return list(result.scalars().all())
+
+    async def create_task(self, task: Task) -> Task:
+        self.session.add(task)
+        await self.session.flush()
+        await self.session.refresh(task)
+        return task
+
+    async def list_tasks(
+        self, tenant_id: uuid.UUID, entity_type: str | None = None, entity_id: uuid.UUID | None = None
+    ) -> list[Task]:
+        stmt = select(Task).where(Task.tenant_id == tenant_id, Task.is_deleted.is_(False))
+        if entity_type:
+            stmt = stmt.where(Task.entity_type == entity_type)
+        if entity_id:
+            stmt = stmt.where(Task.entity_id == entity_id)
+        result = await self.session.execute(stmt.order_by(Task.created_at.desc()))
+        return list(result.scalars().all())
+
+    async def get_crm_metrics(self, tenant_id: uuid.UUID) -> dict[str, Any]:
+        """Aggregate real database statistics for CRM dashboard."""
+        leads_total = (await self.session.execute(
+            select(func.count(Lead.id)).where(Lead.tenant_id == tenant_id, Lead.is_deleted.is_(False))
+        )).scalar() or 0
+
+        leads_open = (await self.session.execute(
+            select(func.count(Lead.id)).where(
+                Lead.tenant_id == tenant_id,
+                Lead.is_deleted.is_(False),
+                Lead.status.in_(["NEW", "CONTACTED", "QUALIFIED"])
+            )
+        )).scalar() or 0
+
+        leads_converted = (await self.session.execute(
+            select(func.count(Lead.id)).where(
+                Lead.tenant_id == tenant_id,
+                Lead.is_deleted.is_(False),
+                Lead.status == "CONVERTED"
+            )
+        )).scalar() or 0
+
+        deals_total = (await self.session.execute(
+            select(func.count(Deal.id)).where(Deal.tenant_id == tenant_id, Deal.is_deleted.is_(False))
+        )).scalar() or 0
+
+        deals_open = (await self.session.execute(
+            select(func.count(Deal.id)).where(
+                Deal.tenant_id == tenant_id,
+                Deal.is_deleted.is_(False),
+                Deal.status == "OPEN"
+            )
+        )).scalar() or 0
+
+        deals_won = (await self.session.execute(
+            select(func.count(Deal.id)).where(
+                Deal.tenant_id == tenant_id,
+                Deal.is_deleted.is_(False),
+                Deal.status == "WON"
+            )
+        )).scalar() or 0
+
+        pipeline_value = (await self.session.execute(
+            select(func.coalesce(func.sum(Deal.value), Decimal("0.00"))).where(
+                Deal.tenant_id == tenant_id,
+                Deal.is_deleted.is_(False),
+                Deal.status == "OPEN"
+            )
+        )).scalar() or Decimal("0.00")
+
+        won_revenue = (await self.session.execute(
+            select(func.coalesce(func.sum(Deal.value), Decimal("0.00"))).where(
+                Deal.tenant_id == tenant_id,
+                Deal.is_deleted.is_(False),
+                Deal.status == "WON"
+            )
+        )).scalar() or Decimal("0.00")
+
+        conversion_rate = (
+            float(leads_converted) / float(leads_total) * 100.0 if leads_total > 0 else 0.0
+        )
+
+        return {
+            "leads_total": leads_total,
+            "leads_open": leads_open,
+            "leads_converted": leads_converted,
+            "deals_total": deals_total,
+            "deals_open": deals_open,
+            "deals_won": deals_won,
+            "pipeline_value": float(pipeline_value),
+            "won_revenue": float(won_revenue),
+            "conversion_rate_pct": round(conversion_rate, 2),
+        }

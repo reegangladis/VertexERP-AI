@@ -19,13 +19,20 @@ from app.core.logging import logger
 from app.core.metrics import metrics_registry
 
 # Global async engine and sessionmaker instances
+_engine_kwargs: dict = {
+    "echo": settings.DATABASE_ECHO,
+}
+if "sqlite" not in settings.async_database_url:
+    _engine_kwargs.update(
+        pool_size=settings.DATABASE_POOL_SIZE,
+        max_overflow=settings.DATABASE_MAX_OVERFLOW,
+        pool_timeout=settings.DATABASE_POOL_TIMEOUT,
+        pool_pre_ping=True,
+    )
+
 engine: AsyncEngine = create_async_engine(
     settings.async_database_url,
-    pool_size=settings.DATABASE_POOL_SIZE,
-    max_overflow=settings.DATABASE_MAX_OVERFLOW,
-    pool_timeout=settings.DATABASE_POOL_TIMEOUT,
-    echo=settings.DATABASE_ECHO,
-    pool_pre_ping=True,
+    **_engine_kwargs,
 )
 
 async_session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(

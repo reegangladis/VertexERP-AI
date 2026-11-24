@@ -14,6 +14,7 @@ from app.modules.jobs.api import jobs_router
 from app.modules.manufacturing.api.router import mfg_router as manufacturing_router
 from app.modules.organization.api.router import router as organization_router
 from app.modules.procurement.api.router import router as procurement_router
+from app.modules.workflow.api.router import workflow_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
 
@@ -30,3 +31,4 @@ api_v1_router.include_router(manufacturing_router)
 api_v1_router.include_router(analytics_router)
 api_v1_router.include_router(ai_router)
 api_v1_router.include_router(jobs_router)
+api_v1_router.include_router(workflow_router)
