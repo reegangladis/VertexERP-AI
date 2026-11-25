@@ -57,13 +57,13 @@ export const ActivitiesPage: React.FC = () => {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case "CALL":
-        return <PhoneCall className="w-4 h-4 text-blue-600" />;
+        return <PhoneCall className="w-4 h-4 text-brand-400" />;
       case "MEETING":
-        return <Calendar className="w-4 h-4 text-purple-600" />;
+        return <Calendar className="w-4 h-4 text-fuchsia-400" />;
       case "EMAIL":
-        return <Mail className="w-4 h-4 text-indigo-600" />;
+        return <Mail className="w-4 h-4 text-brand-400" />;
       default:
-        return <CheckSquare className="w-4 h-4 text-emerald-600" />;
+        return <CheckSquare className="w-4 h-4 text-emerald-400" />;
     }
   };
 
@@ -73,10 +73,10 @@ export const ActivitiesPage: React.FC = () => {
       accessorKey: "activity_type",
       cell: (row: ActivityLogItem) => (
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-zinc-800/80 flex items-center justify-center">
             {getActivityIcon(row.activity_type)}
           </div>
-          <span className="font-semibold text-slate-800 text-xs">{row.activity_type}</span>
+          <span className="font-semibold text-zinc-100 text-xs">{row.activity_type}</span>
         </div>
       ),
     },
@@ -85,8 +85,8 @@ export const ActivitiesPage: React.FC = () => {
       accessorKey: "title",
       cell: (row: ActivityLogItem) => (
         <div>
-          <div className="font-semibold text-slate-900">{row.title}</div>
-          {row.description && <div className="text-xs text-slate-500 line-clamp-1">{row.description}</div>}
+          <div className="font-semibold text-zinc-100">{row.title}</div>
+          {row.description && <div className="text-xs text-zinc-400 line-clamp-1">{row.description}</div>}
         </div>
       ),
     },
@@ -97,10 +97,10 @@ export const ActivitiesPage: React.FC = () => {
         <span
           className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
             row.priority === "HIGH"
-              ? "bg-rose-50 text-rose-700 border border-rose-200"
+              ? "bg-rose-500/15 text-rose-300 border border-rose-500/30"
               : row.priority === "MEDIUM"
-              ? "bg-amber-50 text-amber-700 border border-amber-200"
-              : "bg-slate-100 text-slate-600"
+              ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+              : "bg-zinc-800/80 text-zinc-300"
           }`}
         >
           {row.priority}
@@ -111,7 +111,7 @@ export const ActivitiesPage: React.FC = () => {
       header: "Scheduled For",
       accessorKey: "scheduled_start",
       cell: (row: ActivityLogItem) => (
-        <span className="text-xs text-slate-600 font-medium">
+        <span className="text-xs text-zinc-300 font-medium">
           {row.scheduled_start ? formatDateTime(row.scheduled_start) : "Not scheduled"}
         </span>
       ),
@@ -130,14 +130,14 @@ export const ActivitiesPage: React.FC = () => {
       {/* Top Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Sales Activities & Follow-ups</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Sales Activities & Follow-ups</h1>
+          <p className="text-sm text-zinc-400">
             Log calls, meetings, client emails, and scheduled business interactions.
           </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-500 transition shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>Log Activity</span>
@@ -150,24 +150,24 @@ export const ActivitiesPage: React.FC = () => {
           title="Total Activities Logged"
           value={activities.length}
           subtitle="All engagements across leads and accounts"
-          icon={<CheckSquare className="w-5 h-5 text-indigo-600" />}
+          icon={<CheckSquare className="w-5 h-5 text-brand-400" />}
         />
         <StatCard
           title="Pending Follow-ups"
           value={pendingCount}
           subtitle="Scheduled tasks requiring attention"
-          icon={<Calendar className="w-5 h-5 text-amber-600" />}
+          icon={<Calendar className="w-5 h-5 text-amber-400" />}
         />
         <StatCard
           title="Completed Engagements"
           value={completedCount}
           subtitle="Concluded sales interactions"
-          icon={<CheckSquare className="w-5 h-5 text-emerald-600" />}
+          icon={<CheckSquare className="w-5 h-5 text-emerald-400" />}
         />
       </div>
 
       {/* Activities Table Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+      <div className="bg-zinc-900/80 rounded-2xl border border-zinc-800 shadow-sm p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -176,16 +176,16 @@ export const ActivitiesPage: React.FC = () => {
               placeholder="Search by title or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-medium">Filter Type:</span>
+            <span className="text-xs text-zinc-400 font-medium">Filter Type:</span>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-1.5 border rounded-xl border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="px-3 py-1.5 border rounded-xl border-zinc-800 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="ALL">All Activities</option>
               <option value="CALL">Calls</option>
@@ -206,13 +206,13 @@ export const ActivitiesPage: React.FC = () => {
 
       {/* Log Activity Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-lg">Log Sales Activity</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-zinc-900/80 rounded-2xl border border-zinc-800 shadow-xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+              <h3 className="font-bold text-zinc-100 text-lg">Log Sales Activity</h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+                className="text-slate-400 hover:text-zinc-300 text-lg font-bold"
               >
                 &times;
               </button>
@@ -221,7 +221,7 @@ export const ActivitiesPage: React.FC = () => {
             <div className="space-y-3.5 text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Activity Type</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Activity Type</label>
                   <select
                     value={formData.activity_type}
                     onChange={(e) =>
@@ -230,7 +230,7 @@ export const ActivitiesPage: React.FC = () => {
                         activity_type: e.target.value as "CALL" | "MEETING" | "EMAIL" | "EVENT",
                       })
                     }
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   >
                     <option value="CALL">Phone Call</option>
                     <option value="MEETING">Customer Meeting</option>
@@ -240,11 +240,11 @@ export const ActivitiesPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Priority</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Priority</label>
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -254,44 +254,44 @@ export const ActivitiesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Activity Title *</label>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">Activity Title *</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g. Discovery call with Chief Procurement Officer"
-                  className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Notes / Description</label>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">Notes / Description</label>
                 <textarea
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Key discussion points, objections, next action items..."
-                  className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Scheduled Date & Time</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Scheduled Date & Time</label>
                   <input
                     type="datetime-local"
                     value={formData.scheduled_start}
                     onChange={(e) => setFormData({ ...formData, scheduled_start: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   >
                     <option value="PENDING">Pending / Scheduled</option>
                     <option value="COMPLETED">Completed</option>
@@ -301,11 +301,11 @@ export const ActivitiesPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800/80">
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium"
+                className="px-4 py-2 rounded-xl border border-zinc-800 text-zinc-200 hover:bg-zinc-950/70 font-medium"
               >
                 Cancel
               </button>
@@ -313,7 +313,7 @@ export const ActivitiesPage: React.FC = () => {
                 type="button"
                 onClick={() => createMutation.mutate(formData)}
                 disabled={!formData.title || createMutation.isPending}
-                className="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
+                className="px-4 py-2 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-500 disabled:opacity-50 transition"
               >
                 {createMutation.isPending ? "Logging..." : "Log Activity"}
               </button>

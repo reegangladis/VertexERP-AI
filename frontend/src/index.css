@@ -5,24 +5,46 @@
 @layer base {
   :root {
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    /* Default Solaris Amber-Copper Palette (Zero Blue) */
+    --brand-50: 255 247 237;
+    --brand-100: 255 237 213;
+    --brand-200: 254 215 170;
+    --brand-300: 253 186 116;
+    --brand-400: 251 146 60;
+    --brand-500: 249 115 22;
+    --brand-600: 234 88 12;
+    --brand-700: 194 65 12;
+    --brand-800: 154 52 18;
+    --brand-900: 124 45 18;
+    --brand-950: 67 20 7;
+  }
+
+  body {
+    background-color: #09090b;
+    color: #fafafa;
   }
 }
 
-/* Custom Scrollbars */
+/* Warm Carbon Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #09090b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 3px;
+  background: #3f3f46;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #52525b;
+}
+
+.bg-obsidian-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
 }

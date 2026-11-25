@@ -123,9 +123,9 @@ export const DepartmentsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <GitFork className="w-5 h-5 text-indigo-400" /> Functional Departments
+            <GitFork className="w-5 h-5 text-amber-400" /> Functional Departments
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-zinc-400 mt-1">
             Organize departments, functional units, and departmental hierarchies.
           </p>
         </div>

@@ -87,9 +87,9 @@ export const CalendarsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-cyan-400" /> Work Calendars & Shifts
+            <Calendar className="w-5 h-5 text-brand-400" /> Work Calendars & Shifts
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-zinc-400 mt-1">
             Configure working day schedules, shift operating hours, and standard timezone profiles.
           </p>
         </div>
@@ -153,15 +153,41 @@ export const CalendarsPage: React.FC = () => {
                 </RequirePermission>
               </div>
 
-              <div className="space-y-1 text-xs text-slate-400 border-t border-slate-800/80 pt-3">
+              <div className="space-y-1.5 text-xs text-zinc-400 border-t border-zinc-800/80 pt-3">
                 <div className="flex justify-between">
                   <span>Timezone:</span>
-                  <span className="text-slate-200 font-medium">{cal.time_zone}</span>
+                  <span className="text-zinc-200 font-medium">{cal.time_zone}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Standard Hours/Day:</span>
-                  <span className="text-slate-200 font-medium">{cal.standard_hours_per_day} hrs</span>
+                  <span className="text-zinc-200 font-medium">{cal.standard_hours_per_day} hrs</span>
                 </div>
+                {cal.working_days && cal.working_days.length > 0 && (
+                  <div className="pt-2">
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1.5 font-semibold">
+                      Weekly Shift Cadence
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {["M", "T", "W", "T", "F", "S", "S"].map((lbl, idx) => {
+                        const wd = cal.working_days.find((w) => w.day_of_week === idx);
+                        const active = wd ? wd.is_working_day : idx < 5;
+                        return (
+                          <span
+                            key={idx}
+                            title={`${DAYS_OF_WEEK[idx]}: ${active ? `${wd?.start_time || "09:00"} - ${wd?.end_time || "17:00"}` : "Off"}`}
+                            className={`flex-1 py-1 text-center rounded-md text-[10px] font-bold border ${
+                              active
+                                ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                                : "bg-zinc-950 text-zinc-500 border-zinc-800"
+                            }`}
+                          >
+                            {lbl}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <Button

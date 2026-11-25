@@ -89,6 +89,29 @@ async def create_employee(
 
 
 @router.get(
+    "/me",
+    response_model=EmployeeResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Current User Employee Profile",
+)
+async def get_my_employee_record(
+    tenant_id: uuid.UUID = Depends(get_current_tenant_id),
+    org_id: uuid.UUID = Depends(get_current_organization_id),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> EmployeeResponse:
+    """Resolves the employee record linked to the authenticated user."""
+    service = EmployeeService(db)
+    emp = await service.repo.get_by_user_id(current_user.id, tenant_id, org_id)
+    if not emp:
+        emp = await service.repo.get_by_email(current_user.email, tenant_id, org_id)
+    if not emp:
+        from app.core.exceptions import NotFoundException
+        raise NotFoundException(f"No employee record linked to {current_user.email}")
+    return EmployeeResponse.model_validate(emp)
+
+
+@router.get(
     "/{employee_id}",
     response_model=EmployeeResponse,
     status_code=status.HTTP_200_OK,

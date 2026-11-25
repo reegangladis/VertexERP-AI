@@ -30,12 +30,21 @@ class LeaveService:
         self.leave_repo = LeaveRepository(session)
         self.emp_repo = EmployeeRepository(session)
 
+    async def _resolve_employee_id(
+        self, employee_or_user_id: uuid.UUID, tenant_id: uuid.UUID, org_id: uuid.UUID
+    ) -> uuid.UUID:
+        emp = await self.emp_repo.get_by_id(employee_or_user_id, tenant_id, org_id)
+        if emp:
+            return emp.id
+        emp_by_user = await self.emp_repo.get_by_user_id(employee_or_user_id, tenant_id, org_id)
+        if emp_by_user:
+            return emp_by_user.id
+        raise NotFoundException(f"Employee '{employee_or_user_id}' not found")
+
     async def _ensure_employee(
         self, employee_id: uuid.UUID, tenant_id: uuid.UUID, org_id: uuid.UUID
-    ) -> None:
-        emp = await self.emp_repo.get_by_id(employee_id, tenant_id, org_id)
-        if not emp:
-            raise NotFoundException(f"Employee '{employee_id}' not found")
+    ) -> uuid.UUID:
+        return await self._resolve_employee_id(employee_id, tenant_id, org_id)
 
     # Leave Types
     async def create_type(
@@ -92,9 +101,9 @@ class LeaveService:
         tenant_id: uuid.UUID,
         org_id: uuid.UUID,
     ) -> LeaveBalance:
-        await self._ensure_employee(employee_id, tenant_id, org_id)
+        resolved_emp_id = await self._ensure_employee(employee_id, tenant_id, org_id)
         balance = await self.leave_repo.get_balance(
-            employee_id, leave_type_id, fiscal_year, tenant_id, org_id
+            resolved_emp_id, leave_type_id, fiscal_year, tenant_id, org_id
         )
         if not balance:
             policy = await self.leave_repo.get_policy(leave_type_id, tenant_id, org_id)
@@ -102,7 +111,7 @@ class LeaveService:
             balance = LeaveBalance(
                 tenant_id=tenant_id,
                 organization_id=org_id,
-                employee_id=employee_id,
+                employee_id=resolved_emp_id,
                 leave_type_id=leave_type_id,
                 fiscal_year=fiscal_year,
                 allocated_days=allocated,
@@ -117,16 +126,16 @@ class LeaveService:
     async def list_balances(
         self, employee_id: uuid.UUID, fiscal_year: int, tenant_id: uuid.UUID, org_id: uuid.UUID
     ) -> Sequence[LeaveBalance]:
-        await self._ensure_employee(employee_id, tenant_id, org_id)
+        resolved_emp_id = await self._ensure_employee(employee_id, tenant_id, org_id)
         return await self.leave_repo.list_balances_for_employee(
-            employee_id, fiscal_year, tenant_id, org_id
+            resolved_emp_id, fiscal_year, tenant_id, org_id
         )
 
     # Requests
     async def submit_request(
         self, tenant_id: uuid.UUID, org_id: uuid.UUID, data: LeaveRequestCreate
     ) -> LeaveRequest:
-        await self._ensure_employee(data.employee_id, tenant_id, org_id)
+        resolved_emp_id = await self._ensure_employee(data.employee_id, tenant_id, org_id)
         leave_type = await self.leave_repo.get_type(data.leave_type_id, tenant_id, org_id)
         if not leave_type:
             raise NotFoundException(f"Leave type '{data.leave_type_id}' not found")
@@ -137,7 +146,7 @@ class LeaveService:
         # Check balance
         fiscal_year = data.start_date.year
         balance = await self.get_or_create_balance(
-            data.employee_id, data.leave_type_id, fiscal_year, tenant_id, org_id
+            resolved_emp_id, data.leave_type_id, fiscal_year, tenant_id, org_id
         )
         req_days = Decimal(str(data.total_days))
         available = Decimal(str(balance.balance_days)) - Decimal(str(balance.pending_days))
@@ -153,7 +162,7 @@ class LeaveService:
         req = LeaveRequest(
             tenant_id=tenant_id,
             organization_id=org_id,
-            employee_id=data.employee_id,
+            employee_id=resolved_emp_id,
             leave_type_id=data.leave_type_id,
             start_date=data.start_date,
             end_date=data.end_date,
@@ -174,7 +183,7 @@ class LeaveService:
         req = await self.leave_repo.get_request(request_id, tenant_id, org_id)
         if not req:
             raise NotFoundException(f"Leave request '{request_id}' not found")
-        if req.status not in ("SUBMITTED", "DRAFT"):
+        if req.status not in ("SUBMITTED", "PENDING", "DRAFT"):
             raise ValidationException(f"Cannot review leave request in '{req.status}' state")
 
         fiscal_year = req.start_date.year
@@ -209,4 +218,10 @@ class LeaveService:
         employee_id: uuid.UUID | None = None,
         status: str | None = None,
     ) -> Sequence[LeaveRequest]:
-        return await self.leave_repo.list_requests(tenant_id, org_id, employee_id, status)
+        resolved_emp_id = employee_id
+        if employee_id is not None:
+            try:
+                resolved_emp_id = await self._resolve_employee_id(employee_id, tenant_id, org_id)
+            except NotFoundException:
+                resolved_emp_id = employee_id
+        return await self.leave_repo.list_requests(tenant_id, org_id, resolved_emp_id, status)

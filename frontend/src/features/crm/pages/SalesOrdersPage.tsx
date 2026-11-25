@@ -38,12 +38,12 @@ export const SalesOrdersPage: React.FC = () => {
       accessorKey: "order_number",
       cell: (row: SalesOrderItemDto) => (
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-xs">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-bold text-xs">
             <ShoppingCart className="w-4 h-4" />
           </div>
           <div>
-            <div className="font-semibold text-slate-900">{row.order_number}</div>
-            <div className="text-[11px] text-slate-500">
+            <div className="font-semibold text-zinc-100">{row.order_number}</div>
+            <div className="text-[11px] text-zinc-400">
               {row.created_at ? formatDate(row.created_at) : "N/A"}
             </div>
           </div>
@@ -54,7 +54,7 @@ export const SalesOrdersPage: React.FC = () => {
       header: "Customer Account",
       accessorKey: "customer_id",
       cell: (row: SalesOrderItemDto) => (
-        <span className="font-medium text-slate-800">
+        <span className="font-medium text-zinc-100">
           {row.customer_id ? accountMap.get(row.customer_id) || "Direct Client" : "Unassigned"}
         </span>
       ),
@@ -63,7 +63,7 @@ export const SalesOrdersPage: React.FC = () => {
       header: "Order Amount",
       accessorKey: "grand_total",
       cell: (row: SalesOrderItemDto) => (
-        <span className="font-bold text-slate-900">{formatCurrency(row.grand_total)}</span>
+        <span className="font-bold text-zinc-100">{formatCurrency(row.grand_total)}</span>
       ),
     },
     {
@@ -80,8 +80,8 @@ export const SalesOrdersPage: React.FC = () => {
       {/* Top Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Sales Orders</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Sales Orders</h1>
+          <p className="text-sm text-zinc-400">
             Binding sales contracts, order confirmation tracking, and invoicing progression.
           </p>
         </div>
@@ -93,24 +93,24 @@ export const SalesOrdersPage: React.FC = () => {
           title="Total Confirmed Orders"
           value={orders.length}
           subtitle="Processed through sales cycle"
-          icon={<ShoppingCart className="w-5 h-5 text-indigo-600" />}
+          icon={<ShoppingCart className="w-5 h-5 text-brand-400" />}
         />
         <StatCard
           title="Cumulative Order Value"
           value={formatCurrency(totalRevenue)}
           subtitle="Total booking value"
-          icon={<CheckCircle className="w-5 h-5 text-emerald-600" />}
+          icon={<CheckCircle className="w-5 h-5 text-emerald-400" />}
         />
         <StatCard
           title="Active in Fulfillment"
           value={confirmedCount}
           subtitle="Orders awaiting dispatch / delivery"
-          icon={<Truck className="w-5 h-5 text-amber-600" />}
+          icon={<Truck className="w-5 h-5 text-amber-400" />}
         />
       </div>
 
       {/* Orders Table Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+      <div className="bg-zinc-900/80 rounded-2xl border border-zinc-800 shadow-sm p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -119,7 +119,7 @@ export const SalesOrdersPage: React.FC = () => {
               placeholder="Search by order number or account..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
             />
           </div>
         </div>

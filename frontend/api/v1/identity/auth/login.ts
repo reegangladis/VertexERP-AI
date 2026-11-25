@@ -29,20 +29,20 @@ export default async function handler(req: any, res: any) {
   const email = (body.email || "admin@vertexerp.com").toLowerCase().trim();
 
   let roles = ["SUPER_ADMIN", "TenantAdmin"];
-  let fullName = "Alexander Wright (Super Admin)";
+  let fullName = "System Administrator";
 
   if (email.includes("employee")) {
     roles = ["EMPLOYEE"];
-    fullName = "Jordan Lee (Employee)";
+    fullName = "Alex Morgan";
   } else if (email.includes("sales")) {
     roles = ["SALES_MANAGER"];
-    fullName = "Sophia Chen (Sales Director)";
+    fullName = "Marcus Sterling";
   } else if (email.includes("hr")) {
     roles = ["HR_MANAGER"];
-    fullName = "Marcus Vance (VP People Ops)";
+    fullName = "Eleanor Vance";
   } else if (email.includes("reegangladis")) {
     roles = ["SUPER_ADMIN", "TenantAdmin"];
-    fullName = "Reegan Gladis (Platform Owner)";
+    fullName = "Reegan Gladis";
   }
 
   return res.status(200).json({

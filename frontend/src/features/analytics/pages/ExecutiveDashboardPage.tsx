@@ -174,30 +174,30 @@ export const ExecutiveDashboardPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header & Period Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0d1424]/90 p-6 rounded-2xl border border-[#1b253b] backdrop-blur-2xl shadow-xl shadow-black/40">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/85 p-6 rounded-2xl border border-zinc-800 backdrop-blur-2xl shadow-xl shadow-black/50">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight text-white">Executive Command Center</h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-500/15 text-brand-300 border border-brand-500/30">
+              <Sparkles className="w-3.5 h-3.5 text-brand-400" />
               Realtime OLAP
             </span>
           </div>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-zinc-400 text-sm mt-1">
             Enterprise-wide telemetry across Financials, Sales Pipeline, Inventory, Manufacturing & Workforce.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-[#090e18] rounded-xl p-1 border border-[#202c44]">
+          <div className="flex items-center bg-zinc-950 rounded-xl p-1 border border-zinc-800">
             {(["TODAY", "THIS_WEEK", "THIS_MONTH", "THIS_QUARTER", "THIS_YEAR"] as DateFilterPeriod[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   period === p
-                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-gradient-to-r from-brand-600 to-amber-600 text-white shadow-md shadow-brand-600/30"
+                    : "text-zinc-400 hover:text-zinc-200"
                 }`}
               >
                 {p.replace("_", " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -208,10 +208,10 @@ export const ExecutiveDashboardPage: React.FC = () => {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="p-2.5 rounded-xl bg-[#0e1628] text-slate-300 hover:text-white hover:bg-indigo-600/20 border border-[#202d48] transition shadow-sm"
+            className="p-2.5 rounded-xl bg-zinc-950 text-zinc-300 hover:text-white hover:bg-brand-600/20 border border-zinc-800 transition shadow-sm"
             title="Refresh Analytics"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-brand-400" : ""}`} />
           </button>
         </div>
       </div>
@@ -222,7 +222,7 @@ export const ExecutiveDashboardPage: React.FC = () => {
           execSummary.kpis.map((kpi, i) => (
             <div
               key={kpi.code || kpi.kpi_code || String(i)}
-              className="bg-[#0d1424]/90 border border-[#1b253b] hover:border-indigo-500/50 rounded-2xl p-4 transition-all duration-200 hover:shadow-xl hover:shadow-indigo-600/10 group backdrop-blur-xl"
+              className="bg-zinc-900/85 border border-zinc-800 hover:border-brand-500/50 rounded-2xl p-4 transition-all duration-200 hover:shadow-xl hover:shadow-brand-600/10 group backdrop-blur-xl"
             >
               <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
                 <span className="font-medium truncate">{kpi.name}</span>
@@ -297,12 +297,12 @@ export const ExecutiveDashboardPage: React.FC = () => {
                       <div className="w-full flex items-end justify-center gap-1 h-full">
                         <div
                           style={{ height: `${revHeight}%` }}
-                          className="w-1/2 bg-gradient-to-t from-brand-600 to-indigo-400 rounded-t-sm transition-all duration-300 group-hover:brightness-125"
+                          className="w-1/2 bg-gradient-to-t from-brand-600 to-amber-400 rounded-t-sm transition-all duration-300 group-hover:brightness-125"
                           title={`Revenue: $${revVal.toLocaleString()}`}
                         />
                         <div
                           style={{ height: `${expHeight}%` }}
-                          className="w-1/2 bg-gradient-to-t from-slate-600 to-slate-500 rounded-t-sm transition-all duration-300 group-hover:brightness-125"
+                          className="w-1/2 bg-gradient-to-t from-zinc-600 to-zinc-500 rounded-t-sm transition-all duration-300 group-hover:brightness-125"
                           title={`Expenses: $${expVal.toLocaleString()}`}
                         />
                       </div>
@@ -355,10 +355,10 @@ export const ExecutiveDashboardPage: React.FC = () => {
                         <span className="font-medium text-slate-300">{b.dimension_label}</span>
                         <span className="text-slate-400 font-semibold">${totalAmt.toLocaleString()}</span>
                       </div>
-                      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
                         <div
                           style={{ width: `${Math.min(100, Math.max(0, pct || 10))}%` }}
-                          className="h-full bg-gradient-to-r from-brand-500 to-indigo-400 rounded-full"
+                          className="h-full bg-gradient-to-r from-brand-500 to-amber-400 rounded-full"
                         />
                       </div>
                     </div>
@@ -391,7 +391,7 @@ export const ExecutiveDashboardPage: React.FC = () => {
             title: "Sales & CRM Intelligence",
             desc: "Pipeline conversion, opportunity cohorts & bookings",
             to: "/analytics/sales",
-            icon: <ShoppingCart className="w-5 h-5 text-blue-400" />,
+            icon: <ShoppingCart className="w-5 h-5 text-brand-400" />,
             badge: "Bookings",
           },
           {

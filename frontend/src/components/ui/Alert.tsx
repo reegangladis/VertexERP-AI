@@ -19,16 +19,16 @@ export const Alert: React.FC<AlertProps> = ({
   ...props
 }) => {
   const icons = {
-    info: <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />,
+    info: <Info className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />,
     warning: <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />,
-    error: <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />,
+    error: <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />,
     success: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />,
   };
 
   const variants = {
-    info: "bg-blue-950/40 border-blue-800/60 text-blue-200",
+    info: "bg-brand-950/40 border-brand-800/60 text-brand-200",
     warning: "bg-amber-950/40 border-amber-800/60 text-amber-200",
-    error: "bg-red-950/40 border-red-800/60 text-red-200",
+    error: "bg-rose-950/40 border-rose-800/60 text-rose-200",
     success: "bg-emerald-950/40 border-emerald-800/60 text-emerald-200",
   };
 

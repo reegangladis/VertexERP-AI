@@ -176,7 +176,13 @@ def require_permission(permission_code: str) -> Callable[..., Any]:
         redis: Redis | None = Depends(get_optional_redis),
     ) -> dict[str, Any]:
         roles: list[str] = claims.get("roles", [])
-        admin_roles = {SystemRole.TENANT_ADMIN.value, "SystemAdmin", "Administrator"}
+        admin_roles = {
+            SystemRole.TENANT_ADMIN.value,
+            "SUPER_ADMIN",
+            "ORG_ADMIN",
+            "SystemAdmin",
+            "Administrator",
+        }
         is_admin = any(r in admin_roles for r in roles)
 
         if "permissions" not in claims:

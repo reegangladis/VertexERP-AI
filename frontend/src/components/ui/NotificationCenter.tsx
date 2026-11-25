@@ -1,90 +1,46 @@
 import React, { useState } from "react";
-import { Bell, Check, Clock, AlertTriangle, Info, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Bell, Clock, AlertTriangle, Info, CheckCircle2 } from "lucide-react";
 import { cn, formatDateTime } from "@/lib/utils";
-
-export interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
-  type: "INFO" | "WARNING" | "ACTION_REQUIRED" | "SUCCESS";
-  createdAt: string;
-  isRead: boolean;
-  link?: string;
-}
-
-const mockNotifications: NotificationItem[] = [
-  {
-    id: "notif-1",
-    title: "Leave Request Submitted",
-    message: "Sarah Connor has requested 2 days of Casual Leave pending review.",
-    type: "ACTION_REQUIRED",
-    createdAt: new Date().toISOString(),
-    isRead: false,
-    link: "/admin/approvals",
-  },
-  {
-    id: "notif-2",
-    title: "Payroll Run Completed",
-    message: "Monthly payroll batch for November 2026 was processed successfully.",
-    type: "SUCCESS",
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    isRead: false,
-    link: "/admin/hr/payroll",
-  },
-  {
-    id: "notif-3",
-    title: "Overdue Lead Follow-Up",
-    message: "Follow-up meeting with Cyberdyne Systems is overdue by 1 day.",
-    type: "WARNING",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    isRead: true,
-    link: "/admin/crm/leads",
-  },
-];
+import { demoStore, useDemoStore } from "@/lib/demo-store";
 
 export const NotificationCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(mockNotifications);
+  const navigate = useNavigate();
+  const demoState = useDemoStore();
+  const notifications = demoState.notifications;
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
-
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-  };
-
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
-  };
 
   return (
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-lg transition-colors relative"
+        className="p-2 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/70 rounded-xl transition-colors relative border border-transparent hover:border-zinc-700"
         title="Notifications"
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="w-2 h-2 rounded-full bg-brand-500 absolute top-1.5 right-1.5 animate-pulse" />
+          <span className="min-w-[16px] h-4 px-1 rounded-full bg-brand-500 text-white text-[9px] font-bold flex items-center justify-center absolute -top-1 -right-1 shadow-md shadow-brand-500/50">
+            {unreadCount}
+          </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-slate-800 bg-slate-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-zinc-800 bg-zinc-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
+          <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-200">Notifications</span>
+              <span className="text-xs font-bold text-zinc-100">Notifications</span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-400 border border-brand-500/30">
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30">
                   {unreadCount} new
                 </span>
               )}
             </div>
             {unreadCount > 0 && (
               <button
-                onClick={markAllRead}
+                onClick={() => demoStore.markAllNotificationsRead()}
                 className="text-[11px] text-brand-400 hover:text-brand-300 font-medium"
               >
                 Mark all as read
@@ -92,19 +48,25 @@ export const NotificationCenter: React.FC = () => {
             )}
           </div>
 
-          <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/60">
+          <div className="max-h-80 overflow-y-auto divide-y divide-zinc-800/70">
             {notifications.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-500">
+              <div className="py-8 text-center text-xs text-zinc-500">
                 No notifications to display.
               </div>
             ) : (
               notifications.map((item) => (
                 <div
                   key={item.id}
-                  onClick={() => markAsRead(item.id)}
+                  onClick={() => {
+                    demoStore.markNotificationRead(item.id);
+                    if (item.link) {
+                      navigate(item.link);
+                      setIsOpen(false);
+                    }
+                  }}
                   className={cn(
-                    "p-3.5 transition-colors cursor-pointer hover:bg-slate-800/40 flex gap-3 text-xs",
-                    !item.isRead && "bg-brand-500/[0.03]"
+                    "p-3.5 transition-colors cursor-pointer hover:bg-zinc-800/60 flex gap-3 text-xs",
+                    !item.isRead && "bg-brand-500/[0.06]"
                   )}
                 >
                   <div className="mt-0.5 shrink-0">
@@ -119,23 +81,17 @@ export const NotificationCenter: React.FC = () => {
                     )}
                     {item.type === "INFO" && <Info className="w-4 h-4 text-brand-400" />}
                   </div>
-
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-200">{item.title}</span>
-                      <span className="text-[10px] text-slate-500">
-                        {formatDateTime(item.createdAt)}
-                      </span>
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-zinc-100">{item.title}</span>
+                      {!item.isRead && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />
+                      )}
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">{item.message}</p>
-                    {item.link && (
-                      <a
-                        href={item.link}
-                        className="inline-block text-[11px] text-brand-400 hover:underline pt-0.5"
-                      >
-                        View Details &rarr;
-                      </a>
-                    )}
+                    <p className="text-zinc-400 leading-relaxed text-[11px]">{item.message}</p>
+                    <div className="text-[10px] text-zinc-500">
+                      {formatDateTime(item.createdAt)}
+                    </div>
                   </div>
                 </div>
               ))

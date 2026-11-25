@@ -71,19 +71,19 @@ export const ContactsPage: React.FC = () => {
         const fullName = `${row.first_name} ${row.last_name}`;
         return (
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs">
+            <div className="w-9 h-9 rounded-full bg-zinc-800/80 border border-zinc-800 flex items-center justify-center text-zinc-200 font-bold text-xs">
               {getInitials(fullName)}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-900">{fullName}</span>
+                <span className="font-semibold text-zinc-100">{fullName}</span>
                 {row.is_primary && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-brand-500/15 text-brand-300 border border-brand-500/30">
                     <CheckCircle2 className="w-2.5 h-2.5" /> Primary
                   </span>
                 )}
               </div>
-              <div className="text-xs text-slate-500">{row.title || "Key Stakeholder"}</div>
+              <div className="text-xs text-zinc-400">{row.title || "Key Stakeholder"}</div>
             </div>
           </div>
         );
@@ -93,7 +93,7 @@ export const ContactsPage: React.FC = () => {
       header: "Account / Company",
       accessorKey: "customer_id",
       cell: (row: ContactItem) => (
-        <div className="flex items-center gap-1.5 text-slate-700 font-medium">
+        <div className="flex items-center gap-1.5 text-zinc-200 font-medium">
           <Building2 className="w-3.5 h-3.5 text-slate-400" />
           <span>{row.customer_id ? accountMap.get(row.customer_id) || "Direct Client" : "Unassigned"}</span>
         </div>
@@ -103,7 +103,7 @@ export const ContactsPage: React.FC = () => {
       header: "Department",
       accessorKey: "department",
       cell: (row: ContactItem) => (
-        <span className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+        <span className="text-xs text-zinc-300 bg-zinc-800/80 px-2 py-0.5 rounded-md">
           {row.department || "Executive"}
         </span>
       ),
@@ -112,7 +112,7 @@ export const ContactsPage: React.FC = () => {
       header: "Direct Phone",
       accessorKey: "phone",
       cell: (row: ContactItem) => (
-        <div className="flex items-center gap-1.5 text-xs text-slate-600">
+        <div className="flex items-center gap-1.5 text-xs text-zinc-300">
           <Phone className="w-3.5 h-3.5 text-slate-400" />
           <span>{row.phone || "N/A"}</span>
         </div>
@@ -122,7 +122,7 @@ export const ContactsPage: React.FC = () => {
       header: "Email Address",
       accessorKey: "email",
       cell: (row: ContactItem) => (
-        <div className="flex items-center gap-1.5 text-xs text-indigo-600">
+        <div className="flex items-center gap-1.5 text-xs text-brand-400">
           <Mail className="w-3.5 h-3.5 text-indigo-400" />
           <span>{row.email || "N/A"}</span>
         </div>
@@ -135,14 +135,14 @@ export const ContactsPage: React.FC = () => {
       {/* Top Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Business Contacts</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Business Contacts</h1>
+          <p className="text-sm text-zinc-400">
             Client stakeholders, decision makers, and corporate points of contact.
           </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-500 transition shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>New Contact</span>
@@ -155,24 +155,24 @@ export const ContactsPage: React.FC = () => {
           title="Total Contacts"
           value={contacts.length}
           subtitle="Directory of business stakeholders"
-          icon={<UserCheck className="w-5 h-5 text-indigo-600" />}
+          icon={<UserCheck className="w-5 h-5 text-brand-400" />}
         />
         <StatCard
           title="Primary Decision Makers"
           value={primaryCount}
           subtitle="Designated primary corporate leads"
-          icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+          icon={<CheckCircle2 className="w-5 h-5 text-emerald-400" />}
         />
         <StatCard
           title="Connected Accounts"
           value={accounts.length}
           subtitle="Accounts with linked stakeholders"
-          icon={<Building2 className="w-5 h-5 text-sky-600" />}
+          icon={<Building2 className="w-5 h-5 text-emerald-400" />}
         />
       </div>
 
       {/* Contacts Table Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+      <div className="bg-zinc-900/80 rounded-2xl border border-zinc-800 shadow-sm p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -181,7 +181,7 @@ export const ContactsPage: React.FC = () => {
               placeholder="Search by contact name, email, or account..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
             />
           </div>
         </div>
@@ -196,13 +196,13 @@ export const ContactsPage: React.FC = () => {
 
       {/* Add Contact Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-lg">Add Business Contact</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-zinc-900/80 rounded-2xl border border-zinc-800 shadow-xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+              <h3 className="font-bold text-zinc-100 text-lg">Add Business Contact</h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+                className="text-slate-400 hover:text-zinc-300 text-lg font-bold"
               >
                 &times;
               </button>
@@ -211,33 +211,33 @@ export const ContactsPage: React.FC = () => {
             <div className="space-y-3.5 text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">First Name *</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">First Name *</label>
                   <input
                     type="text"
                     value={formData.first_name}
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                     placeholder="Jane"
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Last Name *</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Last Name *</label>
                   <input
                     type="text"
                     value={formData.last_name}
                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                     placeholder="Doe"
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Customer Account</label>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">Customer Account</label>
                 <select
                   value={formData.customer_id || ""}
                   onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                   <option value="">Select Account (Optional)</option>
                   {accounts.map((a) => (
@@ -250,46 +250,46 @@ export const ContactsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Job Title</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Job Title</label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="VP of Procurement"
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Department</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Department</label>
                   <input
                     type="text"
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     placeholder="Purchasing / IT"
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Work Email</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Work Email</label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="jane.doe@client.com"
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Phone Number</label>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Phone Number</label>
                   <input
                     type="text"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+1 (555) 012-3456"
-                    className="w-full px-3 py-2 border rounded-xl border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 border rounded-xl border-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
               </div>
@@ -300,19 +300,19 @@ export const ContactsPage: React.FC = () => {
                   id="is_primary"
                   checked={formData.is_primary}
                   onChange={(e) => setFormData({ ...formData, is_primary: e.target.checked })}
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  className="rounded border-zinc-700 text-brand-400 focus:ring-indigo-500"
                 />
-                <label htmlFor="is_primary" className="text-xs font-medium text-slate-700">
+                <label htmlFor="is_primary" className="text-xs font-medium text-zinc-200">
                   Designate as primary contact for this account
                 </label>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800/80">
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium"
+                className="px-4 py-2 rounded-xl border border-zinc-800 text-zinc-200 hover:bg-zinc-950/70 font-medium"
               >
                 Cancel
               </button>
@@ -320,7 +320,7 @@ export const ContactsPage: React.FC = () => {
                 type="button"
                 onClick={() => createMutation.mutate(formData)}
                 disabled={!formData.first_name || !formData.last_name || createMutation.isPending}
-                className="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
+                className="px-4 py-2 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-500 disabled:opacity-50 transition"
               >
                 {createMutation.isPending ? "Saving..." : "Save Contact"}
               </button>

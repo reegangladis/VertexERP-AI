@@ -27,6 +27,16 @@ export class ApiException extends Error {
 
 const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL as string) || "/api/v1";
 
+/**
+ * Tracks whether the last API response came from Vercel's stateless serverless
+ * demo router (identified via X-Vertex-Demo: serverless) so client stores
+ * preserve interactive user mutations seamlessly without disturbing Vitest mocks.
+ */
+let _isServerlessDemoMode = false;
+export function isServerlessDemoMode(): boolean {
+  return _isServerlessDemoMode;
+}
+
 export async function apiClient<T = any>(
   endpoint: string,
   options: RequestInit = {}
@@ -50,6 +60,14 @@ export async function apiClient<T = any>(
   };
 
   const response = await fetch(normalizedEndpoint, config);
+
+  if (
+    response.headers &&
+    typeof response.headers.get === "function" &&
+    response.headers.get("x-vertex-demo") === "serverless"
+  ) {
+    _isServerlessDemoMode = true;
+  }
 
   if (response.status === 204) {
     return {} as T;

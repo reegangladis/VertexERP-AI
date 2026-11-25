@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { approvalsApi } from "../api/approvalsApi";
 import { UnifiedApprovalItem, WorkflowStats } from "../types";
+import { useDemoStore } from "@/lib/demo-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { StatCard } from "@/components/ui/StatCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ApprovalTimeline } from "@/components/ui/ApprovalTimeline";
@@ -15,12 +17,14 @@ import {
   Clock,
   FileText,
   DollarSign,
-  AlertCircle,
-  Filter,
 } from "lucide-react";
 
 export const ApprovalsInboxPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const { fullName } = useAuthStore();
+  // Subscribe to demoStore changes so Employee submissions appear live
+  useDemoStore();
+
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
   const [actionItem, setActionItem] = useState<{
     item: UnifiedApprovalItem;
@@ -50,7 +54,14 @@ export const ApprovalsInboxPage: React.FC = () => {
       entityId: string;
       action: "APPROVE" | "REJECT" | "RETURN";
       commentText?: string;
-    }) => approvalsApi.processAction(entityType, entityId, action, commentText),
+    }) =>
+      approvalsApi.processAction(
+        entityType,
+        entityId,
+        action,
+        commentText,
+        fullName || "Eleanor Vance (Manager)"
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workflow-inbox"] });
       queryClient.invalidateQueries({ queryKey: ["workflow-stats"] });
@@ -73,23 +84,28 @@ export const ApprovalsInboxPage: React.FC = () => {
   const getCategoryIcon = (type: string) => {
     switch (type) {
       case "LEAVE":
-        return <Calendar className="w-4 h-4 text-indigo-600" />;
+        return <Calendar className="w-4 h-4 text-brand-400" />;
       case "REGULARIZATION":
-        return <Clock className="w-4 h-4 text-purple-600" />;
+        return <Clock className="w-4 h-4 text-amber-400" />;
       case "QUOTATION":
-        return <FileText className="w-4 h-4 text-emerald-600" />;
+        return <FileText className="w-4 h-4 text-emerald-400" />;
       default:
-        return <DollarSign className="w-4 h-4 text-blue-600" />;
+        return <DollarSign className="w-4 h-4 text-orange-400" />;
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Centralized Approvals Inbox</h1>
-        <p className="text-sm text-slate-500">
-          Unified governance center for managerial sign-offs across HR, CRM, and Finance.
+      <div className="bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-6 backdrop-blur-xl">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-brand-400">
+          Governance & Sign-Off Console
+        </span>
+        <h1 className="text-2xl font-bold text-zinc-50 tracking-tight mt-1">
+          Centralized Approvals Inbox
+        </h1>
+        <p className="text-sm text-zinc-400 mt-0.5">
+          Approve or reject employee Leave Requests, Attendance Adjustments, and Commercial Quotes in real time.
         </p>
       </div>
 
@@ -99,30 +115,30 @@ export const ApprovalsInboxPage: React.FC = () => {
           title="Total Pending"
           value={stats?.pending_total || 0}
           subtitle="Awaiting authorization"
-          icon={<Inbox className="w-5 h-5 text-indigo-600" />}
+          icon={<Inbox className="w-5 h-5 text-brand-400" />}
         />
         <StatCard
           title="Pending Leaves"
           value={stats?.pending_leaves || 0}
-          subtitle="Time off requests"
-          icon={<Calendar className="w-5 h-5 text-purple-600" />}
+          subtitle="Employee time-off requests"
+          icon={<Calendar className="w-5 h-5 text-amber-400" />}
         />
         <StatCard
           title="Attendance Adjustments"
           value={stats?.pending_regularizations || 0}
           subtitle="Punch corrections"
-          icon={<Clock className="w-5 h-5 text-amber-600" />}
+          icon={<Clock className="w-5 h-5 text-orange-400" />}
         />
         <StatCard
           title="Commercial Quotes"
           value={stats?.pending_quotations || 0}
           subtitle="Sales proposals"
-          icon={<FileText className="w-5 h-5 text-emerald-600" />}
+          icon={<FileText className="w-5 h-5 text-emerald-400" />}
         />
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 pb-3">
         {[
           { key: "ALL", label: "All Pending" },
           { key: "LEAVE", label: "Leave Requests" },
@@ -134,8 +150,8 @@ export const ApprovalsInboxPage: React.FC = () => {
             onClick={() => setActiveCategory(tab.key)}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
               activeCategory === tab.key
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                ? "bg-gradient-to-r from-brand-600 to-amber-600 text-white shadow-md shadow-brand-600/20"
+                : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
             }`}
           >
             {tab.label}
@@ -146,14 +162,14 @@ export const ApprovalsInboxPage: React.FC = () => {
       {/* Inbox Items List */}
       <div className="space-y-3">
         {isLoading && (
-          <div className="text-center py-12 text-slate-400 text-sm">Loading approval items...</div>
+          <div className="text-center py-12 text-zinc-400 text-sm">Loading approval items...</div>
         )}
 
         {!isLoading && items.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-2">
-            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-            <h3 className="font-bold text-slate-800 text-base">Inbox Clean!</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <div className="bg-zinc-900/60 rounded-2xl border border-zinc-800 p-12 text-center space-y-2">
+            <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
+            <h3 className="font-bold text-zinc-100 text-base">Inbox Clean!</h3>
+            <p className="text-xs text-zinc-400 max-w-sm mx-auto">
               No pending approval requests require your attention in this category.
             </p>
           </div>
@@ -162,21 +178,21 @@ export const ApprovalsInboxPage: React.FC = () => {
         {items.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:border-indigo-200 transition flex flex-col md:flex-row md:items-center justify-between gap-4"
+            className="bg-zinc-900/75 rounded-2xl border border-zinc-800 p-5 shadow-lg hover:border-brand-500/40 transition flex flex-col md:flex-row md:items-center justify-between gap-4"
           >
             <div className="flex items-start gap-4 flex-1">
-              <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center flex-shrink-0 mt-0.5">
                 {getCategoryIcon(item.entity_type)}
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-slate-900 text-sm">{item.title}</span>
+                  <span className="font-bold text-zinc-100 text-sm">{item.title}</span>
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       item.priority === "HIGH"
-                        ? "bg-rose-50 text-rose-700 border border-rose-200"
-                        : "bg-slate-100 text-slate-600"
+                        ? "bg-rose-500/15 text-rose-300 border border-rose-500/30"
+                        : "bg-zinc-800 text-zinc-300 border border-zinc-700"
                     }`}
                   >
                     {item.priority} Priority
@@ -184,15 +200,17 @@ export const ApprovalsInboxPage: React.FC = () => {
                   <StatusBadge status={item.status} />
                 </div>
 
-                <div className="text-xs text-slate-600">{item.summary}</div>
+                <div className="text-xs text-zinc-300">{item.summary}</div>
 
-                <div className="text-[11px] text-slate-400 flex items-center gap-3 pt-1">
-                  <span>Requested by: <strong className="text-slate-700">{item.requester_name}</strong></span>
-                  {item.created_at && (
-                    <span>Submitted: {formatDate(item.created_at)}</span>
-                  )}
+                <div className="text-[11px] text-zinc-400 flex items-center gap-3 pt-1">
+                  <span>
+                    Requested by: <strong className="text-zinc-200">{item.requester_name}</strong>
+                  </span>
+                  {item.created_at && <span>Submitted: {formatDate(item.created_at)}</span>}
                   {item.amount && (
-                    <span>Amount: <strong className="text-slate-800">{formatCurrency(item.amount)}</strong></span>
+                    <span>
+                      Amount: <strong className="text-amber-400">{formatCurrency(item.amount)}</strong>
+                    </span>
                   )}
                 </div>
               </div>
@@ -202,27 +220,27 @@ export const ApprovalsInboxPage: React.FC = () => {
             <div className="flex items-center gap-2 self-end md:self-center">
               <button
                 onClick={() => setSelectedDetails(item)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                className="px-3 py-1.5 rounded-xl border border-zinc-700 text-xs font-semibold text-zinc-200 hover:bg-zinc-800 transition"
               >
                 Inspect
               </button>
               <button
                 onClick={() => setActionItem({ item, action: "RETURN" })}
-                className="px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 text-xs font-semibold transition flex items-center gap-1"
+                className="px-3 py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 text-xs font-semibold transition flex items-center gap-1"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Return</span>
               </button>
               <button
                 onClick={() => setActionItem({ item, action: "REJECT" })}
-                className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-semibold transition flex items-center gap-1"
+                className="px-3 py-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 text-xs font-semibold transition flex items-center gap-1"
               >
                 <XCircle className="w-3.5 h-3.5" />
                 <span>Reject</span>
               </button>
               <button
                 onClick={() => setActionItem({ item, action: "APPROVE" })}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold transition flex items-center gap-1 shadow-sm"
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 text-xs font-semibold transition flex items-center gap-1 shadow-md shadow-emerald-950/50"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Approve</span>
@@ -234,13 +252,13 @@ export const ApprovalsInboxPage: React.FC = () => {
 
       {/* Action Confirmation Modal */}
       {actionItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                {actionItem.action === "APPROVE" && <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
-                {actionItem.action === "REJECT" && <XCircle className="w-5 h-5 text-rose-600" />}
-                {actionItem.action === "RETURN" && <RotateCcw className="w-5 h-5 text-amber-600" />}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <h3 className="font-bold text-zinc-100 text-base flex items-center gap-2">
+                {actionItem.action === "APPROVE" && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
+                {actionItem.action === "REJECT" && <XCircle className="w-5 h-5 text-rose-400" />}
+                {actionItem.action === "RETURN" && <RotateCcw className="w-5 h-5 text-amber-400" />}
                 <span>
                   {actionItem.action === "APPROVE"
                     ? "Confirm Approval"
@@ -251,21 +269,20 @@ export const ApprovalsInboxPage: React.FC = () => {
               </h3>
               <button
                 onClick={() => setActionItem(null)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+                className="text-zinc-400 hover:text-zinc-200 text-lg font-bold"
               >
                 &times;
               </button>
             </div>
 
             <div className="space-y-3 text-sm">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700">
-                <strong>Item:</strong> {actionItem.item.title}
-                <br />
-                <strong>Requester:</strong> {actionItem.item.requester_name}
+              <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs text-zinc-300 space-y-1">
+                <div><strong>Item:</strong> {actionItem.item.title}</div>
+                <div><strong>Requester:</strong> {actionItem.item.requester_name}</div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                   {actionItem.action === "APPROVE" ? "Remarks (Optional)" : "Reason / Feedback *"}
                 </label>
                 <textarea
@@ -277,16 +294,16 @@ export const ApprovalsInboxPage: React.FC = () => {
                       ? "Approved in accordance with company policy."
                       : "Please specify why this request cannot be approved as submitted..."
                   }
-                  className="w-full px-3 py-2 border rounded-xl border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-2 bg-zinc-950 border rounded-xl border-zinc-800 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-brand-500"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
               <button
                 type="button"
                 onClick={() => setActionItem(null)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold"
+                className="px-4 py-2 rounded-xl border border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs font-semibold"
               >
                 Cancel
               </button>
@@ -299,15 +316,13 @@ export const ApprovalsInboxPage: React.FC = () => {
                 }
                 className={`px-4 py-2 rounded-xl text-xs font-semibold text-white transition disabled:opacity-50 ${
                   actionItem.action === "APPROVE"
-                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    ? "bg-emerald-600 hover:bg-emerald-500"
                     : actionItem.action === "REJECT"
-                    ? "bg-rose-600 hover:bg-rose-700"
-                    : "bg-amber-600 hover:bg-amber-700"
+                    ? "bg-rose-600 hover:bg-rose-500"
+                    : "bg-amber-600 hover:bg-amber-500"
                 }`}
               >
-                {actionMutation.isPending
-                  ? "Processing..."
-                  : `Confirm ${actionItem.action}`}
+                {actionMutation.isPending ? "Processing..." : `Confirm ${actionItem.action}`}
               </button>
             </div>
           </div>
@@ -316,42 +331,42 @@ export const ApprovalsInboxPage: React.FC = () => {
 
       {/* Details & Approval Timeline Modal */}
       {selectedDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-base">{selectedDetails.title}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <h3 className="font-bold text-zinc-100 text-base">{selectedDetails.title}</h3>
               <button
                 onClick={() => setSelectedDetails(null)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+                className="text-zinc-400 hover:text-zinc-200 text-lg font-bold"
               >
                 &times;
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2">
+              <div className="bg-zinc-950 p-3.5 rounded-xl border border-zinc-800 space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Requester:</span>
-                  <span className="font-semibold text-slate-800">{selectedDetails.requester_name}</span>
+                  <span className="text-zinc-400">Requester:</span>
+                  <span className="font-semibold text-zinc-100">{selectedDetails.requester_name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Submitted On:</span>
-                  <span className="font-semibold text-slate-800">
+                  <span className="text-zinc-400">Submitted On:</span>
+                  <span className="font-semibold text-zinc-200">
                     {selectedDetails.created_at ? formatDate(selectedDetails.created_at) : "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Current Status:</span>
+                  <span className="text-zinc-400">Current Status:</span>
                   <StatusBadge status={selectedDetails.status} />
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Summary:</span>
-                  <span className="font-semibold text-slate-800 text-right">{selectedDetails.summary}</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-zinc-400 shrink-0">Summary:</span>
+                  <span className="font-semibold text-zinc-200 text-right">{selectedDetails.summary}</span>
                 </div>
               </div>
 
               <div>
-                <h4 className="font-bold text-slate-800 mb-2">Multi-Level Approval Flow</h4>
+                <h4 className="font-bold text-zinc-200 mb-2">Multi-Level Approval Flow</h4>
                 <ApprovalTimeline
                   steps={[
                     {
@@ -359,30 +374,30 @@ export const ApprovalsInboxPage: React.FC = () => {
                       approver: selectedDetails.requester_name,
                       status: "APPROVED",
                       timestamp: selectedDetails.created_at,
-                      comment: "Initial submission",
+                      comment: "Initial request submitted",
                     },
                     {
                       label: "Managerial Sign-off",
-                      approver: "Department Manager / HR",
+                      approver: fullName || "Department Manager / HR",
                       status: selectedDetails.status === "APPROVED" ? "APPROVED" : "PENDING",
-                      comment: "Pending executive review",
+                      comment: "Awaiting manager approval decision",
                     },
                     {
-                      label: "System Execution",
-                      approver: "Automated Ledger Engine",
+                      label: "Leave Balance & Ledger Sync",
+                      approver: "VertexHR Policy Engine",
                       status: selectedDetails.status === "APPROVED" ? "APPROVED" : "PENDING",
-                      comment: "Will post to payroll/ledger automatically upon final sign-off",
+                      comment: "Automatically updates remaining quotas upon approval",
                     },
                   ]}
                 />
               </div>
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-100">
+            <div className="flex justify-end pt-3 border-t border-zinc-800">
               <button
                 type="button"
                 onClick={() => setSelectedDetails(null)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold"
+                className="px-4 py-2 rounded-xl bg-zinc-800 text-zinc-200 hover:bg-zinc-700 text-xs font-semibold"
               >
                 Close
               </button>

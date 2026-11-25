@@ -79,10 +79,10 @@ export const HolidaysPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Sun className="w-5 h-5 text-yellow-400" /> Organization Holidays
+            <Sun className="w-5 h-5 text-amber-400" /> Organization Holidays
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Configure observed national, regional, and company holidays.
+          <p className="text-xs text-zinc-400 mt-1">
+            Configure observed national, regional, and company holidays across calendars.
           </p>
         </div>
 

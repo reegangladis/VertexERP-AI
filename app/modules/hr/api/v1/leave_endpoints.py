@@ -107,7 +107,7 @@ async def create_leave_policy(
 )
 async def get_leave_balances(
     employee_id: uuid.UUID,
-    fiscal_year: int = Query(2024),
+    fiscal_year: int = Query(2026),
     tenant_id: uuid.UUID = Depends(get_current_tenant_id),
     org_id: uuid.UUID = Depends(get_current_organization_id),
     db: AsyncSession = Depends(get_db),

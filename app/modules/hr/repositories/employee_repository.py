@@ -28,6 +28,18 @@ class EmployeeRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_by_user_id(
+        self, user_id: uuid.UUID, tenant_id: uuid.UUID, org_id: uuid.UUID
+    ) -> Employee | None:
+        stmt = select(Employee).where(
+            Employee.user_id == user_id,
+            Employee.tenant_id == tenant_id,
+            Employee.organization_id == org_id,
+            Employee.is_deleted.is_(False),
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def get_by_number(
         self, employee_number: str, tenant_id: uuid.UUID, org_id: uuid.UUID
     ) -> Employee | None:

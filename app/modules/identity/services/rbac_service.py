@@ -26,6 +26,50 @@ SYSTEM_ROLE_PERMISSIONS: dict[str, set[str]] = {
     "Administrator": {p.value for p in PermissionCode},
     "SystemAdmin": {p.value for p in PermissionCode},
     "Admin": {p.value for p in PermissionCode},
+    "SUPER_ADMIN": {p.value for p in PermissionCode},
+    "ORG_ADMIN": {
+        p.value
+        for p in PermissionCode
+        if not p.value.startswith("audit:security_events")
+        and p.value != PermissionCode.ORGANIZATION_DELETE.value
+    },
+    "HR_MANAGER": {
+        p.value
+        for p in PermissionCode
+        if p.value.startswith("hr:") or p.value.startswith("organization:")
+    },
+    "SALES_MANAGER": {
+        p.value
+        for p in PermissionCode
+        if p.value.startswith("crm:") or p.value.startswith("organization:")
+    },
+    "FINANCE_MANAGER": {
+        p.value
+        for p in PermissionCode
+        if p.value.startswith("finance:")
+        or p.value.startswith("analytics:")
+        or p.value.startswith("procurement:")
+        or p.value.startswith("organization:")
+    },
+    "EMPLOYEE": {
+        p.value
+        for p in PermissionCode
+        if (
+            p.value.startswith("organization:") and p.value.endswith(":read")
+        )
+        or p.value in {
+            PermissionCode.HR_EMPLOYEES_READ.value,
+            PermissionCode.HR_PROFILES_READ.value,
+            PermissionCode.HR_ATTENDANCE_READ.value,
+            PermissionCode.HR_ATTENDANCE_WRITE.value,
+            PermissionCode.HR_LEAVES_READ.value,
+            PermissionCode.HR_LEAVES_WRITE.value,
+            PermissionCode.HR_PAYROLL_READ.value,
+            PermissionCode.HR_PERFORMANCE_READ.value,
+            PermissionCode.HR_LEARNING_READ.value,
+            PermissionCode.AI_COPILOT_USE.value,
+        }
+    },
     SystemRole.CFO.value: {
         p.value
         for p in PermissionCode

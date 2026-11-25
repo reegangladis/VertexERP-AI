@@ -109,9 +109,9 @@ export const TeamsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Users className="w-5 h-5 text-sky-400" /> Teams & Pods
+            <Users className="w-5 h-5 text-emerald-400" /> Teams & Pods
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-zinc-400 mt-1">
             Manage departmental units, cross-functional squads, and member rosters.
           </p>
         </div>

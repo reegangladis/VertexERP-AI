@@ -235,22 +235,43 @@ async def process_approval_action(
     new_status = "APPROVED" if payload.action == "APPROVE" else "REJECTED" if payload.action == "REJECT" else "RETURNED"
 
     if entity_upper == "LEAVE":
-        stmt = (
-            update(LeaveRequest)
-            .where(
-                LeaveRequest.id == entity_id,
-                LeaveRequest.tenant_id == current_user.tenant_id,
-            )
-            .values(
-                status=new_status,
-                approver_id=current_user.id,
-                approved_at=now,
-                remarks=payload.comments,
-            )
+        from decimal import Decimal
+        leave_stmt = select(LeaveRequest).where(
+            LeaveRequest.id == entity_id,
+            LeaveRequest.tenant_id == current_user.tenant_id,
         )
-        res = await db.execute(stmt)
-        if res.rowcount == 0:
+        leave_res = await db.execute(leave_stmt)
+        leave_req = leave_res.scalar_one_or_none()
+        if not leave_req:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Leave request not found.")
+
+        leave_req.status = new_status
+        leave_req.approver_id = current_user.id
+        leave_req.approved_at = now
+        leave_req.remarks = payload.comments
+
+        # Sync LeaveBalance atomically
+        bal_stmt = select(LeaveBalance).where(
+            LeaveBalance.employee_id == leave_req.employee_id,
+            LeaveBalance.leave_type_id == leave_req.leave_type_id,
+            LeaveBalance.fiscal_year == leave_req.start_date.year,
+            LeaveBalance.tenant_id == current_user.tenant_id,
+        )
+        bal_res = await db.execute(bal_stmt)
+        balance = bal_res.scalar_one_or_none()
+        if balance:
+            req_days = Decimal(str(leave_req.total_days))
+            pending_days = Decimal(str(balance.pending_days or 0))
+            used_days = Decimal(str(balance.used_days or 0))
+            balance_days = Decimal(str(balance.balance_days or 0))
+            if new_status == "APPROVED":
+                balance.pending_days = max(Decimal("0.0"), pending_days - req_days)
+                balance.used_days = used_days + req_days
+                balance.balance_days = max(Decimal("0.0"), balance_days - req_days)
+            elif new_status in ("REJECTED", "RETURNED"):
+                balance.pending_days = max(Decimal("0.0"), pending_days - req_days)
+            balance.updated_at = now
+
         await db.commit()
 
     elif entity_upper == "REGULARIZATION":
