@@ -212,21 +212,12 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Header */}
-        <div>
+        <div className="mb-6">
           <h1 className="text-3xl sm:text-[32px] font-bold tracking-tight text-white">
             Log in to continue
           </h1>
           <p className="mt-1.5 text-sm text-zinc-400 font-normal">
             Welcome back! Select a persona below or enter your credentials.
-          </p>
-        </div>
-
-        {/* Notice Info Banner */}
-        <div className="mt-5 mb-5 flex items-start gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-3.5">
-          <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-brand-400 shadow-[0_0_8px_rgba(251,146,60,0.9)]" />
-          <p className="text-xs leading-relaxed text-zinc-300">
-            Sign in as <strong className="text-emerald-400">Employee</strong> to apply for leave, then switch to{" "}
-            <strong className="text-amber-400">HR Manager</strong> or <strong className="text-brand-400">Admin</strong> to approve it in real time.
           </p>
         </div>
 
