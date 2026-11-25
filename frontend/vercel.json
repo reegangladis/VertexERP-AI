@@ -5,6 +5,22 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/v1/identity/auth/login",
+      "destination": "/api/v1/identity/auth/login"
+    },
+    {
+      "source": "/api/v1/identity/auth/me",
+      "destination": "/api/v1/identity/auth/me"
+    },
+    {
+      "source": "/api/v1/identity/auth/logout",
+      "destination": "/api/v1/identity/auth/logout"
+    },
+    {
+      "source": "/api/v1/(.*)",
+      "destination": "/api/v1/router?route=$1"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
